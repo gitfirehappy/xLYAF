@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 using XLua;
 
@@ -21,6 +22,9 @@ public static class LuaDelegateConfig
     [CSharpCallLua]
     public delegate void Action_TMP_Text_int(TMP_Text text, int num);
     
+    [CSharpCallLua]
+    public delegate Vector3 Action_return_Vector3();
+    
     // 必须添加这个静态字段以支持代码生成
     [CSharpCallLua]
     public static List<Type> csharpCallLuaTypes = new List<Type>
@@ -28,6 +32,8 @@ public static class LuaDelegateConfig
         typeof(Action_TMP_Text_string),
         typeof(Action_TMP_Text),
         typeof(Action_Image_string),
-        typeof(Action_TMP_Text_int)
+        typeof(Action_TMP_Text_int),
+        typeof(Action_return_Vector3),
+        typeof(Func<LuaTable>)
     };
 }
