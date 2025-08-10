@@ -16,7 +16,7 @@ public class Lesson1 : MonoBehaviour
         luaInit.luaEnv.DoString("require 'Lesson1_lua_call_unity'");
         //C#调Lua函数并获取返回值
         luaInit.luaEnv.DoString("require 'Lesson1_lua_functions'");
-        var add = luaInit.luaEnv.Global.Get<LuaDelegateConfig.AddDelegate>("add");
+        Func<int,int,int> add = luaInit.luaEnv.Global.Get<Func<int,int,int>>("add");
         int result = add(10, 20);
         Debug.Log("Lua add result" + result);
         //Lua操作GameObject
