@@ -25,6 +25,12 @@ namespace XLua.CSObjectWrap
             translator.DelayWrapLoader(typeof(Person), PersonWrap.__Register);
         
         
+            translator.DelayWrapLoader(typeof(Person_Lesson5), Person_Lesson5Wrap.__Register);
+        
+        
+            translator.DelayWrapLoader(typeof(Point), PointWrap.__Register);
+        
+        
             translator.DelayWrapLoader(typeof(object), SystemObjectWrap.__Register);
         
         
@@ -174,6 +180,8 @@ namespace XLua.CSObjectWrap
             
             wrapInit0(luaenv, translator);
             
+            
+            translator.AddInterfaceBridgeCreator(typeof(IPersonAction), IPersonActionBridge.__Create);
             
             translator.AddInterfaceBridgeCreator(typeof(System.Collections.IEnumerator), SystemCollectionsIEnumeratorBridge.__Create);
             

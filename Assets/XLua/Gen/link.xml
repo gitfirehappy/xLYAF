@@ -4,6 +4,8 @@
 
 	<assembly fullname="Assembly-CSharp">
 	    <type fullname="Person" preserve="all"/>
+		<type fullname="Person_Lesson5" preserve="all"/>
+		<type fullname="Point" preserve="all"/>
 		<type fullname="Tutorial.BaseClass" preserve="all"/>
 		<type fullname="Tutorial.TestEnum" preserve="all"/>
 		<type fullname="Tutorial.DerivedClass" preserve="all"/>
