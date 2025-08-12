@@ -65,10 +65,6 @@ sysinfo.txt
 /build/lusjit/
 /build/hulls/
 
-# xLua generated code directory
-/[Aa]ssets/XLua/[Gg]en/
-/[Aa]ssets/xLua/[Gg]en/
-
 # xLua generated files
 *.lus
 *.flosf
