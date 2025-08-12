@@ -1,0 +1,632 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotWebChatHistory">
+    <option name="currentConversation">
+      <WebConversation>
+        <option name="session">
+          <ChatSession>
+            <option name="messages">
+              <list>
+                <UIChatMessage>
+                  <option name="changeToOptimize" value="true" />
+                  <option name="command" value="fix" />
+                  <option name="content" value="" />
+                  <option name="cost" value="0" />
+                  <option name="createdAt" value="1754982046459" />
+                  <option name="localReferences">
+                    <list>
+                      <LocalReferences>
+                        <option name="isRequestStage" value="true" />
+                        <option name="range">
+                          <RefRange />
+                        </option>
+                        <option name="uri" value="{&quot;path&quot;:&quot;file:///E:/unity/project/xLYAF/Assets/AboutXLua/Editor/TypeReferencePropertyDrawer.cs&quot;}" />
+                      </LocalReferences>
+                    </list>
+                  </option>
+                  <option name="parser">
+                    <SimpleMarkdownStreamParser>
+                      <option name="parserState">
+                        <ParserState />
+                      </option>
+                    </SimpleMarkdownStreamParser>
+                  </option>
+                  <option name="range">
+                    <CodeActionChatRequestRange>
+                      <option name="start">
+                        <CodeActionChatRequestRangePosition />
+                      </option>
+                      <option name="end">
+                        <CodeActionChatRequestRangePosition>
+                          <option name="character" value="10000" />
+                        </CodeActionChatRequestRangePosition>
+                      </option>
+                    </CodeActionChatRequestRange>
+                  </option>
+                  <option name="role" value="user" />
+                  <option name="selectedRanges">
+                    <list />
+                  </option>
+                  <option name="uri" value="file:///E:/unity/project/xLYAF/Assets/AboutXLua/Editor/TypeReferencePropertyDrawer.cs" />
+                  <option name="variables">
+                    <list />
+                  </option>
+                </UIChatMessage>
+                <UIChatMessage>
+                  <option name="actions">
+                    <list />
+                  </option>
+                  <option name="changeToOptimize" value="true" />
+                  <option name="codebaseReferences">
+                    <list />
+                  </option>
+                  <option name="codebaseStatus" value="init" />
+                  <option name="command" value="fix" />
+                  <option name="content" value="Based on the code shown, I don't see any immediate syntax errors or obvious bugs in the provided snippet. However, there are a few potential issues that might be causing problems:&#10;&#10;1. The `TypeReference` class is referenced but not shown - make sure this class exists and is properly defined.&#10;&#10;2. The assembly filtering might be too restrictive - some Unity assemblies might be needed.&#10;&#10;3. The static constructor might cause issues if it throws exceptions during initialization.&#10;&#10;Here's a more robust version of the code with improvements:&#10;&#10;```csharp&#10;using System;&#10;using System.Linq;&#10;using System.Reflection;&#10;using UnityEditor;&#10;using UnityEngine;&#10;&#10;[CustomPropertyDrawer(typeof(TypeReference))]&#10;public class TypeReferencePropertyDrawer : PropertyDrawer&#10;{&#10;    private static Type[] s_allAssemblyTypes;&#10;    private static string s_searchFilter = &quot;&quot;;&#10;    private static bool s_typesInitialized = false;&#10;&#10;    private static void CacheAllAssemblyTypes()&#10;    {&#10;        if (s_typesInitialized) return;&#10;        &#10;        try&#10;        {&#10;            s_allAssemblyTypes = AppDomain.CurrentDomain.GetAssemblies()&#10;                .Where(asm =&gt; !asm.IsDynamic)&#10;                .SelectMany(asm =&gt;&#10;                {&#10;                    try &#10;                    { &#10;                        return asm.GetTypes()&#10;                            .Where(t =&gt; t != null); // Ensure no null types&#10;                    }&#10;                    catch (ReflectionTypeLoadException e) &#10;                    { &#10;                        Debug.LogWarning($&quot;Failed to load types from {asm.FullName}: {e}&quot;);&#10;                        return e.Types.Where(t =&gt; t != null); // Return loaded types&#10;                    }&#10;                    catch (Exception e)&#10;                    {&#10;                        Debug.LogWarning($&quot;Error processing assembly {asm.FullName}: {e}&quot;);&#10;                        return new Type[0];&#10;                    }&#10;                })&#10;                .Where(type =&gt; type != null &amp;&amp; &#10;                              type.IsPublic &amp;&amp; &#10;                              !type.IsAbstract &amp;&amp; &#10;                              !type.ContainsGenericParameters &amp;&amp;&#10;                              !type.IsGenericTypeDefinition)&#10;                .OrderBy(type =&gt; type.FullName)&#10;                .ToArray();&#10;                &#10;            s_typesInitialized = true;&#10;        }&#10;        catch (Exception e)&#10;        {&#10;            Debug.LogError($&quot;Failed to cache assembly types: {e}&quot;);&#10;            s_allAssemblyTypes = new Type[0];&#10;        }&#10;    }&#10;&#10;    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)&#10;    {&#10;        return EditorGUIUtility.singleLineHeight;&#10;    }&#10;}&#10;```&#10;&#10;Key improvements:&#10;&#10;1. Added null checks for types&#10;2. Better error handling for assembly loading&#10;3. Added initialization flag to prevent multiple attempts&#10;4. More complete exception handling&#10;5. Changed generic type check to use `ContainsGenericParameters`&#10;6. Added debug logging for troubleshooting&#10;&#10;If you're still experiencing issues, please provide:&#10;1. The exact error message you're receiving&#10;2. The definition of your `TypeReference` class&#10;3. Any stack trace information&#10;&#10;This will help in diagnosing the specific problem you're encountering." />
+                  <option name="cost" value="27755" />
+                  <option name="createdAt" value="1754982074232" />
+                  <option name="followup">
+                    <list />
+                  </option>
+                  <option name="id" value="01989d14dafa7446a801ae111a0bb237" />
+                  <option name="knowledgeReferences">
+                    <list />
+                  </option>
+                  <option name="localReferences">
+                    <list>
+                      <LocalReferences>
+                        <option name="isRequestStage" value="true" />
+                        <option name="range">
+                          <RefRange />
+                        </option>
+                        <option name="uri" value="{&quot;path&quot;:&quot;file:///E:/unity/project/xLYAF/Assets/AboutXLua/Editor/TypeReferencePropertyDrawer.cs&quot;}" />
+                      </LocalReferences>
+                    </list>
+                  </option>
+                  <option name="parser">
+                    <SimpleMarkdownStreamParser>
+                      <option name="columns">
+                        <list>
+                          <option value="178" />
+                          <option value="-1" />
+                          <option value="110" />
+                          <option value="-1" />
+                          <option value="90" />
+                          <option value="-1" />
+                          <option value="90" />
+                          <option value="-1" />
+                          <option value="58" />
+                          <option value="-1" />
+                          <option value="8" />
+                          <option value="12" />
+                          <option value="17" />
+                          <option value="23" />
+                          <option value="17" />
+                          <option value="17" />
+                          <option value="-1" />
+                          <option value="44" />
+                          <option value="56" />
+                          <option value="0" />
+                          <option value="44" />
+                          <option value="45" />
+                          <option value="50" />
+                          <option value="-1" />
+                          <option value="46" />
+                          <option value="4" />
+                          <option value="38" />
+                          <option value="7" />
+                          <option value="10" />
+                          <option value="8" />
+                          <option value="71" />
+                          <option value="44" />
+                          <option value="33" />
+                          <option value="16" />
+                          <option value="23" />
+                          <option value="21" />
+                          <option value="44" />
+                          <option value="74" />
+                          <option value="20" />
+                          <option value="57" />
+                          <option value="21" />
+                          <option value="90" />
+                          <option value="83" />
+                          <option value="20" />
+                          <option value="38" />
+                          <option value="20" />
+                          <option value="90" />
+                          <option value="42" />
+                          <option value="20" />
+                          <option value="17" />
+                          <option value="46" />
+                          <option value="46" />
+                          <option value="49" />
+                          <option value="63" />
+                          <option value="59" />
+                          <option value="46" />
+                          <option value="26" />
+                          <option value="15" />
+                          <option value="37" />
+                          <option value="8" />
+                          <option value="26" />
+                          <option value="8" />
+                          <option value="66" />
+                          <option value="44" />
+                          <option value="8" />
+                          <option value="4" />
+                          <option value="-1" />
+                          <option value="89" />
+                          <option value="4" />
+                          <option value="48" />
+                          <option value="4" />
+                          <option value="0" />
+                          <option value="2" />
+                          <option value="-1" />
+                          <option value="16" />
+                          <option value="-1" />
+                          <option value="29" />
+                          <option value="44" />
+                          <option value="56" />
+                          <option value="34" />
+                          <option value="63" />
+                          <option value="41" />
+                          <option value="-1" />
+                          <option value="51" />
+                          <option value="42" />
+                          <option value="46" />
+                          <option value="29" />
+                          <option value="-1" />
+                          <option value="69" />
+                        </list>
+                      </option>
+                      <option name="content" value="Based on the code shown, I don't see any immediate syntax errors or obvious bugs in the provided snippet. However, there are a few potential issues that might be causing problems:&#10;&#10;1. The `TypeReference` class is referenced but not shown - make sure this class exists and is properly defined.&#10;&#10;2. The assembly filtering might be too restrictive - some Unity assemblies might be needed.&#10;&#10;3. The static constructor might cause issues if it throws exceptions during initialization.&#10;&#10;Here's a more robust version of the code with improvements:&#10;&#10;```csharp&#10;using System;&#10;using System.Linq;&#10;using System.Reflection;&#10;using UnityEditor;&#10;using UnityEngine;&#10;&#10;[CustomPropertyDrawer(typeof(TypeReference))]&#10;public class TypeReferencePropertyDrawer : PropertyDrawer&#10;{&#10;    private static Type[] s_allAssemblyTypes;&#10;    private static string s_searchFilter = &quot;&quot;;&#10;    private static bool s_typesInitialized = false;&#10;&#10;    private static void CacheAllAssemblyTypes()&#10;    {&#10;        if (s_typesInitialized) return;&#10;        &#10;        try&#10;        {&#10;            s_allAssemblyTypes = AppDomain.CurrentDomain.GetAssemblies()&#10;                .Where(asm =&gt; !asm.IsDynamic)&#10;                .SelectMany(asm =&gt;&#10;                {&#10;                    try &#10;                    { &#10;                        return asm.GetTypes()&#10;                            .Where(t =&gt; t != null); // Ensure no null types&#10;                    }&#10;                    catch (ReflectionTypeLoadException e) &#10;                    { &#10;                        Debug.LogWarning($&quot;Failed to load types from {asm.FullName}: {e}&quot;);&#10;                        return e.Types.Where(t =&gt; t != null); // Return loaded types&#10;                    }&#10;                    catch (Exception e)&#10;                    {&#10;                        Debug.LogWarning($&quot;Error processing assembly {asm.FullName}: {e}&quot;);&#10;                        return new Type[0];&#10;                    }&#10;                })&#10;                .Where(type =&gt; type != null &amp;&amp; &#10;                              type.IsPublic &amp;&amp; &#10;                              !type.IsAbstract &amp;&amp; &#10;                              !type.ContainsGenericParameters &amp;&amp;&#10;                              !type.IsGenericTypeDefinition)&#10;                .OrderBy(type =&gt; type.FullName)&#10;                .ToArray();&#10;                &#10;            s_typesInitialized = true;&#10;        }&#10;        catch (Exception e)&#10;        {&#10;            Debug.LogError($&quot;Failed to cache assembly types: {e}&quot;);&#10;            s_allAssemblyTypes = new Type[0];&#10;        }&#10;    }&#10;&#10;    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)&#10;    {&#10;        return EditorGUIUtility.singleLineHeight;&#10;    }&#10;}&#10;```&#10;&#10;Key improvements:&#10;&#10;1. Added null checks for types&#10;2. Better error handling for assembly loading&#10;3. Added initialization flag to prevent multiple attempts&#10;4. More complete exception handling&#10;5. Changed generic type check to use `ContainsGenericParameters`&#10;6. Added debug logging for troubleshooting&#10;&#10;If you're still experiencing issues, please provide:&#10;1. The exact error message you're receiving&#10;2. The definition of your `TypeReference` class&#10;3. Any stack trace information&#10;&#10;This will help in diagnosing the specific problem you're encountering.&#10;" />
+                      <option name="nodes">
+                        <list>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="Based on the code shown, I don't see any immediate syntax errors or obvious bugs in the provided snippet. However, there are a few potential issues that might be causing problems:" />
+                            <option name="contentId" value="1845354129" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="" />
+                            <option name="contentId" value="0" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="1. The `TypeReference` class is referenced but not shown - make sure this class exists and is properly defined." />
+                            <option name="contentId" value="1311342808" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="" />
+                            <option name="contentId" value="0" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="2. The assembly filtering might be too restrictive - some Unity assemblies might be needed." />
+                            <option name="contentId" value="-1037538108" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="" />
+                            <option name="contentId" value="0" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="3. The static constructor might cause issues if it throws exceptions during initialization." />
+                            <option name="contentId" value="-451466132" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="" />
+                            <option name="contentId" value="0" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="Here's a more robust version of the code with improvements:" />
+                            <option name="contentId" value="408405453" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="" />
+                            <option name="contentId" value="0" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="using System;&#10;using System.Linq;&#10;using System.Reflection;&#10;using UnityEditor;&#10;using UnityEngine;&#10;&#10;[CustomPropertyDrawer(typeof(TypeReference))]&#10;public class TypeReferencePropertyDrawer : PropertyDrawer&#10;{&#10;    private static Type[] s_allAssemblyTypes;&#10;    private static string s_searchFilter = &quot;&quot;;&#10;    private static bool s_typesInitialized = false;&#10;&#10;    private static void CacheAllAssemblyTypes()&#10;    {&#10;        if (s_typesInitialized) return;&#10;        &#10;        try&#10;        {&#10;            s_allAssemblyTypes = AppDomain.CurrentDomain.GetAssemblies()&#10;                .Where(asm =&gt; !asm.IsDynamic)&#10;                .SelectMany(asm =&gt;&#10;                {&#10;                    try &#10;                    { &#10;                        return asm.GetTypes()&#10;                            .Where(t =&gt; t != null); // Ensure no null types&#10;                    }&#10;                    catch (ReflectionTypeLoadException e) &#10;                    { &#10;                        Debug.LogWarning($&quot;Failed to load types from {asm.FullName}: {e}&quot;);&#10;                        return e.Types.Where(t =&gt; t != null); // Return loaded types&#10;                    }&#10;                    catch (Exception e)&#10;                    {&#10;                        Debug.LogWarning($&quot;Error processing assembly {asm.FullName}: {e}&quot;);&#10;                        return new Type[0];&#10;                    }&#10;                })&#10;                .Where(type =&gt; type != null &amp;&amp; &#10;                              type.IsPublic &amp;&amp; &#10;                              !type.IsAbstract &amp;&amp; &#10;                              !type.ContainsGenericParameters &amp;&amp;&#10;                              !type.IsGenericTypeDefinition)&#10;                .OrderBy(type =&gt; type.FullName)&#10;                .ToArray();&#10;                &#10;            s_typesInitialized = true;&#10;        }&#10;        catch (Exception e)&#10;        {&#10;            Debug.LogError($&quot;Failed to cache assembly types: {e}&quot;);&#10;            s_allAssemblyTypes = new Type[0];&#10;        }&#10;    }&#10;&#10;    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)&#10;    {&#10;        return EditorGUIUtility.singleLineHeight;&#10;    }&#10;}&#10;" />
+                            <option name="contentId" value="301102518" />
+                            <option name="expectEnding" value="```" />
+                            <option name="indentSize" value="0" />
+                            <option name="language" value="csharp" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="code-block" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="" />
+                            <option name="contentId" value="0" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="Key improvements:" />
+                            <option name="contentId" value="636624220" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="" />
+                            <option name="contentId" value="0" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="1. Added null checks for types" />
+                            <option name="contentId" value="2037653411" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="2. Better error handling for assembly loading" />
+                            <option name="contentId" value="-712155632" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="3. Added initialization flag to prevent multiple attempts" />
+                            <option name="contentId" value="267719938" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="4. More complete exception handling" />
+                            <option name="contentId" value="729413272" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="5. Changed generic type check to use `ContainsGenericParameters`" />
+                            <option name="contentId" value="1560576898" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="6. Added debug logging for troubleshooting" />
+                            <option name="contentId" value="-581199411" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="" />
+                            <option name="contentId" value="0" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="If you're still experiencing issues, please provide:" />
+                            <option name="contentId" value="1614814402" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="1. The exact error message you're receiving" />
+                            <option name="contentId" value="126373247" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="2. The definition of your `TypeReference` class" />
+                            <option name="contentId" value="1124925417" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="3. Any stack trace information" />
+                            <option name="contentId" value="298855584" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="" />
+                            <option name="contentId" value="0" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="This will help in diagnosing the specific problem you're encountering." />
+                            <option name="contentId" value="-1162738275" />
+                            <option name="settled" value="true" />
+                            <option name="type" value="line" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                          <MarkdownNode>
+                            <option name="children">
+                              <list />
+                            </option>
+                            <option name="content" value="" />
+                            <option name="contentId" value="0" />
+                            <option name="settled" value="false" />
+                            <option name="type" value="undetermined" />
+                            <option name="xmlData">
+                              <XmlNode />
+                            </option>
+                          </MarkdownNode>
+                        </list>
+                      </option>
+                      <option name="parserState">
+                        <ParserState>
+                          <option name="line" value="89" />
+                          <option name="column" value="-1" />
+                          <option name="offset" value="3200" />
+                          <option name="moveCursor" value="true" />
+                        </ParserState>
+                      </option>
+                    </SimpleMarkdownStreamParser>
+                  </option>
+                  <option name="references">
+                    <list />
+                  </option>
+                  <option name="role" value="assistant" />
+                  <option name="topic" value="workspace" />
+                </UIChatMessage>
+              </list>
+            </option>
+            <option name="messagesV3">
+              <list>
+                <ChatMessageV3>
+                  <option name="role" value="user" />
+                  <option name="content" value="/fix " />
+                  <option name="extra">
+                    <ChatMessageExtra>
+                      <option name="agent" value="workspace" />
+                      <option name="cmd" value="fix" />
+                      <option name="code" value="// Urov: Zhhvgh/Vwrgli/GbkvIvuvivmxvKilkvigbWizdvi.xh&#10;fhrmt Hbhgvn;&#10;fhrmt Hbhgvn.Ormj;&#10;fhrmt Hbhgvn.Ivuovxgrlm;&#10;fhrmt FmrgbVwrgli;&#10;fhrmt FmrgbVmtrmv;&#10;&#10;[XfhglnKilkvigbWizdvi(gbkvlu(GbkvIvuvivmxv))]&#10;kfyorx xozhh GbkvIvuvivmxvKilkvigbWizdvi : KilkvigbWizdvi&#10;{&#10;    kirezgv hgzgrx Gbkv[] h_zooZhhvnyobGbkvh; // 缓存所有程序集中的类型，供搜索使用&#10;    kirezgv hgzgrx hgirmt h_hvzixsUrogvi = &quot;&quot;; // 搜索字符串&#10;&#10;    // 在第一次绘制时加载所有类型&#10;    hgzgrx GbkvIvuvivmxvKilkvigbWizdvi()&#10;    {&#10;        XzxsvZooZhhvnyobGbkvh();&#10;    }&#10;&#10;    kirezgv hgzgrx elrw XzxsvZooZhhvnyobGbkvh()&#10;    {&#10;        h_zooZhhvnyobGbkvh = ZkkWlnzrm.XfiivmgWlnzrm.TvgZhhvnyorvh()&#10;            .Dsviv(zhn =&gt; !zhn.RhWbmznrx &amp;&amp; !zhn.Olxzgrlm.VmwhDrgs(&quot;nhxliory.woo&quot;) &amp;&amp; !zhn.Olxzgrlm.Xlmgzrmh(&quot;FmrgbVwrgli&quot;) &amp;&amp; !zhn.Olxzgrlm.Xlmgzrmh(&quot;xln.fmrgb.&quot;)) // 过滤掉不相关或动态生成的程序集&#10;            .HvovxgNzmb(zhn =&gt;&#10;            {&#10;                gib { ivgfim zhn.TvgGbkvh(); } // 尝试获取类型，可能会因为OlzwUrov异常导致失败，跳过即可&#10;                xzgxs (IvuovxgrlmGbkvOlzwVcxvkgrlm) { ivgfim mvd Gbkv[9]; }&#10;            })&#10;            .Dsviv(gbkv =&gt; gbkv.RhKfyorx &amp;&amp; !gbkv.RhZyhgizxg &amp;&amp; !gbkv.RhTvmvirxGbkvWvurmrgrlm) // 筛选公共、非抽象、非泛型定义类型&#10;            .LiwviYb(gbkv =&gt; gbkv.UfooMznv)&#10;            .GlZiizb();&#10;    }&#10;&#10;    kfyorx leviirwv uolzg TvgKilkvigbSvrtsg(HvirzoravwKilkvigb kilkvigb, TFRXlmgvmg ozyvo)&#10;    {&#10;        // 高度为一行的高度&#10;        ivgfim VwrgliTFRFgrorgb.hrmtovOrmvSvrtsg;&#10;" />
+                      <option name="path" value="E:\unity\project\xLYAF\Assets\AboutXLua\Editor\TypeReferencePropertyDrawer.cs" />
+                    </ChatMessageExtra>
+                  </option>
+                </ChatMessageV3>
+                <ChatMessageV3>
+                  <option name="role" value="assistant" />
+                  <option name="content" value="Based on the code shown, I don't see any immediate syntax errors or obvious bugs in the provided snippet. However, there are a few potential issues that might be causing problems:&#10;&#10;1. The `TypeReference` class is referenced but not shown - make sure this class exists and is properly defined.&#10;&#10;2. The assembly filtering might be too restrictive - some Unity assemblies might be needed.&#10;&#10;3. The static constructor might cause issues if it throws exceptions during initialization.&#10;&#10;Here's a more robust version of the code with improvements:&#10;&#10;```csharp&#10;using System;&#10;using System.Linq;&#10;using System.Reflection;&#10;using UnityEditor;&#10;using UnityEngine;&#10;&#10;[CustomPropertyDrawer(typeof(TypeReference))]&#10;public class TypeReferencePropertyDrawer : PropertyDrawer&#10;{&#10;    private static Type[] s_allAssemblyTypes;&#10;    private static string s_searchFilter = &quot;&quot;;&#10;    private static bool s_typesInitialized = false;&#10;&#10;    private static void CacheAllAssemblyTypes()&#10;    {&#10;        if (s_typesInitialized) return;&#10;        &#10;        try&#10;        {&#10;            s_allAssemblyTypes = AppDomain.CurrentDomain.GetAssemblies()&#10;                .Where(asm =&gt; !asm.IsDynamic)&#10;                .SelectMany(asm =&gt;&#10;                {&#10;                    try &#10;                    { &#10;                        return asm.GetTypes()&#10;                            .Where(t =&gt; t != null); // Ensure no null types&#10;                    }&#10;                    catch (ReflectionTypeLoadException e) &#10;                    { &#10;                        Debug.LogWarning($&quot;Failed to load types from {asm.FullName}: {e}&quot;);&#10;                        return e.Types.Where(t =&gt; t != null); // Return loaded types&#10;                    }&#10;                    catch (Exception e)&#10;                    {&#10;                        Debug.LogWarning($&quot;Error processing assembly {asm.FullName}: {e}&quot;);&#10;                        return new Type[0];&#10;                    }&#10;                })&#10;                .Where(type =&gt; type != null &amp;&amp; &#10;                              type.IsPublic &amp;&amp; &#10;                              !type.IsAbstract &amp;&amp; &#10;                              !type.ContainsGenericParameters &amp;&amp;&#10;                              !type.IsGenericTypeDefinition)&#10;                .OrderBy(type =&gt; type.FullName)&#10;                .ToArray();&#10;                &#10;            s_typesInitialized = true;&#10;        }&#10;        catch (Exception e)&#10;        {&#10;            Debug.LogError($&quot;Failed to cache assembly types: {e}&quot;);&#10;            s_allAssemblyTypes = new Type[0];&#10;        }&#10;    }&#10;&#10;    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)&#10;    {&#10;        return EditorGUIUtility.singleLineHeight;&#10;    }&#10;}&#10;```&#10;&#10;Key improvements:&#10;&#10;1. Added null checks for types&#10;2. Better error handling for assembly loading&#10;3. Added initialization flag to prevent multiple attempts&#10;4. More complete exception handling&#10;5. Changed generic type check to use `ContainsGenericParameters`&#10;6. Added debug logging for troubleshooting&#10;&#10;If you're still experiencing issues, please provide:&#10;1. The exact error message you're receiving&#10;2. The definition of your `TypeReference` class&#10;3. Any stack trace information&#10;&#10;This will help in diagnosing the specific problem you're encountering." />
+                  <option name="extra">
+                    <ChatMessageExtra />
+                  </option>
+                </ChatMessageV3>
+              </list>
+            </option>
+            <option name="sessionId" value="01989cc63bbf7446a8019c6bcc51acea" />
+            <option name="source" value="codeAction" />
+          </ChatSession>
+        </option>
+        <option name="conversationId" value="01989cc63bbf7446a8019c6bcc51acea" />
+        <option name="conversation">
+          <Conversation>
+            <option name="createTime" value="1754976891526" />
+            <option name="id" value="01989cc63bbf7446a8019c6bcc51acea" />
+            <option name="title" value="/fix" />
+            <option name="turns">
+              <list>
+                <Turn>
+                  <option name="agent" value="workspace" />
+                  <option name="answer" value="Yzhvw lm gsv xlwv hsldm, R wlm'g hvv zmb rnnvwrzgv hbmgzc viilih li lyerlfh yfth rm gsv kilerwvw hmrkkvg. Sldvevi, gsviv ziv z uvd klgvmgrzo rhhfvh gszg nrtsg yv xzfhrmt kilyovnh:&#10;&#10;8. Gsv `GbkvIvuvivmxv` xozhh rh ivuvivmxvw yfg mlg hsldm - nzpv hfiv gsrh xozhh vcrhgh zmw rh kilkviob wvurmvw.&#10;&#10;7. Gsv zhhvnyob urogvirmt nrtsg yv gll ivhgirxgrev - hlnv Fmrgb zhhvnyorvh nrtsg yv mvvwvw.&#10;&#10;6. Gsv hgzgrx xlmhgifxgli nrtsg xzfhv rhhfvh ru rg gsildh vcxvkgrlmh wfirmt rmrgrzorazgrlm.&#10;&#10;Sviv'h z nliv ilyfhg evihrlm lu gsv xlwv drgs rnkilevnvmgh:&#10;&#10;```xhszik&#10;fhrmt Hbhgvn;&#10;fhrmt Hbhgvn.Ormj;&#10;fhrmt Hbhgvn.Ivuovxgrlm;&#10;fhrmt FmrgbVwrgli;&#10;fhrmt FmrgbVmtrmv;&#10;&#10;[XfhglnKilkvigbWizdvi(gbkvlu(GbkvIvuvivmxv))]&#10;kfyorx xozhh GbkvIvuvivmxvKilkvigbWizdvi : KilkvigbWizdvi&#10;{&#10;    kirezgv hgzgrx Gbkv[] h_zooZhhvnyobGbkvh;&#10;    kirezgv hgzgrx hgirmt h_hvzixsUrogvi = &quot;&quot;;&#10;    kirezgv hgzgrx yllo h_gbkvhRmrgrzoravw = uzohv;&#10;&#10;    kirezgv hgzgrx elrw XzxsvZooZhhvnyobGbkvh()&#10;    {&#10;        ru (h_gbkvhRmrgrzoravw) ivgfim;&#10;        &#10;        gib&#10;        {&#10;            h_zooZhhvnyobGbkvh = ZkkWlnzrm.XfiivmgWlnzrm.TvgZhhvnyorvh()&#10;                .Dsviv(zhn =&gt; !zhn.RhWbmznrx)&#10;                .HvovxgNzmb(zhn =&gt;&#10;                {&#10;                    gib &#10;                    { &#10;                        ivgfim zhn.TvgGbkvh()&#10;                            .Dsviv(g =&gt; g != mfoo); // Vmhfiv ml mfoo gbkvh&#10;                    }&#10;                    xzgxs (IvuovxgrlmGbkvOlzwVcxvkgrlm v) &#10;                    { &#10;                        Wvyft.OltDzimrmt($&quot;Uzrovw gl olzw gbkvh uiln {zhn.UfooMznv}: {v}&quot;);&#10;                        ivgfim v.Gbkvh.Dsviv(g =&gt; g != mfoo); // Ivgfim olzwvw gbkvh&#10;                    }&#10;                    xzgxs (Vcxvkgrlm v)&#10;                    {&#10;                        Wvyft.OltDzimrmt($&quot;Viili kilxvhhrmt zhhvnyob {zhn.UfooMznv}: {v}&quot;);&#10;                        ivgfim mvd Gbkv[9];&#10;                    }&#10;                })&#10;                .Dsviv(gbkv =&gt; gbkv != mfoo &amp;&amp; &#10;                              gbkv.RhKfyorx &amp;&amp; &#10;                              !gbkv.RhZyhgizxg &amp;&amp; &#10;                              !gbkv.XlmgzrmhTvmvirxKziznvgvih &amp;&amp;&#10;                              !gbkv.RhTvmvirxGbkvWvurmrgrlm)&#10;                .LiwviYb(gbkv =&gt; gbkv.UfooMznv)&#10;                .GlZiizb();&#10;                &#10;            h_gbkvhRmrgrzoravw = gifv;&#10;        }&#10;        xzgxs (Vcxvkgrlm v)&#10;        {&#10;            Wvyft.OltViili($&quot;Uzrovw gl xzxsv zhhvnyob gbkvh: {v}&quot;);&#10;            h_zooZhhvnyobGbkvh = mvd Gbkv[9];&#10;        }&#10;    }&#10;&#10;    kfyorx leviirwv uolzg TvgKilkvigbSvrtsg(HvirzoravwKilkvigb kilkvigb, TFRXlmgvmg ozyvo)&#10;    {&#10;        ivgfim VwrgliTFRFgrorgb.hrmtovOrmvSvrtsg;&#10;    }&#10;}&#10;```&#10;&#10;Pvb rnkilevnvmgh:&#10;&#10;8. Zwwvw mfoo xsvxph uli gbkvh&#10;7. Yvggvi viili szmwormt uli zhhvnyob olzwrmt&#10;6. Zwwvw rmrgrzorazgrlm uozt gl kivevmg nfogrkov zggvnkgh&#10;5. Nliv xlnkovgv vcxvkgrlm szmwormt&#10;4. Xszmtvw tvmvirx gbkv xsvxp gl fhv `XlmgzrmhTvmvirxKziznvgvih`&#10;3. Zwwvw wvyft olttrmt uli gilfyovhsllgrmt&#10;&#10;Ru blf'iv hgroo vckvirvmxrmt rhhfvh, kovzhv kilerwv:&#10;8. Gsv vczxg viili nvhhztv blf'iv ivxvrermt&#10;7. Gsv wvurmrgrlm lu blfi `GbkvIvuvivmxv` xozhh&#10;6. Zmb hgzxp gizxv rmulinzgrlm&#10;&#10;Gsrh droo svok rm wrztmlhrmt gsv hkvxrurx kilyovn blf'iv vmxlfmgvirmt." />
+                  <option name="chatResource" value="user" />
+                  <option name="codeReferences">
+                    <list>
+                      <CodeReferencesBean>
+                        <option name="content" value="// Urov: Zhhvgh/Vwrgli/GbkvIvuvivmxvKilkvigbWizdvi.xh&#10;fhrmt Hbhgvn;&#10;fhrmt Hbhgvn.Ormj;&#10;fhrmt Hbhgvn.Ivuovxgrlm;&#10;fhrmt FmrgbVwrgli;&#10;fhrmt FmrgbVmtrmv;&#10;&#10;[XfhglnKilkvigbWizdvi(gbkvlu(GbkvIvuvivmxv))]&#10;kfyorx xozhh GbkvIvuvivmxvKilkvigbWizdvi : KilkvigbWizdvi&#10;{&#10;    kirezgv hgzgrx Gbkv[] h_zooZhhvnyobGbkvh; // 缓存所有程序集中的类型，供搜索使用&#10;    kirezgv hgzgrx hgirmt h_hvzixsUrogvi = &quot;&quot;; // 搜索字符串&#10;&#10;    // 在第一次绘制时加载所有类型&#10;    hgzgrx GbkvIvuvivmxvKilkvigbWizdvi()&#10;    {&#10;        XzxsvZooZhhvnyobGbkvh();&#10;    }&#10;&#10;    kirezgv hgzgrx elrw XzxsvZooZhhvnyobGbkvh()&#10;    {&#10;        h_zooZhhvnyobGbkvh = ZkkWlnzrm.XfiivmgWlnzrm.TvgZhhvnyorvh()&#10;            .Dsviv(zhn =&gt; !zhn.RhWbmznrx &amp;&amp; !zhn.Olxzgrlm.VmwhDrgs(&quot;nhxliory.woo&quot;) &amp;&amp; !zhn.Olxzgrlm.Xlmgzrmh(&quot;FmrgbVwrgli&quot;) &amp;&amp; !zhn.Olxzgrlm.Xlmgzrmh(&quot;xln.fmrgb.&quot;)) // 过滤掉不相关或动态生成的程序集&#10;            .HvovxgNzmb(zhn =&gt;&#10;            {&#10;                gib { ivgfim zhn.TvgGbkvh(); } // 尝试获取类型，可能会因为OlzwUrov异常导致失败，跳过即可&#10;                xzgxs (IvuovxgrlmGbkvOlzwVcxvkgrlm) { ivgfim mvd Gbkv[9]; }&#10;            })&#10;            .Dsviv(gbkv =&gt; gbkv.RhKfyorx &amp;&amp; !gbkv.RhZyhgizxg &amp;&amp; !gbkv.RhTvmvirxGbkvWvurmrgrlm) // 筛选公共、非抽象、非泛型定义类型&#10;            .LiwviYb(gbkv =&gt; gbkv.UfooMznv)&#10;            .GlZiizb();&#10;    }&#10;&#10;    kfyorx leviirwv uolzg TvgKilkvigbSvrtsg(HvirzoravwKilkvigb kilkvigb, TFRXlmgvmg ozyvo)&#10;    {&#10;        // 高度为一行的高度&#10;        ivgfim VwrgliTFRFgrorgb.hrmtovOrmvSvrtsg;&#10;" />
+                        <option name="end_line" value="37" />
+                        <option name="filename" value="TypeReferencePropertyDrawer.cs" />
+                        <option name="language" value="C#" />
+                        <option name="range">
+                          <Range>
+                            <option name="end">
+                              <Position>
+                                <option name="line" value="37" />
+                              </Position>
+                            </option>
+                            <option name="start">
+                              <Position />
+                            </option>
+                          </Range>
+                        </option>
+                        <option name="type" value="editor" />
+                        <option name="url" value="file:///E:/unity/project/xLYAF/Assets/AboutXLua/Editor/TypeReferencePropertyDrawer.cs" />
+                      </CodeReferencesBean>
+                    </list>
+                  </option>
+                  <option name="command" value="fix" />
+                  <option name="conversationId" value="01989cc63bbf7446a8019c6bcc51acea" />
+                  <option name="historyDocumentMap">
+                    <map>
+                      <entry key="file:///E:/unity/project/xLYAF/Assets/AboutXLua/Editor/TypeReferencePropertyDrawer.cs" value="// File: Assets/Editor/TypeReferencePropertyDrawer.cs&#10;using System;&#10;using System.Linq;&#10;using System.Reflection;&#10;using UnityEditor;&#10;using UnityEngine;&#10;&#10;[CustomPropertyDrawer(typeof(TypeReference))]&#10;public class TypeReferencePropertyDrawer : PropertyDrawer&#10;{&#10;    private static Type[] s_allAssemblyTypes; // 缓存所有程序集中的类型，供搜索使用&#10;    private static string s_searchFilter = &quot;&quot;; // 搜索字符串&#10;&#10;    // 在第一次绘制时加载所有类型&#10;    static TypeReferencePropertyDrawer()&#10;    {&#10;        CacheAllAssemblyTypes();&#10;    }&#10;&#10;    private static void CacheAllAssemblyTypes()&#10;    {&#10;        s_allAssemblyTypes = AppDomain.CurrentDomain.GetAssemblies()&#10;            .Where(asm =&gt; !asm.IsDynamic &amp;&amp; !asm.Location.EndsWith(&quot;mscorlib.dll&quot;) &amp;&amp; !asm.Location.Contains(&quot;UnityEditor&quot;) &amp;&amp; !asm.Location.Contains(&quot;com.unity.&quot;)) // 过滤掉不相关或动态生成的程序集&#10;            .SelectMany(asm =&gt;&#10;            {&#10;                try { return asm.GetTypes(); } // 尝试获取类型，可能会因为LoadFile异常导致失败，跳过即可&#10;                catch (ReflectionTypeLoadException) { return new Type[0]; }&#10;            })&#10;            .Where(type =&gt; type.IsPublic &amp;&amp; !type.IsAbstract &amp;&amp; !type.IsGenericTypeDefinition) // 筛选公共、非抽象、非泛型定义类型&#10;            .OrderBy(type =&gt; type.FullName)&#10;            .ToArray();&#10;    }&#10;&#10;    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)&#10;    {&#10;        // 高度为一行的高度&#10;        return EditorGUIUtility.singleLineHeight;&#10;    }&#10;&#10;    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)&#10;    {&#10;        // 不绘制默认标签，因为我们自己控制布局&#10;        label = EditorGUI.BeginProperty(position, label, property);&#10;        position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);&#10;&#10;        // 获取 TypeReference 的内部属性&#10;        SerializedProperty assemblyNameProp = property.FindPropertyRelative(&quot;assemblyName&quot;);&#10;        SerializedProperty typeNameProp = property.FindPropertyRelative(&quot;typeName&quot;);&#10;&#10;        // 计算各个控件的宽度&#10;        float buttonWidth = 60f; // 选择按钮的宽度&#10;        float searchFieldWidth = position.width - buttonWidth - EditorGUIUtility.standardHorizontalSpacing;&#10;        Rect searchRect = new Rect(position.x, position.y, searchFieldWidth, EditorGUIUtility.singleLineHeight);&#10;        Rect selectButtonRect = new Rect(position.x + searchFieldWidth + EditorGUIUtility.standardHorizontalSpacing, position.y, buttonWidth, EditorGUIUtility.singleLineHeight);&#10;&#10;        // ------ 1. 验证和显示当前类型状态 ------&#10;        Type currentType = null;&#10;        if (!string.IsNullOrEmpty(assemblyNameProp.stringValue) &amp;&amp; !string.IsNullOrEmpty(typeNameProp.stringValue))&#10;        {&#10;            // 在Editor中，我们不应该直接调用GetTypeCache，因为它可能触发运行时日志，&#10;            // 而是模拟TypeReference的逻辑获取Type进行显示。&#10;            // 也可以构造一个TypeReference实例，但那会增加GC。&#10;            try&#10;            {&#10;                Assembly asm = Assembly.Load(assemblyNameProp.stringValue);&#10;                if (asm != null)&#10;                {&#10;                    currentType = asm.GetType(typeNameProp.stringValue);&#10;                }&#10;            }&#10;            catch { /* Ignore errors for editor display */ }&#10;        }&#10;&#10;        // 显示当前选中的类型名称或&quot;None&quot;&#10;        string currentTypeName = currentType != null ? currentType.Name : &quot;None&quot;;&#10;        if (currentType == null &amp;&amp; (!string.IsNullOrEmpty(assemblyNameProp.stringValue) || !string.IsNullOrEmpty(typeNameProp.stringValue)))&#10;        {&#10;            // 如果有值但解析失败，显示为红色&#10;            GUI.color = Color.red;&#10;            currentTypeName = &quot;Invalid Type!&quot;;&#10;        }&#10;        else if (currentType == null &amp;&amp; string.IsNullOrEmpty(typeNameProp.stringValue))&#10;        {&#10;            GUI.color = Color.grey; // 没有选择类型时，显示为灰色&#10;        }&#10;        &#10;        // 搜索框和显示当前类型名&#10;        s_searchFilter = EditorGUI.TextField(searchRect, currentTypeName + (string.IsNullOrEmpty(s_searchFilter) ? &quot;&quot; : $&quot; (Filter: {s_searchFilter})&quot;));&#10;&#10;        GUI.color = Color.white; // 恢复GUI颜色&#10;&#10;        // ------ 2. 类型选择按钮 ------&#10;        if (GUI.Button(selectButtonRect, &quot;Select&quot;))&#10;        {&#10;            ShowTypeSelectionMenu(property, assemblyNameProp, typeNameProp);&#10;        }&#10;&#10;        EditorGUI.EndProperty();&#10;    }&#10;&#10;    private void ShowTypeSelectionMenu(SerializedProperty property, SerializedProperty assemblyNameProp, SerializedProperty typeNameProp)&#10;    {&#10;        GenericMenu menu = new GenericMenu();&#10;&#10;        // 默认选项：清空&#10;        menu.AddItem(new GUIContent(&quot;None&quot;), false, () =&gt;&#10;        {&#10;            assemblyNameProp.stringValue = &quot;&quot;;&#10;            typeNameProp.stringValue = &quot;&quot;;&#10;            property.serializedObject.ApplyModifiedProperties();&#10;        });&#10;        menu.AddSeparator(&quot;&quot;);&#10;&#10;        // 根据搜索过滤类型&#10;        var filteredTypes = s_allAssemblyTypes.Where(t =&gt; &#10;            string.IsNullOrEmpty(s_searchFilter) || t.FullName.IndexOf(s_searchFilter, StringComparison.OrdinalIgnoreCase) &gt;= 0)&#10;            .Take(100); // 限制显示数量，避免菜单过长&#10;&#10;        if (!filteredTypes.Any())&#10;        {&#10;            menu.AddDisabledItem(new GUIContent(&quot;No matching types found.&quot;));&#10;        }&#10;&#10;        foreach (Type type in filteredTypes)&#10;        {&#10;            string menuPath = type.Namespace != null ? $&quot;{type.Namespace}/{type.Name}&quot; : type.Name;&#10;            &#10;            // 添加菜单项，并绑定到委托&#10;            menu.AddItem(new GUIContent(menuPath), false, (selectedType) =&gt;&#10;            {&#10;                Type chosenType = (Type)selectedType;&#10;                assemblyNameProp.stringValue = chosenType.Assembly.GetName().Name; // 获取程序集名称&#10;                typeNameProp.stringValue = chosenType.FullName; // 获取完整类型名称&#10;                property.serializedObject.ApplyModifiedProperties(); // 应用修改到序列化对象&#10;                s_searchFilter = &quot;&quot;; // 清空搜索过滤器&#10;            }, type);&#10;        }&#10;        &#10;        menu.ShowAsContext(); // 在鼠标当前位置显示菜单&#10;    }&#10;}" />
+                    </map>
+                  </option>
+                  <option name="messageId" value="01989d14dafa7446a801ae111a0bb237" />
+                  <option name="question" value="/urc " />
+                  <option name="rating" value="UNRATED" />
+                  <option name="referenceBeans">
+                    <list />
+                  </option>
+                  <option name="status" value="SUCCESS" />
+                  <option name="variables">
+                    <list />
+                  </option>
+                </Turn>
+              </list>
+            </option>
+            <option name="updateTime" value="1754982071933" />
+          </Conversation>
+        </option>
+      </WebConversation>
+    </option>
+  </component>
+</project>
