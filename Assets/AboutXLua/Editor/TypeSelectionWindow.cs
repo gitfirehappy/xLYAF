@@ -5,13 +5,16 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
+/// <summary>
+/// 类型选择编辑器窗口
+/// </summary>
 public class TypeSelectionWindow : EditorWindow
 {
     private string searchFilter = "";
     private Vector2 scrollPosition;
     private SerializedProperty targetProperty;
     private Type[] filteredTypes;
-    private static Type[] allTypesCache;
+    private static Type[] allTypesCache;    // 全局类型缓存
 
     public static void Open(SerializedProperty property)
     {
@@ -21,6 +24,9 @@ public class TypeSelectionWindow : EditorWindow
         CacheAssemblyTypes();
     }
 
+    /// <summary>
+    /// 缓存程序集类型
+    /// </summary>
     private static void CacheAssemblyTypes()
     {
         if (allTypesCache != null) return;
@@ -113,6 +119,10 @@ public class TypeSelectionWindow : EditorWindow
         }
     }
 
+    /// <summary>
+    /// 更新序列化属性
+    /// </summary>
+    /// <param name="type"></param>
     private void SetType(Type type)
     {
         if (targetProperty == null) return;

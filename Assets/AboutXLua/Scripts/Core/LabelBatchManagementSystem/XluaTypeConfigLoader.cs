@@ -6,6 +6,9 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
+/// <summary>
+/// XLua类型配置加载器（Addressables实现）
+/// </summary>
 public static class XluaTypeConfigLoader
 {
     public static List<Type> HotfixTypes { get; private set; }
@@ -15,7 +18,9 @@ public static class XluaTypeConfigLoader
     // 地址标签，用于在Addressables中识别TypeListSO资产
     private const string XLUA_CONFIG_LABEL = "XLuaConfigs"; 
 
-    // 初始化方法，会在底层启动时调用
+    /// <summary>
+    /// 初始化加载配置（核心层启动时调用）
+    /// </summary>
     public static void Init()
     {
         Debug.Log("XluaTypeConfigLoader: Initializing type lists...");

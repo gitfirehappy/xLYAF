@@ -5,6 +5,9 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
+/// <summary>
+/// TypeReference的Inspector绘制器
+/// </summary>
 [CustomPropertyDrawer(typeof(TypeReference))]
 public class TypeReferencePropertyDrawer : PropertyDrawer
 {
@@ -20,7 +23,10 @@ public class TypeReferencePropertyDrawer : PropertyDrawer
     private static void CacheAllAssemblyTypes()
     {
         s_allAssemblyTypes = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(asm => !asm.IsDynamic && !asm.Location.EndsWith("mscorlib.dll") && !asm.Location.Contains("UnityEditor") && !asm.Location.Contains("com.unity.")) // 过滤掉不相关或动态生成的程序集
+            .Where(asm => !asm.IsDynamic 
+                          && !asm.Location.EndsWith("mscorlib.dll") 
+                          && !asm.Location.Contains("UnityEditor") 
+                          && !asm.Location.Contains("com.unity.")) // 过滤掉不相关或动态生成的程序集
             .SelectMany(asm =>
             {
                 try { return asm.GetTypes(); } // 尝试获取类型，可能会因为LoadFile异常导致失败，跳过即可
