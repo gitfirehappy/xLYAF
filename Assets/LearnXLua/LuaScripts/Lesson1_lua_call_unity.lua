@@ -1,1 +1,0 @@
-CS.UnityEngine.Debug.Log("This is from Lua via Unity API!")
