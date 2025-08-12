@@ -238,6 +238,7 @@ namespace XLua
 		}
         
 <<<<<<< HEAD
+<<<<<<< HEAD
 		public int __Gen_Delegate_Imp10(int p0)
 		{
 #if THREAD_SAFE || HOTFIX_ENABLE
@@ -396,6 +397,9 @@ namespace XLua
 =======
 		public int __Gen_Delegate_Imp8(int p0, string p1, out Tutorial.CSCallLua.DClass p2)
 >>>>>>> parent of 9d7f8d7 (gitignore更新)
+=======
+		public int __Gen_Delegate_Imp8(int p0, string p1, out Tutorial.CSCallLua.DClass p2)
+>>>>>>> parent of 9d7f8d7 (gitignore更新)
 		{
 #if THREAD_SAFE || HOTFIX_ENABLE
             lock (luaEnv.luaEnvLock)
@@ -420,7 +424,11 @@ namespace XLua
 		}
         
 <<<<<<< HEAD
+<<<<<<< HEAD
 		public System.Action __Gen_Delegate_Imp18()
+=======
+		public System.Action __Gen_Delegate_Imp9()
+>>>>>>> parent of 9d7f8d7 (gitignore更新)
 =======
 		public System.Action __Gen_Delegate_Imp9()
 >>>>>>> parent of 9d7f8d7 (gitignore更新)
@@ -445,7 +453,11 @@ namespace XLua
 		}
         
 <<<<<<< HEAD
+<<<<<<< HEAD
 		public XLuaTest.InvokeLua.ICalc __Gen_Delegate_Imp19(int p0, string[] p1)
+=======
+		public XLuaTest.InvokeLua.ICalc __Gen_Delegate_Imp10(int p0, string[] p1)
+>>>>>>> parent of 9d7f8d7 (gitignore更新)
 =======
 		public XLuaTest.InvokeLua.ICalc __Gen_Delegate_Imp10(int p0, string[] p1)
 >>>>>>> parent of 9d7f8d7 (gitignore更新)
@@ -472,8 +484,11 @@ namespace XLua
 		}
         
 <<<<<<< HEAD
+<<<<<<< HEAD
 		public void __Gen_Delegate_Imp20(object p0)
 =======
+=======
+>>>>>>> parent of 9d7f8d7 (gitignore更新)
 		public int __Gen_Delegate_Imp11(int p0)
 		{
 #if THREAD_SAFE || HOTFIX_ENABLE
@@ -1095,6 +1110,7 @@ namespace XLua
 			}
 		
 <<<<<<< HEAD
+<<<<<<< HEAD
 		    if (type == typeof(XLuaTest.IntParam))
 			{
 			    return new XLuaTest.IntParam(__Gen_Delegate_Imp10);
@@ -1138,12 +1154,21 @@ namespace XLua
 			{
 			    return new Tutorial.CSCallLua.FDelegate(__Gen_Delegate_Imp8);
 >>>>>>> parent of 9d7f8d7 (gitignore更新)
+=======
+		    if (type == typeof(Tutorial.CSCallLua.FDelegate))
+			{
+			    return new Tutorial.CSCallLua.FDelegate(__Gen_Delegate_Imp8);
+>>>>>>> parent of 9d7f8d7 (gitignore更新)
 			}
 		
 		    if (type == typeof(Tutorial.CSCallLua.GetE))
 			{
 <<<<<<< HEAD
+<<<<<<< HEAD
 			    return new Tutorial.CSCallLua.GetE(__Gen_Delegate_Imp18);
+=======
+			    return new Tutorial.CSCallLua.GetE(__Gen_Delegate_Imp9);
+>>>>>>> parent of 9d7f8d7 (gitignore更新)
 =======
 			    return new Tutorial.CSCallLua.GetE(__Gen_Delegate_Imp9);
 >>>>>>> parent of 9d7f8d7 (gitignore更新)
@@ -1152,8 +1177,11 @@ namespace XLua
 		    if (type == typeof(XLuaTest.InvokeLua.CalcNew))
 			{
 <<<<<<< HEAD
+<<<<<<< HEAD
 			    return new XLuaTest.InvokeLua.CalcNew(__Gen_Delegate_Imp19);
 =======
+=======
+>>>>>>> parent of 9d7f8d7 (gitignore更新)
 			    return new XLuaTest.InvokeLua.CalcNew(__Gen_Delegate_Imp10);
 			}
 		
@@ -1190,6 +1218,9 @@ namespace XLua
 		    if (type == typeof(System.Action<bool>))
 			{
 			    return new System.Action<bool>(__Gen_Delegate_Imp17);
+<<<<<<< HEAD
+>>>>>>> parent of 9d7f8d7 (gitignore更新)
+=======
 >>>>>>> parent of 9d7f8d7 (gitignore更新)
 			}
 		

@@ -183,8 +183,11 @@ namespace XLua.CSObjectWrap
             
             translator.AddInterfaceBridgeCreator(typeof(IPersonAction), IPersonActionBridge.__Create);
             
+<<<<<<< HEAD
             translator.AddInterfaceBridgeCreator(typeof(System.Collections.IEnumerator), SystemCollectionsIEnumeratorBridge.__Create);
             
+=======
+>>>>>>> parent of 9d7f8d7 (gitignore更新)
             translator.AddInterfaceBridgeCreator(typeof(Tutorial.CSCallLua.ItfD), TutorialCSCallLuaItfDBridge.__Create);
             
             translator.AddInterfaceBridgeCreator(typeof(XLuaTest.InvokeLua.ICalc), XLuaTestInvokeLuaICalcBridge.__Create);
