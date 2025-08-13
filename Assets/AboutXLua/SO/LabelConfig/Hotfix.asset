@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tag: 0
   types:
-  - assemblyName: Assembly-CSharp
-    typeName: XLuaTest.Helloworld
-    genericArguments: []
+  - assemblyName: 
+    typeName: 
+    _serializedGenerics: []

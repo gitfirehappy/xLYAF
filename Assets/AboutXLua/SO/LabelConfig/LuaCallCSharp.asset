@@ -13,7 +13,4 @@ MonoBehaviour:
   m_Name: LuaCallCSharp
   m_EditorClassIdentifier: 
   tag: 1
-  types:
-  - assemblyName: Assembly-CSharp
-    typeName: XLuaTest.Helloworld
-    genericArguments: []
+  types: []

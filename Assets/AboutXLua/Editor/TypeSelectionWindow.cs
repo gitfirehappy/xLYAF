@@ -1,138 +1,145 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-/// <summary>
-/// 类型选择编辑器窗口
-/// </summary>
-public class TypeSelectionWindow : EditorWindow
+namespace AboutXLua.Editor
 {
-    private string searchFilter = "";
-    private Vector2 scrollPosition;
-    private SerializedProperty targetProperty;
-    private Type[] filteredTypes;
-    private static Type[] allTypesCache;    // 全局类型缓存
-
-    public static void Open(SerializedProperty property)
-    {
-        var window = GetWindow<TypeSelectionWindow>("Select Type");
-        window.targetProperty = property;
-        window.minSize = new Vector2(400, 500);
-        CacheAssemblyTypes();
-    }
-
     /// <summary>
-    /// 缓存程序集类型
+    /// 类型选择编辑器窗口
     /// </summary>
-    private static void CacheAssemblyTypes()
+    public class TypeSelectionWindow : EditorWindow
     {
-        if (allTypesCache != null) return;
-        
-        allTypesCache = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(asm => !asm.IsDynamic && 
-                   !asm.FullName.StartsWith("UnityEngine") && 
-                   !asm.FullName.StartsWith("UnityEditor"))
-            .SelectMany(asm => 
-            {
-                try { return asm.GetTypes(); }
-                catch { return Array.Empty<Type>(); }
-            })
-            .Where(t => t.IsPublic && !t.IsAbstract)
-            .OrderBy(t => t.FullName)
-            .ToArray();
-    }
+        private string searchFilter = "";
+        private Vector2 scrollPosition;
+        private SerializedProperty targetProperty;
+        private Type[] filteredTypes;
+        private static Type[] allTypesCache;    // 全局类型缓存
 
-    private void OnGUI()
-    {
-        if (targetProperty == null) 
+        // 静态构造函数初始化缓存
+        static TypeSelectionWindow()
         {
-            Close();
-            return;
+            CacheAssemblyTypes();
+        }
+
+        /// <summary>
+        /// 缓存程序集类型
+        /// </summary>
+        private static void CacheAssemblyTypes()
+        {
+            if (allTypesCache != null) return;
+        
+            allTypesCache = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(asm => !asm.IsDynamic && 
+                              !asm.FullName.StartsWith("UnityEngine") && 
+                              !asm.FullName.StartsWith("UnityEditor"))
+                .SelectMany(asm => 
+                {
+                    try { return asm.GetTypes(); }
+                    catch { return Array.Empty<Type>(); }
+                })
+                .Where(t => t.IsPublic && !t.IsAbstract)
+                .OrderBy(t => t.FullName)
+                .ToArray();
         }
         
-        try
+        public static void Open(SerializedProperty property)
         {
-            // 使用正确的样式名称
-            GUIStyle searchFieldStyle = GUI.skin.FindStyle("ToolbarSearchTextField") ?? EditorStyles.textField;
-            GUIStyle cancelButtonStyle = GUI.skin.FindStyle("ToolbarSearchCancelButton") ?? EditorStyles.miniButton;
+            var window = GetWindow<TypeSelectionWindow>("Select Type");
+            window.targetProperty = property;
+            window.minSize = new Vector2(400, 500);
+            CacheAssemblyTypes();
+        }
 
-            // 搜索栏
-            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+        private void OnGUI()
+        {
+            if (targetProperty == null) 
             {
-                // 使用安全的样式获取方式
-                searchFilter = EditorGUILayout.TextField(searchFilter, searchFieldStyle);
-                
-                // 修复3: 添加null检查
-                if (GUILayout.Button("", cancelButtonStyle))
-                {
-                    searchFilter = "";
-                    GUI.FocusControl(null);
-                }
+                Close();
+                return;
             }
-            EditorGUILayout.EndHorizontal();
-
-            // 类型列表
-            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+        
+            try
             {
-                // 清空选项
-                if (GUILayout.Button("None"))
-                {
-                    SetType(null);
-                    Close();
-                }
+                // 使用正确的样式名称
+                GUIStyle searchFieldStyle = GUI.skin.FindStyle("ToolbarSearchTextField") ?? EditorStyles.textField;
+                GUIStyle cancelButtonStyle = GUI.skin.FindStyle("ToolbarSearchCancelButton") ?? EditorStyles.miniButton;
 
-                // 应用搜索过滤
-                if (allTypesCache != null)
+                // 搜索栏
+                EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
                 {
-                    filteredTypes = string.IsNullOrEmpty(searchFilter) 
-                        ? allTypesCache.Take(300).ToArray() 
-                        : allTypesCache
-                            .Where(t => t.FullName.IndexOf(searchFilter, StringComparison.OrdinalIgnoreCase) >= 0)
-                            .Take(200)
-                            .ToArray();
-
-                    // 显示类型
-                    foreach (Type type in filteredTypes)
+                    // 使用安全的样式获取方式
+                    searchFilter = EditorGUILayout.TextField(searchFilter, searchFieldStyle);
+                
+                    // 修复3: 添加null检查
+                    if (GUILayout.Button("", cancelButtonStyle))
                     {
-                        string label = $"{type.Namespace}.{type.Name}";
-                        if (GUILayout.Button(label, EditorStyles.label))
-                        {
-                            SetType(type);
-                            Close();
-                        }
+                        searchFilter = "";
+                        GUI.FocusControl(null);
                     }
                 }
-                else
-                {
-                    GUILayout.Label("No types available", EditorStyles.centeredGreyMiniLabel);
-                }
-            }
-            EditorGUILayout.EndScrollView();
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"Type selection error: {ex.Message}");
-            Close();
-        }
-    }
+                EditorGUILayout.EndHorizontal();
 
-    /// <summary>
-    /// 更新序列化属性
-    /// </summary>
-    /// <param name="type"></param>
-    private void SetType(Type type)
-    {
-        if (targetProperty == null) return;
+                // 类型列表
+                scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+                {
+                    // 清空选项
+                    if (GUILayout.Button("None"))
+                    {
+                        SetType(null);
+                        Close();
+                    }
+
+                    // 应用搜索过滤
+                    if (allTypesCache != null)
+                    {
+                        filteredTypes = string.IsNullOrEmpty(searchFilter) 
+                            ? allTypesCache.Take(300).ToArray() 
+                            : allTypesCache
+                                .Where(t => t.FullName.IndexOf(searchFilter, StringComparison.OrdinalIgnoreCase) >= 0)
+                                .Take(200)
+                                .ToArray();
+
+                        // 显示类型
+                        foreach (Type type in filteredTypes)
+                        {
+                            string label = $"{type.Namespace}.{type.Name}";
+                            if (GUILayout.Button(label, EditorStyles.label))
+                            {
+                                SetType(type);
+                                Close();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        GUILayout.Label("No types available", EditorStyles.centeredGreyMiniLabel);
+                    }
+                }
+                EditorGUILayout.EndScrollView();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Type selection error: {ex.Message}");
+                Close();
+            }
+        }
+
+        /// <summary>
+        /// 更新序列化属性
+        /// </summary>
+        /// <param name="type"></param>
+        private void SetType(Type type)
+        {
+            if (targetProperty == null) return;
         
-        SerializedProperty assemblyProp = targetProperty.FindPropertyRelative("assemblyName");
-        SerializedProperty typeProp = targetProperty.FindPropertyRelative("typeName");
+            SerializedProperty assemblyProp = targetProperty.FindPropertyRelative("assemblyName");
+            SerializedProperty typeProp = targetProperty.FindPropertyRelative("typeName");
         
-        if (assemblyProp != null) assemblyProp.stringValue = type?.Assembly.GetName().Name ?? "";
-        if (typeProp != null) typeProp.stringValue = type?.FullName ?? "";
+            if (assemblyProp != null) assemblyProp.stringValue = type?.Assembly.GetName().Name ?? "";
+            if (typeProp != null) typeProp.stringValue = type?.FullName ?? "";
         
-        targetProperty.serializedObject.ApplyModifiedProperties();
+            targetProperty.serializedObject.ApplyModifiedProperties();
+        }
     }
 }

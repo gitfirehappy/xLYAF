@@ -17,8 +17,8 @@ public class XLuaLoaderTester : MonoBehaviour
     public string luaModuleName = "HelloWorld";
     
     [Header("XLuaLoader 配置")]
-    public List<string> editorRoots = new List<string> { "AboutXLua/Test/LuaScripts" };
-    public List<string> aaLabels = new List<string> { "LuaScripts" };
+    public List<string> editorRoots = new() { "AboutXLua/Test/LuaScripts" };
+    public List<string> aaLabels = new() { "LuaScripts" };
     public bool enableLog = true;
     
     private LuaEnv _luaEnv;
