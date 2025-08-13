@@ -1,47 +1,114 @@
 using UnityEngine;
 using UnityEditor;
 using System.IO;
+using System.Linq;
+using System;
 
 public class LuaFileCreatorWithName
 {
-    [MenuItem("Assets/Create/Lua Script", false, 80)]
-    private static void CreateLuaFile()
+    private const string LuaTemplate = "-- Lua script\n\nfunction Start()\n    print(\"Hello Lua\")\nend";
+    
+    // 合并创建菜单到多级菜单
+    [MenuItem("Assets/Create/Lua Script/Standard (.lua)", false, 80)]
+    private static void CreateLuaFile() => CreateLuaFileWithExtension(".lua");
+
+    [MenuItem("Assets/Create/Lua Script/Text Format (.lua.txt)", false, 81)]
+    private static void CreateLuaTxtFile() => CreateLuaFileWithExtension(".lua.txt");
+
+    // 使用更具识别度的菜单名称
+    [MenuItem("Assets/Lua Tools/Convert Format/Lua → Lua.txt", true, 30)]
+    [MenuItem("Assets/Lua Tools/Convert Format/Lua.txt → Lua", true, 31)]
+    private static bool ValidateConvertMenu()
     {
-        // 获取选中路径
-        string path = GetSelectedPathOrFallback();
-
-        // 弹窗输入文件名（默认值 NewLuaScript）
-        string fileName = EditorUtility.SaveFilePanelInProject(
-            "Create Lua Script",
-            "NewLuaScript",
-            "lua",
-            "请输入 Lua 文件名",
-            path
-        );
-
-        // 如果用户取消，直接退出
-        if (string.IsNullOrEmpty(fileName))
-            return;
-
-        // 写入默认模板
-        File.WriteAllText(fileName, "-- Lua script\n\nfunction Start()\n    print(\"Hello Lua\")\nend");
-
-        // 刷新资源
-        AssetDatabase.Refresh();
+        return Selection.activeObject != null && 
+               !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(Selection.activeObject));
     }
 
-    /// <summary>
-    /// 获取选中路径，如果没选中，就返回 "Assets"
-    /// </summary>
+    [MenuItem("Assets/Lua Tools/Convert Format/Lua → Lua.txt", false, 30)]
+    private static void ConvertLuaToTxt()
+    {
+        ConvertSelectedFiles(extension: ".lua", newExtension: ".lua.txt");
+    }
+
+    [MenuItem("Assets/Lua Tools/Convert Format/Lua.txt → Lua", false, 31)]
+    private static void ConvertTxtToLua()
+    {
+        ConvertSelectedFiles(extension: ".lua.txt", newExtension: ".lua");
+    }
+
+    private static void CreateLuaFileWithExtension(string extension)
+    {
+        string path = GetSelectedPathOrFallback();
+        string defaultName = "NewLuaScript";
+        string fileName = EditorUtility.SaveFilePanel(
+            $"Create {extension} Script",
+            path,
+            defaultName + extension,
+            extension.Replace(".", "")
+        );
+
+        if (string.IsNullOrEmpty(fileName)) 
+            return;
+
+        File.WriteAllText(fileName, LuaTemplate);
+        AssetDatabase.Refresh();
+        EditorUtility.FocusProjectWindow();
+        Selection.activeObject = AssetDatabase.LoadMainAssetAtPath(fileName.Replace(Application.dataPath, "Assets"));
+    }
+
+    private static void ConvertSelectedFiles(string extension, string newExtension)
+    {
+        try
+        {
+            AssetDatabase.StartAssetEditing();
+        
+            foreach (var obj in Selection.objects)
+            {
+                string path = AssetDatabase.GetAssetPath(obj);
+                if (string.IsNullOrEmpty(path) || Directory.Exists(path)) 
+                    continue;
+
+                // 检查扩展名（不区分大小写）
+                if (!path.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                // 智能生成新路径：移除整个旧扩展名，然后添加新扩展名
+                string basePath = path.Substring(0, path.Length - extension.Length);
+                string newPath = basePath + newExtension;
+            
+                string fullPath = Path.Combine(Application.dataPath.Replace("Assets", ""), path);
+                string newFullPath = Path.Combine(Application.dataPath.Replace("Assets", ""), newPath);
+
+                if (File.Exists(newFullPath))
+                {
+                    Debug.LogWarning($"Skipped {path}: Target file already exists");
+                    continue;
+                }
+
+                // 执行文件重命名
+                AssetDatabase.MoveAsset(path, newPath);
+            }
+        }
+        finally
+        {
+            AssetDatabase.StopAssetEditing();
+            AssetDatabase.Refresh();
+        }
+    }
+
     private static string GetSelectedPathOrFallback()
     {
         string path = "Assets";
-        foreach (Object obj in Selection.GetFiltered(typeof(Object), SelectionMode.Assets))
+        foreach (UnityEngine.Object obj in Selection.GetFiltered(typeof(UnityEngine.Object), SelectionMode.Assets))
         {
             path = AssetDatabase.GetAssetPath(obj);
             if (!string.IsNullOrEmpty(path) && File.Exists(path))
             {
                 path = Path.GetDirectoryName(path);
+                break;
+            }
+            if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
+            {
                 break;
             }
         }
