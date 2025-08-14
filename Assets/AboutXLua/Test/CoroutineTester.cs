@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using XLua;
@@ -93,13 +94,30 @@ public class CoroutineTester : MonoBehaviour
         
         Debug.Log("===== 测试2: 基础Lua协程 =====");
         bool completed = false;
-        var luaCode = @"  
-            print('[Lua] 开始')
-            coroutine.yield(0.1)
-            print('[Lua] 完成')
-        ";
+        var luaCode = @"
+        print('[Lua] 开始')
+        -- 使用UnityEngine.WaitForSeconds等待
+        coroutine.yield(CS.UnityEngine.WaitForSeconds(0.1))
+        print('[Lua] 完成')
+    ";
         
-        var func = _luaEnv.DoString($"return function() {luaCode} end")[0] as LuaFunction;
+        LuaFunction func;
+        try
+        {
+            var result = _luaEnv.DoString($"return function() {luaCode} end");
+            if (result == null || result.Length == 0 || !(result[0] is LuaFunction))
+            {
+                Debug.LogError("Failed to create Lua function");
+                yield break;
+            }
+            func = result[0] as LuaFunction;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Lua function creation failed: {ex}");
+            yield break;
+        }
+        
         int id = LuaCoroutineScheduler.Start(func, "SimpleLua");
         
         LuaCoroutineScheduler.RegisterCompletionCallback(id, () => completed = true);

@@ -8,7 +8,7 @@ public static class LuaCoroutineScheduler
     public class LuaCoroutine
     {
         public int Id;
-        public LuaTable Coroutine;
+        public object Coroutine;
         public string Name;
         public bool IsRunning;
         public Action OnCompleted;
@@ -27,10 +27,15 @@ public static class LuaCoroutineScheduler
     {
         _luaEnv = luaEnv ?? throw new ArgumentNullException(nameof(luaEnv), "LuaEnv cannot be null");
     
-        // 增强初始化检查，确保获取到必要的Lua函数
-        _coroutineResume = _luaEnv.Global.Get<LuaFunction>("coroutine.resume");
-        _coroutineStatus = _luaEnv.Global.Get<LuaFunction>("coroutine.status");
-        _coroutineCreate = _luaEnv.Global.Get<LuaFunction>("coroutine.create");
+        // 先获取coroutine全局表
+        LuaTable coroutineTable = _luaEnv.Global.Get<LuaTable>("coroutine");
+        if (coroutineTable == null)
+            throw new InvalidOperationException("Failed to get 'coroutine' table from Lua environment");
+
+        // 从coroutine表中获取具体函数
+        _coroutineResume = coroutineTable.Get<LuaFunction>("resume");
+        _coroutineStatus = coroutineTable.Get<LuaFunction>("status");
+        _coroutineCreate = coroutineTable.Get<LuaFunction>("create");
 
         // 检查关键函数是否获取成功
         if (_coroutineResume == null)
@@ -64,23 +69,30 @@ public static class LuaCoroutineScheduler
         }
         
         int id = ++_idCounter;
-        // 使用全局环境代替新建表
-        LuaTable env = _luaEnv.Global; 
     
         // 使用全局协程创建函数
-        object[] createResult = _coroutineCreate.Call(func);
-        if (createResult == null || createResult.Length == 0 || !(createResult[0] is LuaTable))
+        object[] createResult;
+        try
         {
-            Debug.LogError($"[LuaCoroutineScheduler] Failed to create coroutine '{name}'");
+            createResult = _coroutineCreate.Call(func);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[LuaCoroutineScheduler] Failed to create coroutine '{name}': {ex}");
             return -1;
         }
         
-        LuaTable luaCoroutine = createResult[0] as LuaTable;
+        if (createResult == null || createResult.Length == 0 || createResult[0] == null)
+        {
+            Debug.LogError($"[LuaCoroutineScheduler] Failed to create coroutine '{name}'");
+            //if(createResult[0] == null)Debug.LogError(createResult[0]);
+            return -1;
+        }
         
         _luaCoroutines[id] = new LuaCoroutine
         {
             Id = id,
-            Coroutine = luaCoroutine,
+            Coroutine = createResult[0],
             Name = name,
             IsRunning = true
         };
@@ -98,7 +110,7 @@ public static class LuaCoroutineScheduler
     
         // 构造参数：Lua协程对象 + 外部参数
         object[] callArgs = new object[args.Length + 1];
-        callArgs[0] = co.Coroutine;  // LuaTable作为第一个参数
+        callArgs[0] = co.Coroutine;
         Array.Copy(args, 0, callArgs, 1, args.Length);
 
         try
