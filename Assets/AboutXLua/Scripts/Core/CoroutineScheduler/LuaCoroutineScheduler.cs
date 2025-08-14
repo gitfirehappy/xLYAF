@@ -21,13 +21,24 @@ public static class LuaCoroutineScheduler
     // 初始化时预加载避免每次调用查找
     private static LuaFunction _coroutineResume;
     private static LuaFunction _coroutineStatus;
+    private static LuaFunction _coroutineCreate;
 
     public static void Init(LuaEnv luaEnv)
     {
-        _luaEnv = luaEnv;
-        // 预加载Lua函数避免运行时查找
+        _luaEnv = luaEnv ?? throw new ArgumentNullException(nameof(luaEnv), "LuaEnv cannot be null");
+    
+        // 增强初始化检查，确保获取到必要的Lua函数
         _coroutineResume = _luaEnv.Global.Get<LuaFunction>("coroutine.resume");
         _coroutineStatus = _luaEnv.Global.Get<LuaFunction>("coroutine.status");
+        _coroutineCreate = _luaEnv.Global.Get<LuaFunction>("coroutine.create");
+
+        // 检查关键函数是否获取成功
+        if (_coroutineResume == null)
+            throw new InvalidOperationException("Failed to get 'coroutine.resume' from Lua environment");
+        if (_coroutineStatus == null)
+            throw new InvalidOperationException("Failed to get 'coroutine.status' from Lua environment");
+        if (_coroutineCreate == null)
+            throw new InvalidOperationException("Failed to get 'coroutine.create' from Lua environment");
     }
 
     /// <summary>
@@ -37,18 +48,34 @@ public static class LuaCoroutineScheduler
     {
         if (_luaEnv == null)
         {
-            Debug.LogError("[LuaCoroutineScheduler] LuaEnv not initialized");
+            Debug.LogError("[LuaCoroutineScheduler] LuaEnv not initialized. Call Init() first.");
+            return -1;
+        }
+        // 补充检查核心函数是否初始化
+        if (_coroutineCreate == null)
+        {
+            Debug.LogError("[LuaCoroutineScheduler] Coroutine functions not initialized properly");
+            return -1;
+        }
+        if (func == null)
+        {
+            Debug.LogError("[LuaCoroutineScheduler] LuaFunction cannot be null");
             return -1;
         }
         
         int id = ++_idCounter;
-        // 创建Lua协程对象（通过coroutine.create包装）
-        var createResult = _luaEnv.DoString(
-            "return coroutine.create(...)", 
-            "LuaCoroutineCreate", 
-            func
-        );
-        var luaCoroutine = createResult[0] as LuaTable;
+        // 使用全局环境代替新建表
+        LuaTable env = _luaEnv.Global; 
+    
+        // 使用全局协程创建函数
+        object[] createResult = _coroutineCreate.Call(func);
+        if (createResult == null || createResult.Length == 0 || !(createResult[0] is LuaTable))
+        {
+            Debug.LogError($"[LuaCoroutineScheduler] Failed to create coroutine '{name}'");
+            return -1;
+        }
+        
+        LuaTable luaCoroutine = createResult[0] as LuaTable;
         
         _luaCoroutines[id] = new LuaCoroutine
         {
