@@ -13,6 +13,10 @@ public class XLuaConfigTester : MonoBehaviour
     [Tooltip("是否在Awake中自动运行测试")]
     public bool runTestOnAwake = true;
     
+    [Header("配置参数")]
+    [Tooltip("Addressables标签名")]
+    public string configLabel = XluaTypeConfigLoader.DefaultConfigLabel;
+    
     [Header("测试结果")]
     [ReadOnly] public int hotfixTypeCount;
     [ReadOnly] public int luaCallCSharpTypeCount;
@@ -36,7 +40,7 @@ public class XLuaConfigTester : MonoBehaviour
         Debug.Log("=== 开始XLua配置测试 ===");
         
         // 初始化加载器
-        XluaTypeConfigLoader.Init();
+        XluaTypeConfigLoader.Init(configLabel);
         
         // 获取类型统计
         hotfixTypeCount = XluaTypeConfigLoader.HotfixTypes?.Count ?? 0;

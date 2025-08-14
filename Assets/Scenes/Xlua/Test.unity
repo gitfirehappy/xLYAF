@@ -231,7 +231,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1652924321
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -244,7 +244,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99a6bf1ac06c7614d89ba11281415ab0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  runTestOnAwake: 0
+  runTestOnAwake: 1
+  configLabel: XLuaConfigs
   hotfixTypeCount: 0
   luaCallCSharpTypeCount: 0
   csharpCallLuaTypeCount: 0
@@ -280,7 +281,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1688480532
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -7,7 +7,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 /// <summary>
-/// XLua类型配置加载器（Addressables实现）
+/// XLua配置标签加载器（Addressables实现）
 /// </summary>
 public static class XluaTypeConfigLoader
 {
@@ -16,12 +16,13 @@ public static class XluaTypeConfigLoader
     public static List<Type> CSharpCallLuaTypes { get; private set; }
 
     // 地址标签，用于在Addressables中识别TypeListSO资产
-    private const string XLUA_CONFIG_LABEL = "XLuaConfigs"; 
+    public const string DefaultConfigLabel = "XLuaConfigs";
 
     /// <summary>
     /// 初始化加载配置（核心层启动时调用）
     /// </summary>
-    public static void Init()
+    /// /// <param name="configLabel">Addressables标签名，默认为"XLuaConfigs"</param>
+    public static void Init(string configLabel = DefaultConfigLabel)
     {
         Debug.Log("XluaTypeConfigLoader: Initializing type lists...");
 
@@ -32,9 +33,9 @@ public static class XluaTypeConfigLoader
 
         // 2. 使用Addressables加载所有 TypeListSO
         // 注意：这里使用 WaitForCompletion() 是为了在游戏启动初期进行同步加载
-        // 如果您的启动流程是异步的，或者Addressables初始化在更早阶段完成，
+        // 如果启动流程是异步的，或者Addressables初始化在更早阶段完成，
         // 可以将其改为异步加载并等待直到完成。
-        AsyncOperationHandle<IList<TypeListSO>> loadHandle = Addressables.LoadAssetsAsync<TypeListSO>(XLUA_CONFIG_LABEL, null);
+        AsyncOperationHandle<IList<TypeListSO>> loadHandle = Addressables.LoadAssetsAsync<TypeListSO>(configLabel, null);
         IList<TypeListSO> allConfigs;
 
         try
@@ -43,7 +44,7 @@ public static class XluaTypeConfigLoader
         }
         catch (Exception ex)
         {
-            Debug.LogError($"XluaTypeConfigLoader: Failed to load XLua configs from Addressables label '{XLUA_CONFIG_LABEL}'. Error: {ex.Message}");
+            Debug.LogError($"XluaTypeConfigLoader: Failed to load XLua configs from Addressables label '{configLabel}'. Error: {ex.Message}");
             return; // 加载失败，直接返回
         }
         finally
@@ -53,7 +54,7 @@ public static class XluaTypeConfigLoader
 
         if (allConfigs == null || allConfigs.Count == 0)
         {
-            Debug.LogWarning($"XluaTypeConfigLoader: No TypeListSO assets found with label '{XLUA_CONFIG_LABEL}'. Please ensure they are addressable and tagged correctly.");
+            Debug.LogWarning($"XluaTypeConfigLoader: No TypeListSO assets found with label '{configLabel}'. Please ensure they are addressable and tagged correctly.");
             return;
         }
 
@@ -103,7 +104,7 @@ public static class XluaTypeConfigLoader
     }
     
 
-    // 后续在您的XLua初始化代码中，可以这样使用:
+    // 后续在XLua初始化代码中，可以这样使用:
     // private static List<Type> LuaCallCSharp = XluaTypeConfigLoader.LuaCallCSharpTypes;
     // private static List<Type> CSharpCallLua = XluaTypeConfigLoader.CSharpCallLuaTypes;
     // private static List<Type> Hotfix = XluaTypeConfigLoader.HotfixTypes;
