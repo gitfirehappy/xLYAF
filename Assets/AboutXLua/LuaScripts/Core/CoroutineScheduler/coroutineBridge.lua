@@ -63,18 +63,29 @@ function coroutineBridge.resume(id)
     end
 
     if data.status == "dead" then
+        print(string.format("[coroutineBridge.lua] 尝试恢复已完成的协程 #%d", id))
         return false, "coroutine dead"
     end
 
     data.status = "running"
-    local success, err = coroutine.resume(data.co)
+    
+    print("[coroutineBridge.lua] 恢复协程 Lua#"..id)
+    
+    local success, err_or_value = coroutine.resume(data.co)
+
+    -- 正确处理恢复结果
     if not success then
-        Debug.LogError("[coroutineBridge.lua] Coroutine error: "..tostring(err))
+        Debug.LogError("[coroutineBridge.lua] Coroutine error: "..tostring(err_or_value))
+    else
+        -- 打印协程状态
+        local status = coroutine.status(data.co)
+        print(string.format("[Lua] 协程 #%d 状态: %s", id, status))
     end
 
     -- 更新状态
     local currentStatus = coroutine.status(data.co)
     if currentStatus == "dead" then
+        print(string.format("[coroutineBridge.lua] 协程 #%d 完成", id))
         coroutineBridge._set_status(id, "dead")
     else
         data.status = "suspended"
@@ -127,8 +138,20 @@ end
     @return: C#协程ID
 ]]
 function coroutineBridge.run_csharp_coroutine(func)
-    local csCoId = CS.CSharpCoroutineScheduler.StartCoroutine(func)
+    if type(func) ~= "function" then
+        error("[coroutineBridge] run_csharp_coroutine requires a function", 2)
+    end
+
+    -- XLua协程包装器
+    local csCoId = CS.CSharpCoroutineScheduler.StartCoroutine(
+            coroutineBridge._wrap_as_coroutine(func)
+    )
     return csCoId
+end
+
+-- 将Lua函数包装为C#可识别的协程
+function coroutineBridge._wrap_as_coroutine(func)
+    return util.cs_generator(func)
 end
 
 return coroutineBridge

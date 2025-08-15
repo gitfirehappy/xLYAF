@@ -30,6 +30,19 @@ public static class LuaCoroutineScheduler
     /// <param name="luaCoId"></param>
     public static void Resume(int luaCoId,LuaEnv luaEnv)
     {
-        luaEnv.Global.Get<Action<int>>("coroutineBridge.resume").Invoke(luaCoId);
+        if (luaEnv == null)
+        {
+            Debug.LogWarning($"[LuaCoroutineScheduler] Skip resume L#{luaCoId} - LuaEnv invalid");
+            return;
+        }
+    
+        try 
+        {
+            luaEnv.Global.Get<Action<int>>("coroutineBridge.resume")?.Invoke(luaCoId);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[LuaCoroutineScheduler] Resume failed: {e.Message}");
+        }
     }
 }

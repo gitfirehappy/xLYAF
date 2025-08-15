@@ -13,4 +13,7 @@ MonoBehaviour:
   m_Name: CSharpCallLua
   m_EditorClassIdentifier: 
   tag: 2
-  types: []
+  types:
+  - assemblyName: 
+    typeName: 
+    _serializedGenerics: []

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using XLua;
@@ -30,6 +31,10 @@ public class CoroutineTester : MonoBehaviour
         // 正确加载Lua模块
         _luaEnv.DoString("coroutineBridge = require 'coroutineBridge'");
         
+        _luaEnv.DoString("util = require 'xlua.util'");
+        
+        CoroutineBridge.SetLuaEnvAccessor(() => _isInitialized ? _luaEnv : null);
+        
         _isInitialized = true;
         Debug.Log("✅ 环境初始化完成");
     }
@@ -38,7 +43,7 @@ public class CoroutineTester : MonoBehaviour
     public void TestCSharpCoroutine()
     {
         CheckInit();
-        int id = CSharpCoroutineScheduler.StartCoroutine(SimpleCSharpCoroutine(), _luaEnv);
+        int id = CSharpCoroutineScheduler.StartCoroutine(SimpleCSharpCoroutine());
         Debug.Log($"🚀 C#协程启动 ID:{id}");
     }
 
@@ -56,50 +61,77 @@ public class CoroutineTester : MonoBehaviour
     public void TestLuaCoroutine()
     {
         CheckInit();
+        object[] result = _luaEnv.DoString(@"
+        local id = coroutineBridge.create(function()
+            print('🌌🌌 Lua#'..coroutineBridge.get_current_id()..' 开始')
+            coroutine.yield()
+            print('🌌🌌 Lua#'..coroutineBridge.get_current_id()..' 运行中')
+            coroutine.yield()
+            print('✅ Lua#'..coroutineBridge.get_current_id()..' 完成')
+        end)
+        print('🚀🚀 Lua协程启动 ID:'..id)
         
-        // 正确使用DoString，忽略返回值
-        _luaEnv.DoString(@"
-            local id = coroutineBridge.create(function()
-                print('🌌 Lua#'..coroutineBridge.get_current_id()..' 开始')
-                coroutine.yield()
-                print('🌌 Lua#'..coroutineBridge.get_current_id()..' 运行中')
-                coroutine.yield()
-                print('✅ Lua#'..coroutineBridge.get_current_id()..' 完成')
-            end)
-            print('🚀 Lua协程启动 ID:'..id)
-            coroutineBridge.resume(id)
-        ", "LuaTest");
+        -- 仅返回ID，不立即恢复
+        return id
+    ", "LuaTest");
+    
+        // 安全类型转换
+        int luaCoId = Convert.ToInt32(result[0]);
+        Debug.Log($"🚀🚀 获取Lua协程ID: {luaCoId}");
+
+        // 第一次恢复（在主线程执行）
+        _luaEnv.DoString($"coroutineBridge.resume({luaCoId})", "InitialResume");
+    
+        // 后续恢复仍通过协程处理
+        StartCoroutine(ResumeLuaCoroutine(luaCoId));
+    }
+
+    private IEnumerator ResumeLuaCoroutine(int luaCoId)
+    {
+        yield return new WaitForSeconds(0.5f);
+    
+        // 第二次恢复（执行到第二个yield）
+        _luaEnv.DoString($"coroutineBridge.resume({luaCoId})", "ResumeLua1");
+        Debug.Log("🔁 第二次恢复Lua协程");
+    
+        yield return new WaitForSeconds(0.5f);
+    
+        // 第三次恢复（执行完成）
+        _luaEnv.DoString($"coroutineBridge.resume({luaCoId})", "ResumeLua2");
+        Debug.Log("🔁 第三次恢复Lua协程");
     }
 
     [ContextMenu("4. 测试Lua等待C#")]
     public void TestLuaWaitCSharp()
     {
         CheckInit();
-        
-        // 正确使用DoString，获取返回值
+    
+        // 简化Lua代码，使用XLua的协程生成器
         object[] result = _luaEnv.DoString(@"
-            local csId = coroutineBridge.run_csharp_coroutine(function()
-                return CS.UnityEngine.WaitForSeconds(0.5)
-            end)
-            
-            local id = coroutineBridge.create(function()
-                print('⏳ Lua开始等待C#'..csId)
-                coroutineBridge.wait_for_csharp(csId)
-                print('✅ Lua结束等待')
-            end)
-            
-            coroutineBridge.resume(id)
-            return id
-        ", "LuaWaitTest");
+        local csId = coroutineBridge.run_csharp_coroutine(function()
+            -- 直接使用XLua的协程机制
+            coroutine.yield(CS.UnityEngine.WaitForSeconds(0.5))
+            print(""C#协程完成"")
+        end)
         
-        Debug.Log($"🔄 Lua等待C#启动 ID:{result[0]}");
+        local id = coroutineBridge.create(function()
+            print('⏳⏳⏳ Lua开始等待C#'..csId)
+            coroutineBridge.wait_for_csharp(csId)
+            print('✅ Lua结束等待')
+        end)
+        
+        coroutineBridge.resume(id)
+        return id
+    ", "LuaWaitTest");
+    
+        Debug.Log($"🔄🔄 Lua等待C#启动 ID:{result[0]}");
     }
 
     [ContextMenu("5. 测试C#等待Lua")]
     public void TestCSharpWaitLua()
     {
         CheckInit();
-        int id = CSharpCoroutineScheduler.StartCoroutine(WaitForLuaRoutine(), _luaEnv);
+        int id = CSharpCoroutineScheduler.StartCoroutine(WaitForLuaRoutine());
         Debug.Log($"🔄 C#等待Lua启动 ID:{id}");
     }
 

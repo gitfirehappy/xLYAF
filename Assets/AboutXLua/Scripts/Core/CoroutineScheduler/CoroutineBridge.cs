@@ -18,6 +18,12 @@ public static class CoroutineBridge
     /// <summary> Lua协程的C#等待者 [LuaCoID] = List《C#CoID》</summary>
     private static readonly Dictionary<int, List<int>> _luaToCSharpWaiters = new();
     
+    private static Func<LuaEnv> _getLuaEnv;
+
+    public static void SetLuaEnvAccessor(Func<LuaEnv> accessor) 
+    {
+        _getLuaEnv = accessor;
+    }
     
     /// <summary>
     /// 清理与指定Lua协程相关的所有等待关系
@@ -60,6 +66,7 @@ public static class CoroutineBridge
             _csharpToLuaWaiters[csCoId] = list;
         }
         list.Add(luaCoId);
+        Debug.Log($"[CoroutineBridge] Lua#{luaCoId} 开始等待 C##{csCoId}");
     }
     
     /// <summary>
@@ -80,13 +87,16 @@ public static class CoroutineBridge
             _luaToCSharpWaiters[luaCoId] = list;
         }
         list.Add(csCoId);
+        Debug.Log($"[CoroutineBridge] C##{csCoId} 开始等待 Lua#{luaCoId}");
     }
     
     /// <summary>
     /// 通知C#协程完成
     /// </summary>
-    public static void NotifyCSharpComplete(int csCoId, LuaEnv luaEnv)
+    public static void NotifyCSharpComplete(int csCoId)
     {
+        var luaEnv = _getLuaEnv?.Invoke();
+        
         if (luaEnv == null) {
             Debug.LogError("[CoroutineBridge] LuaEnv is null!");
             return;
@@ -95,13 +105,19 @@ public static class CoroutineBridge
         // 通知所有等待此C#协程的Lua协程
         if (_csharpToLuaWaiters.TryGetValue(csCoId, out var luaWaiters))
         {
+            Debug.Log($"[CoroutineBridge] C##{csCoId} 完成，通知 {luaWaiters.Count} 个Lua协程恢复");
             foreach (var luaCoId in luaWaiters)
             {
                 _luaWaitingForCSharp.Remove(luaCoId);
                 // 恢复等待的Lua协程
                 LuaCoroutineScheduler.Resume(luaCoId, luaEnv);
+                Debug.Log($"[CoroutineBridge] 尝试恢复 Lua#{luaCoId}");
             }
             _csharpToLuaWaiters.Remove(csCoId);
+        }
+        else
+        {
+            Debug.LogWarning($"[CoroutineBridge] C##{csCoId} 完成，但无等待的Lua协程");
         }
     }
     
@@ -113,11 +129,16 @@ public static class CoroutineBridge
         // 通知所有等待此Lua协程的C#协程
         if (_luaToCSharpWaiters.TryGetValue(luaCoId, out var csWaiters))
         {
+            Debug.Log($"[CoroutineBridge] Lua#{luaCoId} 完成，通知 {csWaiters.Count} 个C#协程恢复");
             foreach (var csCoId in csWaiters)
             {
                 _csharpWaitingForLua.Remove(csCoId);
             }
             _luaToCSharpWaiters.Remove(luaCoId);
+        }
+        else
+        {
+            Debug.LogWarning($"[CoroutineBridge] Lua#{luaCoId} 完成，但无等待的C#协程");
         }
     }
 
