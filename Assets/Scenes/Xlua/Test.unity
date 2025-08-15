@@ -152,7 +152,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f7746e2cba44974fbabed28f4a07fcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  runAllTestsOnStart: 0
+  customLuaPaths:
+  - Assets/AboutXLua/LuaScripts/Core/CoroutineScheduler/
 --- !u!4 &1241579088
 Transform:
   m_ObjectHideFlags: 0
