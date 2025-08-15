@@ -2,103 +2,92 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using XLua;
+using XLua.LuaDLL;
 
 public static class CSharpCoroutineScheduler
 {
-    public class CoroutineInfo
-    {
-        public int Id;
-        public Coroutine Handle;
-        public string Name;
-        public bool IsRunning;
-    }
-
     private static MonoBehaviour _runner;
-    private static readonly Dictionary<int, CoroutineInfo> _csCoroutines = new();
+    private static readonly Dictionary<int, Coroutine> _idToCoroutine = new();
+    private static readonly Dictionary<Coroutine, int> _coroutineToId = new();
     private static int _idCounter;
-
+    
+    // 当前协程ID栈（支持嵌套协程）
+    private static readonly Stack<int> _currentCoroutineStack = new();
+    
     public static void Init(MonoBehaviour runner) => _runner = runner;
-
+    
     /// <summary>
-    /// 启动C#协程
+    /// 启动协程返回ID
     /// </summary>
-    public static int Start(IEnumerator routine, string name = "Unnamed")
+    public static int StartCoroutine(IEnumerator routine, LuaEnv luaEnv)
     {
-        if (_runner == null)
-        {
-            Debug.LogError("[CSharpCoroutineScheduler] Runner not initialized");
-            return -1;
-        }
+        if (_runner == null) 
+            throw new System.Exception("CSharpCoroutineScheduler not initialized!");
+        if (routine == null) 
+            throw new ArgumentNullException("routine");
         
-        int id = ++_idCounter;
-        var handle = _runner.StartCoroutine(WrappedCoroutine(id, routine));
+        var id = ++_idCounter;
+        var coroutine = _runner.StartCoroutine(
+            WrappedCoroutine(id, routine, luaEnv)
+        );
         
-        _csCoroutines[id] = new CoroutineInfo
-        {
-            Id = id,
-            Handle = handle,
-            Name = name,
-            IsRunning = true
-        };
-        
+        _idToCoroutine[id] = coroutine;
+        _coroutineToId[coroutine] = id;
         return id;
     }
     
-    private static IEnumerator WrappedCoroutine(int id, IEnumerator routine)
+    private static IEnumerator WrappedCoroutine(int id, IEnumerator routine, LuaEnv luaEnv)
     {
-        while (true)
+        // 压入当前协程ID
+        _currentCoroutineStack.Push(id);
+        
+        try
         {
-            bool moved;
-            try
-            {
-                moved = routine.MoveNext();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[CSharpCoroutineScheduler] Error in '{_csCoroutines[id].Name}': {ex}");
-                break;
-            }
-
-            if (!moved) break; // 协程结束
+            yield return routine;
+        }
+        finally
+        {
+            // 确保清理资源
+            CoroutineBridge.NotifyCSharpComplete(id, luaEnv);
+            _idToCoroutine.Remove(id);
             
-            yield return routine.Current; // 安全地在try外使用yield return
-        }
-
-        // 标记完成
-        if (_csCoroutines.TryGetValue(id, out var info))
-        {
-            info.IsRunning = false;
+            // 移除当前协程ID
+            _currentCoroutineStack.Pop();
         }
     }
-
+    
     /// <summary>
-    /// 停止C#协程
+    /// 停止指定协程
     /// </summary>
-    public static void Stop(int id)
+    public static void StopCoroutine(int id, LuaEnv luaEnv)
     {
-        if (_csCoroutines.TryGetValue(id, out var info) && info.IsRunning)
+        if (!_idToCoroutine.ContainsKey(id)) {
+            Debug.LogWarning($"[CSharpCoroutineScheduler] Attempt to stop invalid C# Coroutine ID: {id}");
+            return;
+        }
+        
+        if (_idToCoroutine.TryGetValue(id, out var coroutine))
         {
-            _runner.StopCoroutine(info.Handle);
-            _csCoroutines.Remove(id);
+            _runner.StopCoroutine(coroutine);
+            _idToCoroutine.Remove(id);
+            
+            if (_coroutineToId.ContainsKey(coroutine))
+            {
+                _coroutineToId.Remove(coroutine);
+            }
+            
+            CoroutineBridge.NotifyCSharpComplete(id,luaEnv);
         }
     }
-
+    
     /// <summary>
-    /// 检查协程是否运行中
+    /// 获取当前协程ID（支持嵌套协程）
     /// </summary>
-    public static bool IsRunning(int id) => 
-        _csCoroutines.TryGetValue(id, out var info) && info.IsRunning;
-
-    /// <summary>
-    /// 清理所有协程
-    /// </summary>
-    public static void ClearAll()
+    public static int GetCurrentCoroutineId()
     {
-        foreach (var info in _csCoroutines.Values)
-        {
-            if (info.IsRunning)
-                _runner.StopCoroutine(info.Handle);
-        }
-        _csCoroutines.Clear();
+        return _currentCoroutineStack.Count > 0 
+            ? _currentCoroutineStack.Peek() 
+            : -1;
     }
 }
