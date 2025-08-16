@@ -28,17 +28,17 @@ namespace AboutXLua.Editor
         private static void CacheAssemblyTypes()
         {
             if (allTypesCache != null) return;
-        
+
+            // 包含所有非动态程序集
             allTypesCache = AppDomain.CurrentDomain.GetAssemblies()
-                .Where(asm => !asm.IsDynamic && 
-                              !asm.FullName.StartsWith("UnityEngine") && 
-                              !asm.FullName.StartsWith("UnityEditor"))
+                .Where(asm => !asm.IsDynamic)
                 .SelectMany(asm => 
                 {
                     try { return asm.GetTypes(); }
                     catch { return Array.Empty<Type>(); }
                 })
-                .Where(t => t.IsPublic && !t.IsAbstract)
+                // 包含公共类型、接口和值类型
+                .Where(t => t.IsPublic || t.IsInterface || t.IsValueType)
                 .OrderBy(t => t.FullName)
                 .ToArray();
         }

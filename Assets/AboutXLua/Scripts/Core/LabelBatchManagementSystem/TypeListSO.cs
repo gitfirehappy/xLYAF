@@ -7,6 +7,8 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "TypeList", menuName = "XLua/Type List", order = 0)]
 public class TypeListSO : ScriptableObject,ISerializationCallbackReceiver
 {
+    [ReadOnly] public string remind = "系统类型在XLuaConfig统一静态注册,SO只管理自定义类型";
+    
     /// <summary>
     /// 需要管理的标签类型
     /// </summary>

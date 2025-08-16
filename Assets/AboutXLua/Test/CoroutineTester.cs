@@ -8,7 +8,7 @@ public class CoroutineTester : MonoBehaviour
     private LuaEnv _luaEnv;
     private bool _isInitialized;
     public string[] customLuaPaths = { "Assets/AboutXLua/LuaScripts/Core/CoroutineScheduler" }; // 自定义路径
-
+    
     [ContextMenu("1. 初始化环境")]
     public void Init()
     {

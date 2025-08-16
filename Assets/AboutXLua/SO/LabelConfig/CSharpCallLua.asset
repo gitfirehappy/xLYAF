@@ -12,8 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83771dd8fbdf3934cb1a181eada5a1ce, type: 3}
   m_Name: CSharpCallLua
   m_EditorClassIdentifier: 
+  remind: "\u7CFB\u7EDF\u7C7B\u578B\u5728XLuaConfig\u7EDF\u4E00\u9759\u6001\u6CE8\u518C,SO\u53EA\u7BA1\u7406\u81EA\u5B9A\u4E49\u7C7B\u578B"
   tag: 2
-  types:
-  - assemblyName: 
-    typeName: 
-    _serializedGenerics: []
+  types: []
