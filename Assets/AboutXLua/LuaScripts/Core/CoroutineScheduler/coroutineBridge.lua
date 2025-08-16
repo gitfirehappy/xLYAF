@@ -79,7 +79,7 @@ function coroutineBridge.resume(id)
     else
         -- 打印协程状态
         local status = coroutine.status(data.co)
-        print(string.format("[Lua] 协程 #%d 状态: %s", id, status))
+        print(string.format("[coroutineBridge.lua] 协程 #%d 状态: %s", id, status))
     end
 
     -- 更新状态

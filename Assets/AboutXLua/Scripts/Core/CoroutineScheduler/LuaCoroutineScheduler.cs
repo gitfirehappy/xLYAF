@@ -38,7 +38,7 @@ public static class LuaCoroutineScheduler
     
         try 
         {
-            luaEnv.Global.Get<Action<int>>("coroutineBridge.resume")?.Invoke(luaCoId);
+            luaEnv.DoString($"coroutineBridge.resume({luaCoId})", "LuaResume");
         }
         catch (Exception e)
         {

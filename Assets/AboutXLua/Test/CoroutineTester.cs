@@ -138,28 +138,41 @@ public class CoroutineTester : MonoBehaviour
     private IEnumerator WaitForLuaRoutine()
     {
         Debug.Log("⏳ C#开始等待Lua");
-        
-        // 正确使用DoString获取Lua协程ID
+    
+        // 创建Lua协程（包含两个yield）
         object[] result = _luaEnv.DoString(@"
-            return coroutineBridge.create(function()
-                print('🌌 被等待的Lua协程开始')
-                coroutine.yield()
-                print('🌌 被等待的Lua协程继续')
-                coroutine.yield()
-                print('✅ 被等待的Lua协程完成')
-            end)
-        ", "LuaTask");
-        
-        int luaId = (int)result[0];
+        return coroutineBridge.create(function()
+            print('🌌 被等待的Lua协程开始')
+            coroutine.yield()
+            print('🌌 被等待的Lua协程继续')
+            coroutine.yield()
+            print('✅ 被等待的Lua协程完成')
+        end)
+    ", "LuaTask");
+    
+        int luaId = Convert.ToInt32(result[0]);
         Debug.Log($"📡 创建Lua协程 ID:{luaId}");
-        
-        // 恢复Lua协程
-        _luaEnv.DoString($"coroutineBridge.resume({luaId})", "ResumeLua");
-        
+    
+        // 第一次恢复（执行到第一个yield）
+        _luaEnv.DoString($"coroutineBridge.resume({luaId})", "ResumeLua1");
+    
+        // 启动一个协程，定时恢复Lua协程的后续步骤（关键修复）
+        StartCoroutine(ResumeLuaCoroutine5(luaId));
+    
         // C#等待Lua协程完成
         yield return CoroutineBridge.WaitForLuaCoroutine(luaId);
-        
+    
         Debug.Log("✅ C#结束等待");
+    }
+
+// 复用测试3中的恢复逻辑，依次恢复Lua协程的yield点
+    private IEnumerator ResumeLuaCoroutine5(int luaCoId)
+    {
+        yield return new WaitForSeconds(0.5f);
+        _luaEnv.DoString($"coroutineBridge.resume({luaCoId})", "ResumeLua2"); // 第二次恢复（到第二个yield）
+    
+        yield return new WaitForSeconds(0.5f);
+        _luaEnv.DoString($"coroutineBridge.resume({luaCoId})", "ResumeLua3"); // 第三次恢复（完成）
     }
 
     [ContextMenu("6. 清理环境")]
