@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor.Build.Pipeline.Interfaces;
 using UnityEngine;
 
 [Serializable]
@@ -11,7 +12,7 @@ public class TypeReference
     //此处小心循环引用！！！
     [NonSerialized] 
     public List<TypeReference> genericArguments = new List<TypeReference>();//泛型参数列表
-
+    
     // 用于手动序列化存储的字段（Unity会序列化这个扁平结构）
     [SerializeField] 
     private List<string> _serializedGenerics = new List<string>();
@@ -64,7 +65,8 @@ public class TypeReference
             // 检查循环引用
             if (_resolutionPath.Contains(this))
             {
-                Debug.LogError($"循环引用检测: 类型 {typeName} 的泛型参数包含自身引用");
+                LogUtility.Log(LogLayer.Core,"TypeReference", LogLevel.Warning,
+                    $"循环引用检测: 类型 {typeName} 的泛型参数包含自身引用");
                 return CacheAndReturn(null);
             }
             
@@ -82,7 +84,8 @@ public class TypeReference
             Type type = assembly.GetType(typeName);
             if (type == null)
             {
-                Debug.LogWarning($"Type not found: {typeName} in {assemblyName}");
+                LogUtility.Log(LogLayer.Core,"TypeReference", LogLevel.Warning,
+                    $"Type not found: {typeName} in {assemblyName}");
                 return CacheAndReturn(null);
             }
             
@@ -100,7 +103,8 @@ public class TypeReference
         }
         catch (Exception ex)
         {
-            Debug.LogError($"构造泛型类型失败: {typeName}: {ex.Message}");
+            LogUtility.Log(LogLayer.Core,"TypeReference", LogLevel.Error,
+                $"构造泛型类型失败: {typeName}: {ex.Message}");
             return CacheAndReturn(null);
         }
     }
@@ -120,7 +124,8 @@ public class TypeReference
         }
         catch (Exception ex)
         {
-            Debug.LogError($"Assembly load failed: {assemblyName}. Error: {ex.Message}");
+            LogUtility.Log(LogLayer.Core,"TypeReference", LogLevel.Error,
+                $"Assembly load failed: {assemblyName}. Error: {ex.Message}");
             return null;
         }
     }
@@ -140,14 +145,16 @@ public class TypeReference
         // 深度保护
         if (currentDepth >= MAX_DEPTH)
         {
-            Debug.LogError($"泛型参数解析超过最大深度限制({MAX_DEPTH})！可能存在循环引用");
+            LogUtility.Log(LogLayer.Core,"TypeReference", LogLevel.Error,
+                $"泛型参数解析超过最大深度限制({MAX_DEPTH})！可能存在循环引用");
             return null;
         }
         
         // 循环引用检测
         if (visited.Contains(this))
         {
-            Debug.LogError($"循环引用检测: 类型 {typeName} 在泛型参数链中被重复引用");
+            LogUtility.Log(LogLayer.Core,"TypeReference", LogLevel.Error,
+                $"循环引用检测: 类型 {typeName} 在泛型参数链中被重复引用");
             return null;
         }
         visited.Add(this);
@@ -158,7 +165,8 @@ public class TypeReference
             Type argType = argRef.GetTypeCache();
             if (argType == null)
             {
-                Debug.LogError($"无法解析泛型参数: {argRef}");
+                LogUtility.Log(LogLayer.Core,"TypeReference", LogLevel.Error,
+                    $"无法解析泛型参数: {argRef}");
                 return null;
             }
             

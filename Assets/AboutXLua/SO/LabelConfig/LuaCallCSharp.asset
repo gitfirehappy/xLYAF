@@ -12,8 +12,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83771dd8fbdf3934cb1a181eada5a1ce, type: 3}
   m_Name: LuaCallCSharp
   m_EditorClassIdentifier: 
+  remind: "\u7CFB\u7EDF\u7C7B\u578B\u5728XLuaConfig\u7EDF\u4E00\u9759\u6001\u6CE8\u518C,SO\u53EA\u7BA1\u7406\u81EA\u5B9A\u4E49\u7C7B\u578B"
   tag: 1
-  types:
-  - assemblyName: 
-    typeName: 
-    _serializedGenerics: []
+  configurations:
+  - typeRef:
+      rid: 2100132495795421188
+    memberRef:
+      rid: 2100132495795421190
+    isEntireType: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: 2100132495795421188
+      type: {class: TypeReference, ns: , asm: Assembly-CSharp}
+      data:
+        assemblyName: Assembly-CSharp
+        typeName: LogUtility
+        _serializedGenerics: []
+    - rid: 2100132495795421190
+      type: {class: MemberReference, ns: , asm: Assembly-CSharp}
+      data:
+        ownerType:
+          assemblyName: Assembly-CSharp
+          typeName: LogUtility
+          _serializedGenerics: []
+        memberName: LogFromLua
+        memberType: 0
+        _serializedParameters:
+        - mscorlib|System.Int32
+        - mscorlib|System.String
+        - mscorlib|System.Int32
+        - mscorlib|System.String

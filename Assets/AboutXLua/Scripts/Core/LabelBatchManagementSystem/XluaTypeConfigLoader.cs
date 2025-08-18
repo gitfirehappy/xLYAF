@@ -1,7 +1,8 @@
-// File: Assets/Scripts/XLuaConfig/XluaTypeConfigLoader.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using UnityEditor.Build.Pipeline.Interfaces;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -11,12 +12,19 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 /// </summary>
 public static class XluaTypeConfigLoader
 {
+    // 地址标签，用于在Addressables中识别TypeListSO资产
+    public const string DefaultConfigLabel = "XLuaConfigs";
+    
+    // 类型级配置
     public static List<Type> HotfixTypes { get; private set; }
     public static List<Type> LuaCallCSharpTypes { get; private set; }
     public static List<Type> CSharpCallLuaTypes { get; private set; }
-
-    // 地址标签，用于在Addressables中识别TypeListSO资产
-    public const string DefaultConfigLabel = "XLuaConfigs";
+    
+    // 成员级配置
+    public static List<MemberInfo> HotfixMembers { get; private set; }
+    public static List<MemberInfo> LuaCallCSharpMembers { get; private set; }
+    public static List<MemberInfo> CSharpCallLuaMembers { get; private set; }
+    
 
     /// <summary>
     /// 初始化加载配置（核心层启动时调用）
@@ -24,19 +32,23 @@ public static class XluaTypeConfigLoader
     /// /// <param name="configLabel">Addressables标签名，默认为"XLuaConfigs"</param>
     public static void Init(string configLabel = DefaultConfigLabel)
     {
-        Debug.Log("XluaTypeConfigLoader: Initializing type lists...");
+        LogUtility.Log(LogLayer.Core,"XluaTypeConfigLoader",LogLevel.Info,
+            "Initializing type lists...");
 
         // 1. 初始化列表
         HotfixTypes = new List<Type>();
         LuaCallCSharpTypes = new List<Type>();
         CSharpCallLuaTypes = new List<Type>();
+        HotfixMembers = new List<MemberInfo>();
+        LuaCallCSharpMembers = new List<MemberInfo>();
+        CSharpCallLuaMembers = new List<MemberInfo>();
 
         // 2. 使用Addressables加载所有 TypeListSO
         // 注意：这里使用 WaitForCompletion() 是为了在游戏启动初期进行同步加载
         // 如果启动流程是异步的，或者Addressables初始化在更早阶段完成，
         // 可以将其改为异步加载并等待直到完成。
-        AsyncOperationHandle<IList<TypeListSO>> loadHandle = Addressables.LoadAssetsAsync<TypeListSO>(configLabel, null);
-        IList<TypeListSO> allConfigs;
+        AsyncOperationHandle<IList<TypeMemberListSO>> loadHandle = Addressables.LoadAssetsAsync<TypeMemberListSO>(configLabel, null);
+        IList<TypeMemberListSO> allConfigs;
 
         try
         {
@@ -44,7 +56,8 @@ public static class XluaTypeConfigLoader
         }
         catch (Exception ex)
         {
-            Debug.LogError($"XluaTypeConfigLoader: Failed to load XLua configs from Addressables label '{configLabel}'. Error: {ex.Message}");
+            LogUtility.Log(LogLayer.Core,"XLuaTypeConfigLoader",LogLevel.Error,
+                $"Failed to load XLua configs from Addressables label '{configLabel}'. Error: {ex.Message}");
             return; // 加载失败，直接返回
         }
         finally
@@ -54,7 +67,8 @@ public static class XluaTypeConfigLoader
 
         if (allConfigs == null || allConfigs.Count == 0)
         {
-            Debug.LogWarning($"XluaTypeConfigLoader: No TypeListSO assets found with label '{configLabel}'. Please ensure they are addressable and tagged correctly.");
+            LogUtility.Log(LogLayer.Core,"XLuaTypeConfigLoader",LogLevel.Warning,
+                $"No TypeListSO assets found with label '{configLabel}'. Please ensure they are addressable and tagged correctly.");
             return;
         }
 
@@ -63,46 +77,83 @@ public static class XluaTypeConfigLoader
         {
             if (config == null)
             {
-                Debug.LogWarning("XluaTypeConfigLoader: Found a null TypeListSO asset during loading.");
+                LogUtility.Log(LogLayer.Core,"XLuaTypeConfigLoader",LogLevel.Warning,
+                    "Found a null TypeListSO asset during loading.");
                 continue;
             }
 
-            // 将 TypeReference 解析为 Type
-            // SelectMany 用于将多个列表合并成一个扁平的列表
-            var resolvedTypes = config.types
-                                      .Select(tr => tr.GetTypeCache())
-                                      .Where(t => t != null) // 过滤掉无法解析的类型
-                                      .ToList();
-
-            if (resolvedTypes.Count == 0)
+            // 解析配置项
+            List<Type> resolvedTypes = new List<Type>();
+            List<MemberInfo> resolvedMembers = new List<MemberInfo>();
+    
+            foreach (var configItem in config.configurations)
             {
-                Debug.LogWarning($"XluaTypeConfigLoader: TypeListSO '{config.name}' (Tag: {config.tag}) contains no valid types after resolution.");
-                continue;
+                var type = configItem.typeRef?.GetTypeCache();
+                if (type == null) continue;
+
+                if (configItem.isEntireType)
+                {
+                    // 整个类型
+                    resolvedTypes.Add(type);
+                }
+                else
+                {
+                    // 特定成员
+                    var member = configItem.memberRef?.GetMemberCache();
+                    if (member != null)
+                    {
+                        resolvedMembers.Add(member);
+                    }
+                }
             }
 
+            // 按标签分类处理
             switch (config.tag)
             {
-                case TypeListSO.ConfigTag.Hotfix:
+                case TypeMemberListSO.ConfigTag.Hotfix:
                     HotfixTypes.AddRange(resolvedTypes);
-                    Debug.Log($"XluaTypeConfigLoader: Loaded {resolvedTypes.Count} Hotfix types from '{config.name}'.");
+                    HotfixMembers.AddRange(resolvedMembers);
+                    LogUtility.Log(LogLayer.Core,"XluaTypeConfigLoader",LogLevel.Info,
+                        $"Loaded {resolvedTypes.Count} Hotfix types and {resolvedMembers.Count} members from '{config.name}'.");
                     break;
-                case TypeListSO.ConfigTag.LuaCallCSharp:
+                case TypeMemberListSO.ConfigTag.LuaCallCSharp:
                     LuaCallCSharpTypes.AddRange(resolvedTypes);
-                    Debug.Log($"XluaTypeConfigLoader: Loaded {resolvedTypes.Count} LuaCallCSharp types from '{config.name}'.");
+                    LuaCallCSharpMembers.AddRange(resolvedMembers);
+                    LogUtility.Log(LogLayer.Core,"XluaTypeConfigLoader",LogLevel.Info,
+                        $"Loaded {resolvedTypes.Count} LuaCallCSharp types and {resolvedMembers.Count} members from '{config.name}'.");
                     break;
-                case TypeListSO.ConfigTag.CSharpCallLua:
+                case TypeMemberListSO.ConfigTag.CSharpCallLua:
                     CSharpCallLuaTypes.AddRange(resolvedTypes);
-                    Debug.Log($"XluaTypeConfigLoader: Loaded {resolvedTypes.Count} CSharpCallLua types from '{config.name}'.");
+                    CSharpCallLuaMembers.AddRange(resolvedMembers);
+                    LogUtility.Log(LogLayer.Core,"XluaTypeConfigLoader",LogLevel.Info,
+                        $"Loaded {resolvedTypes.Count} CSharpCallLua types and {resolvedMembers.Count} members from '{config.name}'.");
                     break;
                 default:
-                    Debug.LogWarning($"XluaTypeConfigLoader: Unknown ConfigTag '{config.tag}' in TypeListSO '{config.name}'.");
+                    LogUtility.Log(LogLayer.Core,"XluaTypeConfigLoader",LogLevel.Warning,
+                        $"Unknown ConfigTag '{config.tag}' in '{config.name}'.");
                     break;
             }
         }
 
-        Debug.Log($"XluaTypeConfigLoader: Initialization complete. Hotfix: {HotfixTypes.Count}, LuaCallCSharp: {LuaCallCSharpTypes.Count}, CSharpCallLua: {CSharpCallLuaTypes.Count} types loaded.");
+        LogUtility.Log(LogLayer.Core,"XluaTypeConfigLoader",LogLevel.Info,
+            $"Initialization complete. " +
+            $"Hotfix: {HotfixTypes.Count} types, {HotfixMembers.Count} members; " +
+            $"LuaCallCSharp: {LuaCallCSharpTypes.Count} types, {LuaCallCSharpMembers.Count} members; " +
+            $"CSharpCallLua: {CSharpCallLuaTypes.Count} types, {CSharpCallLuaMembers.Count} members.");
     }
     
+    /// <summary>
+    /// 清理缓存列表
+    /// </summary>
+    public static void ClearCache()
+    {
+        HotfixTypes?.Clear();
+        LuaCallCSharpTypes?.Clear();
+        CSharpCallLuaTypes?.Clear();
+        HotfixMembers?.Clear();
+        LuaCallCSharpMembers?.Clear();
+        CSharpCallLuaMembers?.Clear();
+    }
 
     // 后续在XLua初始化代码中，可以这样使用:
     // private static List<Type> LuaCallCSharp = XluaTypeConfigLoader.LuaCallCSharpTypes;
