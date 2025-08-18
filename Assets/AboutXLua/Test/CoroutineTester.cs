@@ -15,7 +15,9 @@ public class CoroutineTester : MonoBehaviour
         if (_isInitialized) return;
         
         CSharpCoroutineScheduler.Init(this);
+        
         _luaEnv = new LuaEnv();
+        LuaEnvManager.Set(_luaEnv);
         
         // 注册自定义加载器
         _luaEnv.AddLoader((ref string path) => {
@@ -32,8 +34,6 @@ public class CoroutineTester : MonoBehaviour
         _luaEnv.DoString("coroutineBridge = require 'coroutineBridge'");
         
         _luaEnv.DoString("util = require 'xlua.util'");
-        
-        CoroutineBridge.SetLuaEnvAccessor(() => _isInitialized ? _luaEnv : null);
         
         _isInitialized = true;
         Debug.Log("✅ 环境初始化完成");

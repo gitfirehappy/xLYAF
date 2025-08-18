@@ -18,12 +18,6 @@ public static class CoroutineBridge
     /// <summary> Lua协程的C#等待者 [LuaCoID] = List《C#CoID》</summary>
     private static readonly Dictionary<int, List<int>> _luaToCSharpWaiters = new();
     
-    private static Func<LuaEnv> _getLuaEnv;
-
-    public static void SetLuaEnvAccessor(Func<LuaEnv> accessor) 
-    {
-        _getLuaEnv = accessor;
-    }
     
     /// <summary>
     /// 清理与指定Lua协程相关的所有等待关系
@@ -95,7 +89,17 @@ public static class CoroutineBridge
     /// </summary>
     public static void NotifyCSharpComplete(int csCoId)
     {
-        var luaEnv = _getLuaEnv?.Invoke();
+        LuaEnv luaEnv = null;
+        try
+        {
+            // 使用LuaEnvManager直接获取Lua环境
+            luaEnv = LuaEnvManager.Get();
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[CoroutineBridge] Failed to get LuaEnv: {ex.Message}");
+            return;
+        }
         
         if (luaEnv == null) {
             Debug.LogError("[CoroutineBridge] LuaEnv is null!");
