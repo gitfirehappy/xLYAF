@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using UnityEditor.Build.Pipeline.Interfaces;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceLocations;
@@ -83,13 +84,18 @@ public static class XLuaLoader
                     if (File.Exists(path))
                     {
                         bytes = File.ReadAllBytes(path);
-                        if (opt.log) Debug.Log($"[XLuaLoader] Editor hit: {path}");
+                        if (opt.log)
+                        {
+                            LogUtility.Log(LogLayer.Core, "XLuaLoader", LogLevel.Info,
+                                $"Editor hit: {path}");
+                        }
                         return;
                     }
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"[XLuaLoader] File error: {path}\n{e.Message}");
+                    LogUtility.Log(LogLayer.Core, "XLuaLoader", LogLevel.Error,
+                        $"File error: {path}\n{e.Message}");
                 }
             }
         }
@@ -122,7 +128,11 @@ public static class XLuaLoader
                                 if (asset != null)
                                 {
                                     bytes = asset.bytes;
-                                    if (opt.log) Debug.Log($"[XLuaLoader] AA hit (label={label}): {loc.PrimaryKey}");
+                                    if (opt.log)
+                                    {
+                                        LogUtility.Log(LogLayer.Core, "XLuaLoader", LogLevel.Info,
+                                            $"AA hit (label={label}): {loc.PrimaryKey}");
+                                    }
                                     Addressables.Release(assetHandle);
                                     Addressables.Release(locHandle);
                                     return;
@@ -135,7 +145,11 @@ public static class XLuaLoader
                 }
                 catch (Exception e)
                 {
-                    if (opt.log) Debug.LogWarning($"[XLuaLoader] AA label scan failed for '{label}': {e.Message}");
+                    if (opt.log)
+                    {
+                        LogUtility.Log(LogLayer.Core, "XLuaLoader", LogLevel.Error,
+                            $"AA label scan failed for '{label}': {e.Message}");
+                    }
                 }
             }
         }

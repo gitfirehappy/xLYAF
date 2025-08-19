@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Build.Pipeline.Interfaces;
@@ -23,17 +24,21 @@ public static class LogUtility
         }
     }
     
-    // 用于 Lua 调用（绑定到 LuaCallCSharp）
+    // 用于 Lua 调用（需绑定到 LuaCallCSharp）
     public static void LogFromLua(int layer, string source, int level, string message)
     {
-        Log((LogLayer)layer, source, (LogLevel)level, message);
+        if (!Enum.IsDefined(typeof(LogLayer), layer)) layer = (int)LogLayer.Custom;
+        if (!Enum.IsDefined(typeof(LogLevel), level)) level = (int)LogLevel.Info;
+        
+        Log((LogLayer)layer, "Lua:" + source, (LogLevel)level, message);
     }
 }
 
 public enum LogLayer {
     Core,       // 底层核心
     Framework,  // 中间层
-    UI,         // 上层展示
+    Game,         // 上层展示
+    Global,      // 全局
     Custom      // 可自定义扩展
 }
 

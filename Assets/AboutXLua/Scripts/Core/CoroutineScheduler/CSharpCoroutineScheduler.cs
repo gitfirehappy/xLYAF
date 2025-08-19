@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Build.Pipeline.Interfaces;
 using UnityEngine;
 using XLua;
 using XLua.LuaDLL;
@@ -64,7 +65,8 @@ public static class CSharpCoroutineScheduler
     public static void StopCoroutine(int id)
     {
         if (!_idToCoroutine.ContainsKey(id)) {
-            Debug.LogWarning($"[CSharpCoroutineScheduler] Attempt to stop invalid C# Coroutine ID: {id}");
+            LogUtility.Log(LogLayer.Core, "CSharpCoroutineScheduler", LogLevel.Warning,
+                $"Attempt to stop invalid C# Coroutine ID: {id}");
             return;
         }
         

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Build.Pipeline.Interfaces;
 using UnityEngine;
 using XLua;
 
@@ -32,7 +33,8 @@ public static class LuaCoroutineScheduler
     {
         if (luaEnv == null)
         {
-            Debug.LogWarning($"[LuaCoroutineScheduler] Skip resume L#{luaCoId} - LuaEnv invalid");
+            LogUtility.Log(LogLayer.Core, "LuaCoroutineScheduler", LogLevel.Warning,
+                $"Skip resume L#{luaCoId} - LuaEnv invalid");
             return;
         }
     
@@ -42,7 +44,8 @@ public static class LuaCoroutineScheduler
         }
         catch (Exception e)
         {
-            Debug.LogError($"[LuaCoroutineScheduler] Resume failed: {e.Message}");
+            LogUtility.Log(LogLayer.Core, "LuaCoroutineScheduler", LogLevel.Error,
+                $"Resume failed: {e.Message}");
         }
     }
 }

@@ -1,3 +1,6 @@
+--日志
+local Log = require("LogUtility")
+
 local coroutineBridge = {
     _coroutines = {},        -- [id] = { co = coroutine, status = "suspended/running/dead" }
     _currentCoStack = {},    -- 当前协程ID栈（支持嵌套协程）
@@ -6,7 +9,7 @@ local coroutineBridge = {
 --[[ 创建协程（立即返回ID，不启动）]]
 function coroutineBridge.create(func)
     if type(func) ~= "function" then
-        error("[coroutineBridge.lua] create() requires a function")
+        Log.Error(Log.LogLayer.Core, "coroutineBridge", "create() requires a function")
     end
     
     local id = CS.LuaCoroutineScheduler.GenerateLuaCoID() -- 生成新的协程ID
@@ -17,7 +20,7 @@ function coroutineBridge.create(func)
 
         local success, err = xpcall(func, debug.traceback)
         if not success then
-            print("[LUA] Coroutine error: "..tostring(err))
+            Log.Error(Log.LogLayer.Core, "coroutineBridge","Coroutine error: "..tostring(err))
         end
 
         -- 弹出当前协程ID
@@ -58,34 +61,34 @@ function coroutineBridge.resume(id)
     local data = coroutineBridge._coroutines[id]
     
     if not data then
-        print("[coroutineBridge.lua] Try to resume non-existent coroutine: "..id)
+        Log.Info(Log.LogLayer.Core, "coroutineBridge","Try to resume non-existent coroutine: "..id)
         return false, "invalid operation"
     end
 
     if data.status == "dead" then
-        print(string.format("[coroutineBridge.lua] 尝试恢复已完成的协程 #%d", id))
+        Log.Info(Log.LogLayer.Core, "coroutineBridge", string.format("尝试恢复已完成的协程 #%d", id))
         return false, "coroutine dead"
     end
 
     data.status = "running"
     
-    print("[coroutineBridge.lua] 恢复协程 Lua#"..id)
+    Log.Info(Log.LogLayer.Core, "coroutineBridge", "恢复协程 Lua#"..id)
     
     local success, err_or_value = coroutine.resume(data.co)
 
     -- 正确处理恢复结果
     if not success then
-        Debug.LogError("[coroutineBridge.lua] Coroutine error: "..tostring(err_or_value))
+        Log.Error(Log.LogLayer.Core, "coroutineBridge", "Coroutine error: "..tostring(err_or_value))
     else
         -- 打印协程状态
         local status = coroutine.status(data.co)
-        print(string.format("[coroutineBridge.lua] 协程 #%d 状态: %s", id, status))
+        Log.Info(Log.LogLayer.Core, "coroutineBridge", string.format("协程 #%d 状态: %s", id, status))
     end
 
     -- 更新状态
     local currentStatus = coroutine.status(data.co)
     if currentStatus == "dead" then
-        print(string.format("[coroutineBridge.lua] 协程 #%d 完成", id))
+        Log.Info(Log.LogLayer.Core, "coroutineBridge", string.format("协程 #%d 完成", id))
         coroutineBridge._set_status(id, "dead")
     else
         data.status = "suspended"
@@ -119,13 +122,13 @@ end
 ]]
 function coroutineBridge.wait_for_csharp(csCoId)
     if type(csCoId) ~= "number" or csCoId <= 0 then
-        error("[coroutineBridge.lua] Invalid C# Coroutine ID: "..tostring(csCoId))
+        Log.Error(Log.LogLayer.Core, "coroutineBridge","Invalid C# Coroutine ID: "..tostring(csCoId))
     end
     
     local luaCoId = coroutineBridge.get_current_id()
     
     if luaCoId < 0 then
-        error("[coroutineBridge.lua] Must be called inside a Lua coroutine")
+        Log.Error(Log.LogLayer.Core, "coroutineBridge","Must be called inside a Lua coroutine")
     end
     -- 注册等待关系并挂起当前协程
     CS.CoroutineBridge.LuaWaitForCSharp(luaCoId, csCoId)
@@ -139,7 +142,7 @@ end
 ]]
 function coroutineBridge.run_csharp_coroutine(func)
     if type(func) ~= "function" then
-        error("[coroutineBridge] run_csharp_coroutine requires a function", 2)
+        Log.Error(Log.LogLayer.Core, "coroutineBridge","run_csharp_coroutine requires a function", 2)
     end
 
     -- XLua协程包装器
