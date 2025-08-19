@@ -9,7 +9,7 @@ public class LogViewerWindow : EditorWindow
 {
     private Vector2 _scrollPosition;
     private List<LogEntry> _filteredLogs = new List<LogEntry>();
-    private string _searchSource = "";
+    private string _searchText = "";
     
     // 筛选选项
     private bool[] _scriptTypeFilters = { true, true }; // C#, Lua
@@ -19,6 +19,10 @@ public class LogViewerWindow : EditorWindow
     private GUIStyle _errorStyle;
     private GUIStyle _warningStyle;
     private GUIStyle _infoStyle;
+    
+    // 存储枚举值列表
+    private List<LogLevel> _logLevelValues;
+    private List<LogLayer> _logLayerValues;
 
     [MenuItem("XLua/Log Viewer")]
     public static void ShowWindow()
@@ -28,21 +32,23 @@ public class LogViewerWindow : EditorWindow
 
     private void OnEnable()
     {
-        // 初始化筛选器
-        var levelValues = Enum.GetValues(typeof(LogLevel)).Cast<LogLevel>().ToList();
-        _logLevelFilters = new bool[levelValues.Count];
-        Array.Fill(_logLevelFilters, true);
+        // 获取枚举值列表
+        _logLevelValues = Enum.GetValues(typeof(LogLevel)).Cast<LogLevel>().ToList();
+        _logLayerValues = Enum.GetValues(typeof(LogLayer)).Cast<LogLayer>().ToList();
         
-        var layerValues = Enum.GetValues(typeof(LogLayer)).Cast<LogLayer>().ToList();
-        _logLayerFilters = new bool[layerValues.Count];
-        Array.Fill(_logLayerFilters, true);
+        // 初始化筛选器
+        _logLevelFilters = new bool[_logLevelValues.Count];
+        for (int i = 0; i < _logLevelFilters.Length; i++) _logLevelFilters[i] = true;
+        
+        _logLayerFilters = new bool[_logLayerValues.Count];
+        for (int i = 0; i < _logLayerFilters.Length; i++) _logLayerFilters[i] = true;
         
         // 注册日志更新事件
         LogUtility.OnLogAdded += UpdateLogs;
         
         // 初始化样式
         _errorStyle = new GUIStyle(EditorStyles.label) { normal = { textColor = Color.red } };
-        _warningStyle = new GUIStyle(EditorStyles.label) { normal = { textColor = new Color(1f, 0.6f, 0f) } }; // 黄色
+        _warningStyle = new GUIStyle(EditorStyles.label) { normal = { textColor = new Color(1f, 0.6f, 0f) } };
         _infoStyle = new GUIStyle(EditorStyles.label) { normal = { textColor = Color.white } };
         
         UpdateLogs();
@@ -63,20 +69,32 @@ public class LogViewerWindow : EditorWindow
     private List<LogEntry> FilterLogs(IEnumerable<LogEntry> logs)
     {
         return logs.Where(log => 
+        {
             // 脚本类型筛选
-            (_scriptTypeFilters[0] && log.ScriptType == "CSharp") || 
-            (_scriptTypeFilters[1] && log.ScriptType == "Lua") &&
+            bool scriptTypeMatch = 
+                (_scriptTypeFilters[0] && log.ScriptType == "CSharp") || 
+                (_scriptTypeFilters[1] && log.ScriptType == "Lua");
+            
+            if (!scriptTypeMatch) return false;
             
             // 日志级别筛选
-            _logLevelFilters[(int)log.Level] &&
+            int levelIndex = _logLevelValues.IndexOf(log.Level);
+            if (levelIndex < 0 || !_logLevelFilters[levelIndex]) return false;
             
             // 日志层筛选
-            _logLayerFilters[(int)log.Layer] &&
+            int layerIndex = _logLayerValues.IndexOf(log.Layer);
+            if (layerIndex < 0 || !_logLayerFilters[layerIndex]) return false;
             
-            // 源名称筛选
-            (string.IsNullOrEmpty(_searchSource) || 
-             log.Source.IndexOf(_searchSource, StringComparison.OrdinalIgnoreCase) >= 0)
-        ).OrderByDescending(log => log.Time).ToList();
+            // 搜索文本筛选
+            if (!string.IsNullOrEmpty(_searchText) && 
+                log.Source.IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) < 0 &&
+                log.Message.IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return false;
+            }
+            
+            return true;
+        }).OrderByDescending(log => log.Time).ToList();
     }
 
     private void OnGUI()
@@ -106,34 +124,43 @@ public class LogViewerWindow : EditorWindow
         
         // 脚本类型筛选
         EditorGUILayout.LabelField("脚本类型:", GUILayout.Width(70));
-        _scriptTypeFilters[0] = GUILayout.Toggle(_scriptTypeFilters[0], "CSharp", EditorStyles.toolbarButton, GUILayout.Width(60));
-        _scriptTypeFilters[1] = GUILayout.Toggle(_scriptTypeFilters[1], "Lua", EditorStyles.toolbarButton, GUILayout.Width(40));
-        
-        GUILayout.Space(10);
+        bool csharpChanged = GUILayout.Toggle(_scriptTypeFilters[0], "CSharp", EditorStyles.toolbarButton, GUILayout.Width(60));
+        bool luaChanged = GUILayout.Toggle(_scriptTypeFilters[1], "Lua", EditorStyles.toolbarButton, GUILayout.Width(40));
         
         // 日志级别筛选
         EditorGUILayout.LabelField("日志级别:", GUILayout.Width(70));
-        var levelValues = Enum.GetValues(typeof(LogLevel)).Cast<LogLevel>().ToList();
-        for (int i = 0; i < levelValues.Count; i++)
+        bool levelChanged = false;
+        for (int i = 0; i < _logLevelValues.Count; i++)
         {
-            _logLevelFilters[i] = GUILayout.Toggle(_logLevelFilters[i], levelValues[i].ToString(), EditorStyles.toolbarButton);
+            bool newValue = GUILayout.Toggle(_logLevelFilters[i], _logLevelValues[i].ToString(), EditorStyles.toolbarButton);
+            if (newValue != _logLevelFilters[i])
+            {
+                _logLevelFilters[i] = newValue;
+                levelChanged = true;
+            }
         }
-        
-        GUILayout.Space(10);
         
         // 日志层筛选
         EditorGUILayout.LabelField("日志层:", GUILayout.Width(60));
-        var layerValues = Enum.GetValues(typeof(LogLayer)).Cast<LogLayer>().ToList();
-        for (int i = 0; i < layerValues.Count; i++)
+        bool layerChanged = false;
+        for (int i = 0; i < _logLayerValues.Count; i++)
         {
-            _logLayerFilters[i] = GUILayout.Toggle(_logLayerFilters[i], layerValues[i].ToString(), EditorStyles.toolbarButton);
+            bool newValue = GUILayout.Toggle(_logLayerFilters[i], _logLayerValues[i].ToString(), EditorStyles.toolbarButton);
+            if (newValue != _logLayerFilters[i])
+            {
+                _logLayerFilters[i] = newValue;
+                layerChanged = true;
+            }
         }
         
-        GUILayout.Space(10);
-        
-        // 源名称搜索
-        EditorGUILayout.LabelField("源名称:", GUILayout.Width(60));
-        _searchSource = EditorGUILayout.TextField(_searchSource, EditorStyles.toolbarTextField, GUILayout.MinWidth(100));
+        // 搜索
+        EditorGUILayout.LabelField("搜索:", GUILayout.Width(40));
+        string newSearch = EditorGUILayout.TextField(_searchText, EditorStyles.toolbarTextField, GUILayout.MinWidth(100));
+        bool searchChanged = newSearch != _searchText;
+        if (searchChanged)
+        {
+            _searchText = newSearch;
+        }
         
         GUILayout.FlexibleSpace();
         
@@ -144,11 +171,20 @@ public class LogViewerWindow : EditorWindow
             _filteredLogs.Clear();
         }
         
+        // 刷新按钮
+        if (GUILayout.Button("刷新", EditorStyles.toolbarButton))
+        {
+            UpdateLogs();
+        }
+        
         EditorGUILayout.EndHorizontal();
         
         // 如果筛选条件变化，更新日志列表
-        if (GUI.changed)
+        if (csharpChanged != _scriptTypeFilters[0] || luaChanged != _scriptTypeFilters[1] || 
+            levelChanged || layerChanged || searchChanged)
         {
+            _scriptTypeFilters[0] = csharpChanged;
+            _scriptTypeFilters[1] = luaChanged;
             UpdateLogs();
         }
     }

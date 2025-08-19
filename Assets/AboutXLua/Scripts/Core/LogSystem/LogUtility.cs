@@ -91,7 +91,18 @@ public static class LogUtility
         }
         OnLogAdded?.Invoke();
 
-        Log(logLayer, fullSource, logLevel, message);
+        switch (logLevel)
+        {
+            case LogLevel.Info:
+                UnityEngine.Debug.Log(formatted);
+                break;
+            case LogLevel.Warning:
+                UnityEngine.Debug.LogWarning(formatted);
+                break;
+            case LogLevel.Error:
+                UnityEngine.Debug.LogError(formatted);
+                break;
+        }
     }
 }
 
