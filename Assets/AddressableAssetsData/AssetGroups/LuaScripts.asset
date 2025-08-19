@@ -23,6 +23,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - LuaScripts
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d5efd22e4db74fa4f927cae099f26c99
+    m_Address: Assets/AboutXLua/LuaScripts
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 170f3ccdb3bee544095a2f2b92d47c18, type: 2}
   m_SchemaSet:

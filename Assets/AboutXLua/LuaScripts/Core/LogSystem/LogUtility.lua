@@ -1,5 +1,6 @@
 local LogUtility = {}
 
+-- C#中定义顺序就是这个
 LogUtility.LogLevel = {
     Error = 0,
     Warning = 1,
@@ -21,22 +22,23 @@ local function format_message(layer, source, level, msg)
     return string.format("[Layer:%s][LuaScript:%s][%s] %s", layerStr, source, levelStr, msg)
 end
 
--- 打印核心方法
+-- 打印核心方法（优先使用C#日志，print作为备选）
 function LogUtility.Print(layer, source, level, msg)
     local formatted = format_message(layer, source, level, msg)
 
-    if level == LogUtility.LogLevel.Info then
-        print(formatted)
-    elseif level == LogUtility.LogLevel.Warning then
-        print("<color=yellow>" .. formatted .. "</color>")
-    elseif level == LogUtility.LogLevel.Error then
-        print("<color=red>" .. formatted .. "</color>")
+    -- 优先调用C#日志接口
+    if CS and CS.LogUtility then
+        CS.LogUtility.LogFromLua(layer, source, level, msg)
+    else
+        -- print作为备选方案
+        if level == LogUtility.LogLevel.Info then
+            print(formatted)
+        elseif level == LogUtility.LogLevel.Warning then
+            print("<color=yellow>" .. formatted .. "</color>")
+        elseif level == LogUtility.LogLevel.Error then
+            print("<color=red>" .. formatted .. "</color>")
+        end
     end
-
-    -- 如果接入到 C# 日志（如持久化、文件记录），可调用绑定方法
-    -- if CS and CS.LogUtility then
-    --    CS.LogUtility.LogFromLua(layer, source, level, msg)
-    --end
 end
 
 -- 快捷方法
