@@ -155,6 +155,7 @@ MonoBehaviour:
   customLuaPaths:
   - Assets/AboutXLua/LuaScripts/Core/LogSystem/
   - Assets/AboutXLua/LuaScripts/Core/CoroutineScheduler/
+  - Assets/AboutXLua/LuaScripts/Core/ModuleRegistry/
 --- !u!4 &1241579088
 Transform:
   m_ObjectHideFlags: 0

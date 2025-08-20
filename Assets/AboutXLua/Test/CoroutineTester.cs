@@ -30,10 +30,11 @@ public class CoroutineTester : MonoBehaviour
             return null;
         });
         
+        // 加载常用的Lua模块
+        ModuleRegistry.Initialize();
+        
         // 正确加载Lua模块
         _luaEnv.DoString("coroutineBridge = require 'coroutineBridge'");
-        
-        _luaEnv.DoString("util = require 'xlua.util'");
         
         _isInitialized = true;
         Debug.Log("✅ 环境初始化完成");
@@ -180,7 +181,7 @@ public class CoroutineTester : MonoBehaviour
     {
         if (!_isInitialized) return;
         
-        _luaEnv.Dispose();
+        LuaEnvManager.Dispose();
         _luaEnv = null;
         _isInitialized = false;
         

@@ -10,14 +10,16 @@ public static class LuaEnvManager
     {
         Dispose(); // 清理现有环境
         _env = new LuaEnv();
-        Debug.Log("Created new Lua environment");
+        LogUtility.Log(LogLayer.Global,"LuaEnvManager",LogLevel.Info,
+            "Created new Lua environment");
     }
 
     public static void Set(LuaEnv env)
     {
         Dispose(); // 清理现有环境
         _env = env;
-        Debug.Log("Set existing Lua environment");
+        LogUtility.Log(LogLayer.Global,"LuaEnvManager",LogLevel.Info,
+            "Set existing Lua environment");
     }
 
     public static LuaEnv Get()
@@ -35,7 +37,8 @@ public static class LuaEnvManager
         {
             _env.Dispose();
             _env = null;
-            Debug.Log("Disposed Lua environment");
+            LogUtility.Log(LogLayer.Global,"LuaEnvManager",LogLevel.Info,
+                "Disposed Lua environment");
         }
     }
 }

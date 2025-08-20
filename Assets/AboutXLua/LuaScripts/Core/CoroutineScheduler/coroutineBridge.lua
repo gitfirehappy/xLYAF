@@ -1,5 +1,5 @@
 --日志
-local Log = require("LogUtility")
+local Log = M.LogUtility
 
 local coroutineBridge = {
     _coroutines = {},        -- [id] = { co = coroutine, status = "suspended/running/dead" }
@@ -154,7 +154,7 @@ end
 
 -- 将Lua函数包装为C#可识别的协程
 function coroutineBridge._wrap_as_coroutine(func)
-    return util.cs_generator(func)
+    return M.util.cs_generator(func)
 end
 
 return coroutineBridge
