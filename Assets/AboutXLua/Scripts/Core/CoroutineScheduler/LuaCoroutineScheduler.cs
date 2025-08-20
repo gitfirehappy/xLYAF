@@ -33,7 +33,7 @@ public static class LuaCoroutineScheduler
     {
         if (luaEnv == null)
         {
-            LogUtility.Log(LogLayer.Core, "LuaCoroutineScheduler", LogLevel.Warning,
+            LogUtility.Warning(LogLayer.Core, "LuaCoroutineScheduler", 
                 $"Skip resume L#{luaCoId} - LuaEnv invalid");
             return;
         }
@@ -44,7 +44,7 @@ public static class LuaCoroutineScheduler
         }
         catch (Exception e)
         {
-            LogUtility.Log(LogLayer.Core, "LuaCoroutineScheduler", LogLevel.Error,
+            LogUtility.Error(LogLayer.Core, "LuaCoroutineScheduler", 
                 $"Resume failed: {e.Message}");
         }
     }

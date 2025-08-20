@@ -65,7 +65,7 @@ public static class CSharpCoroutineScheduler
     public static void StopCoroutine(int id)
     {
         if (!_idToCoroutine.ContainsKey(id)) {
-            LogUtility.Log(LogLayer.Core, "CSharpCoroutineScheduler", LogLevel.Warning,
+            LogUtility.Warning(LogLayer.Core, "CSharpCoroutineScheduler", 
                 $"Attempt to stop invalid C# Coroutine ID: {id}");
             return;
         }

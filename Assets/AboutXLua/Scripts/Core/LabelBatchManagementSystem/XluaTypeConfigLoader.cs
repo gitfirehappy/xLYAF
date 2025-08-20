@@ -32,7 +32,7 @@ public static class XluaTypeConfigLoader
     /// /// <param name="configLabel">Addressables标签名，默认为"XLuaConfigs"</param>
     public static void Init(string configLabel = DefaultConfigLabel)
     {
-        LogUtility.Log(LogLayer.Core,"XluaTypeConfigLoader",LogLevel.Info,
+        LogUtility.Info(LogLayer.Core,"XluaTypeConfigLoader",
             "Initializing type lists...");
 
         // 1. 初始化列表
@@ -56,7 +56,7 @@ public static class XluaTypeConfigLoader
         }
         catch (Exception ex)
         {
-            LogUtility.Log(LogLayer.Core,"XLuaTypeConfigLoader",LogLevel.Error,
+            LogUtility.Error(LogLayer.Core,"XLuaTypeConfigLoader",
                 $"Failed to load XLua configs from Addressables label '{configLabel}'. Error: {ex.Message}");
             return; // 加载失败，直接返回
         }
@@ -67,7 +67,7 @@ public static class XluaTypeConfigLoader
 
         if (allConfigs == null || allConfigs.Count == 0)
         {
-            LogUtility.Log(LogLayer.Core,"XLuaTypeConfigLoader",LogLevel.Warning,
+            LogUtility.Warning(LogLayer.Core,"XLuaTypeConfigLoader",
                 $"No TypeListSO assets found with label '{configLabel}'. Please ensure they are addressable and tagged correctly.");
             return;
         }
@@ -77,7 +77,7 @@ public static class XluaTypeConfigLoader
         {
             if (config == null)
             {
-                LogUtility.Log(LogLayer.Core,"XLuaTypeConfigLoader",LogLevel.Warning,
+                LogUtility.Warning(LogLayer.Core,"XLuaTypeConfigLoader",
                     "Found a null TypeListSO asset during loading.");
                 continue;
             }
@@ -113,29 +113,29 @@ public static class XluaTypeConfigLoader
                 case TypeMemberListSO.ConfigTag.Hotfix:
                     HotfixTypes.AddRange(resolvedTypes);
                     HotfixMembers.AddRange(resolvedMembers);
-                    LogUtility.Log(LogLayer.Core,"XluaTypeConfigLoader",LogLevel.Info,
+                    LogUtility.Info(LogLayer.Core,"XluaTypeConfigLoader",
                         $"Loaded {resolvedTypes.Count} Hotfix types and {resolvedMembers.Count} members from '{config.name}'.");
                     break;
                 case TypeMemberListSO.ConfigTag.LuaCallCSharp:
                     LuaCallCSharpTypes.AddRange(resolvedTypes);
                     LuaCallCSharpMembers.AddRange(resolvedMembers);
-                    LogUtility.Log(LogLayer.Core,"XluaTypeConfigLoader",LogLevel.Info,
+                    LogUtility.Info(LogLayer.Core,"XluaTypeConfigLoader",
                         $"Loaded {resolvedTypes.Count} LuaCallCSharp types and {resolvedMembers.Count} members from '{config.name}'.");
                     break;
                 case TypeMemberListSO.ConfigTag.CSharpCallLua:
                     CSharpCallLuaTypes.AddRange(resolvedTypes);
                     CSharpCallLuaMembers.AddRange(resolvedMembers);
-                    LogUtility.Log(LogLayer.Core,"XluaTypeConfigLoader",LogLevel.Info,
+                    LogUtility.Info(LogLayer.Core,"XluaTypeConfigLoader",
                         $"Loaded {resolvedTypes.Count} CSharpCallLua types and {resolvedMembers.Count} members from '{config.name}'.");
                     break;
                 default:
-                    LogUtility.Log(LogLayer.Core,"XluaTypeConfigLoader",LogLevel.Warning,
+                    LogUtility.Warning(LogLayer.Core,"XluaTypeConfigLoader",
                         $"Unknown ConfigTag '{config.tag}' in '{config.name}'.");
                     break;
             }
         }
 
-        LogUtility.Log(LogLayer.Core,"XluaTypeConfigLoader",LogLevel.Info,
+        LogUtility.Info(LogLayer.Core,"XluaTypeConfigLoader",
             $"Initialization complete. " +
             $"Hotfix: {HotfixTypes.Count} types, {HotfixMembers.Count} members; " +
             $"LuaCallCSharp: {LuaCallCSharpTypes.Count} types, {LuaCallCSharpMembers.Count} members; " +
