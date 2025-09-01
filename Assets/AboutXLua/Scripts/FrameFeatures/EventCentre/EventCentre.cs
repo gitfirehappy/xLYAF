@@ -26,6 +26,8 @@ public class EventCentre : Singleton<EventCentre>
     /// </summary>
     private Dictionary<Tuple<EventPort, string, LuaFunction>, Delegate> luaDelegateMap = new();
     
+    public event Action OnEventChanged;
+    
     // 初始化事件字典
     public EventCentre()
     {
@@ -52,6 +54,7 @@ public class EventCentre : Singleton<EventCentre>
         {
             portEvents.Add(eventName, action);
         }
+        OnEventChanged?.Invoke();
     }
 
     /// <summary>
@@ -68,6 +71,7 @@ public class EventCentre : Singleton<EventCentre>
             {
                 eventDictionaries[port].Remove(eventName);
             }
+            OnEventChanged?.Invoke();
         }
         else
         {

@@ -218,6 +218,52 @@ public class EventCentreTester : MonoBehaviour
 
         Debug.Log("=== 清除所有事件测试结束 ===");
     }
+    
+    [ContextMenu("测试事件中心窗口")]
+    public void TestEventViewer()
+    {
+        Debug.Log("=== 开始测试事件中心窗口 ===");
+    
+        // 注册一些C#到C#事件
+        EventCentre.Instance.AddCSharpEvent("TestViewer_Event1", () => {
+            Debug.Log("TestViewer事件1触发");
+        });
+    
+        EventCentre.Instance.AddCSharpEvent<int>("TestViewer_Event2", (value) => {
+            Debug.Log($"TestViewer事件2触发，参数值: {value}");
+        });
+    
+        // 注册Lua到Lua事件
+        EventCentre.Instance.AddLuaToLuaEvent("TestViewer_LuaEvent1", (data) => {
+            Debug.Log("TestViewer Lua事件1触发");
+        });
+    
+        // 注册Lua到C#事件
+        EventCentre.Instance.AddLuaToCSharpEvent("TestViewer_LuaToCSharp1", () => {
+            Debug.Log("TestViewer Lua到C#事件1触发");
+        });
+    
+        // 注册C#到Lua事件
+        EventCentre.Instance.AddCSharpToLuaEvent("TestViewer_CSharpToLua1", (data) => {
+            Debug.Log("TestViewer C#到Lua事件1触发");
+        });
+    
+        // 查询并打印当前注册的事件数量
+        int csharpEvents = EventCentre.Instance.GetEventListenerCount(EventCentre.EventPort.CsharpToCsharp, "TestViewer_Event1");
+        int luaToLuaEvents = EventCentre.Instance.GetEventListenerCount(EventCentre.EventPort.LuaToLua, "TestViewer_LuaEvent1");
+        int luaToCsharpEvents = EventCentre.Instance.GetEventListenerCount(EventCentre.EventPort.LuaToCsharp, "TestViewer_LuaToCSharp1");
+        int csharpToLuaEvents = EventCentre.Instance.GetEventListenerCount(EventCentre.EventPort.CsharpToLua, "TestViewer_CSharpToLua1");
+    
+        Debug.Log($"注册完成后各端口事件数量 - " +
+                  $"C#到C#: {csharpEvents}, " +
+                  $"Lua到Lua: {luaToLuaEvents}, " +
+                  $"Lua到C#: {luaToCsharpEvents}, " +
+                  $"C#到Lua: {csharpToLuaEvents}");
+    
+        Debug.Log("事件已注册，请打开Event Viewer窗口查看。这些事件将保留在系统中直到测试完成或手动清除。");
+        Debug.Log("=== 事件中心窗口测试结束 ===");
+    }
+
 
     private void OnDestroy()
     {
