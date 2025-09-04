@@ -5,6 +5,8 @@ using System.Collections.Generic;
 /// </summary>
 public class ConfigData
 {
+    public ConfigFormat PrimitiveFormat;
+    
     // 字段名列表（确定列顺序，如["id","name","level"]）
     public string[] Columns;
     

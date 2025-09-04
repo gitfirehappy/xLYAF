@@ -4,11 +4,16 @@ using System.Text;
 
 public class CsvReader : IConfigReader
 {
+    public ConfigFormat SupportedFormat => ConfigFormat.Csv;
+    
     public ConfigData Read(string filePath)
     {
         var configData = new ConfigData();
         var rows = new List<object[]>();
 
+        // 设置原始格式类型
+        configData.PrimitiveFormat = ConfigFormat.Csv;
+        
         // 读取CSV文件所有行
         string[] allLines = File.ReadAllLines(filePath, Encoding.UTF8);
 

@@ -8,12 +8,15 @@ public class ConfigConvertSettings : ScriptableObject
     public List<ConfigConvertChannel> channels;
 }
 
+/// <summary>
+/// 配置转换通道
+/// </summary>
 [Serializable]
 public class ConfigConvertChannel
 {
     public string name;
     public string inputFolder;
     public string outputFolder;
-    public string inputFormat;
-    public string outputFormat;// e.g. "lua", "json"
+    public ConfigFormat inputFormat;
+    public ConfigFormat outputFormat;
 }
