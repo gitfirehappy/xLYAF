@@ -5,30 +5,21 @@ using UnityEngine;
 
 public class ConfigConverter : Singleton<ConfigConverter>
 {
-    private Dictionary<ConfigFormat, IConfigReader> _readers;
-    private Dictionary<ConfigFormat, IConfigWriter> _writers;
-    
     private ConfigConvertSettings _configConvertSettings;
 
-    #region 外部方法
-    
-    /// <summary>
-    /// 初始化所有读取器和写入器
-    /// </summary>
-    private void InitializeConverters()
+    private Dictionary<ConfigFormat, IConfigReader> _readers = new Dictionary<ConfigFormat, IConfigReader>
     {
-        _readers = new Dictionary<ConfigFormat, IConfigReader>
-        {
-            { ConfigFormat.Csv, new CsvReader() }
-            // 可以添加其他读取器
-        };
-        
-        _writers = new Dictionary<ConfigFormat, IConfigWriter>
-        {
-            { ConfigFormat.Lua, new LuaWriter() }
-            // 可以添加其他写入器
-        };
-    }
+        { ConfigFormat.Csv, new CsvReader() }
+        // 可以添加其他读取器
+    };
+    
+    private Dictionary<ConfigFormat, IConfigWriter> _writers = new Dictionary<ConfigFormat, IConfigWriter>
+    {
+        { ConfigFormat.Lua, new LuaWriter() }
+        // 可以添加其他写入器
+    };
+    
+    #region 外部方法
     
     /// <summary>
     /// 转换单个文件(运行时主要调用)
