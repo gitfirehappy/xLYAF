@@ -9,7 +9,8 @@ public class ConfigConverter : Singleton<ConfigConverter>
 
     private Dictionary<ConfigFormat, IConfigReader> _readers = new Dictionary<ConfigFormat, IConfigReader>
     {
-        { ConfigFormat.Csv, new CsvReader() }
+        { ConfigFormat.Csv, new CsvReader() },
+        { ConfigFormat.Json, new JsonReader() },
         // 可以添加其他读取器
     };
     
