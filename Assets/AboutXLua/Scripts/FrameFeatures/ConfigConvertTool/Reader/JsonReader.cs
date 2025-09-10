@@ -11,21 +11,21 @@ public class JsonReader : IConfigReader
     {
         var configData = new ConfigData();
         configData.PrimitiveFormat = ConfigFormat.Json;
-        
+
         // 读取JSON文件内容
         string jsonContent = File.ReadAllText(filePath, Encoding.UTF8);
-        
+
         try
         {
             // 尝试解析为数组格式
             if (jsonContent.Trim().StartsWith("["))
             {
-                return ParseArrayFormat(jsonContent);
+                return ParseArrayFormat(jsonContent, configData);
             }
             // 尝试解析为对象格式（键值对）
             else if (jsonContent.Trim().StartsWith("{"))
             {
-                return ParseObjectFormat(jsonContent);
+                return ParseObjectFormat(jsonContent, configData);
             }
             else
             {
@@ -39,39 +39,43 @@ public class JsonReader : IConfigReader
             return configData;
         }
     }
-    
+
+    #region 解析JSON
+
     /// <summary>
     /// 解析数组格式的JSON
     /// </summary>
-    private ConfigData ParseArrayFormat(string jsonContent)
+    private ConfigData ParseArrayFormat(string jsonContent, ConfigData configData)
     {
-        var configData = new ConfigData();
         var rows = new List<object[]>();
-        
+
         // 使用SimpleJSON解析JSON数组
         var jsonArray = SimpleJSON.JSON.Parse(jsonContent).AsArray;
-        
+
         if (jsonArray == null || jsonArray.Count == 0)
         {
             LogUtility.Warning(LogLayer.Framework, "JsonReader", "JSON数组为空或格式不正确");
             return configData;
         }
-        
+
         // 从第一个对象获取所有字段名
         var firstItem = jsonArray[0].AsObject;
         List<string> columns = new List<string>();
-        
+
         // 获取所有键
-        columns.AddRange(firstItem.Keys);
-        
+        foreach (var key in firstItem.Keys)
+        {
+            columns.Add(key);
+        }
+
         configData.Columns = columns.ToArray();
-        
+
         // 处理每一行数据
         for (int i = 0; i < jsonArray.Count; i++)
         {
             var item = jsonArray[i].AsObject;
             object[] row = new object[columns.Count];
-            
+
             for (int j = 0; j < columns.Count; j++)
             {
                 string columnName = columns[j];
@@ -91,60 +95,65 @@ public class JsonReader : IConfigReader
                 else
                 {
                     row[j] = null;
-                    LogUtility.Warning(LogLayer.Framework, "JsonReader", $"字段 '{columnName}' 在第 {i+1} 个对象中不存在");
+                    LogUtility.Warning(LogLayer.Framework, "JsonReader", $"字段 '{columnName}' 在第 {i + 1} 个对象中不存在");
                 }
             }
-            
+
             rows.Add(row);
         }
-        
+
         configData.Rows = rows;
         return configData;
     }
-    
+
     /// <summary>
     /// 解析对象格式的JSON（键值对）
     /// </summary>
-    private ConfigData ParseObjectFormat(string jsonContent)
+    private ConfigData ParseObjectFormat(string jsonContent, ConfigData configData)
     {
-        var configData = new ConfigData();
         var rows = new List<object[]>();
-        
+
         // 使用SimpleJSON解析JSON对象
         var jsonObject = SimpleJSON.JSON.Parse(jsonContent).AsObject;
-        
+
         if (jsonObject == null || jsonObject.Count == 0)
         {
             LogUtility.Warning(LogLayer.Framework, "JsonReader", "JSON对象为空或格式不正确");
             return configData;
         }
-        
+
         // 获取所有字段名（从第一个值中获取）
         List<string> keys = new List<string>();
-        keys.AddRange(jsonObject.Keys);
-        
+        foreach (var key in jsonObject.Keys)
+        {
+            keys.Add(key);
+        }
+
         string firstKey = keys[0];
         var firstValue = jsonObject[firstKey].AsObject;
-        
+
         List<string> columns = new List<string> { "id" }; // ID作为第一列
-        
+
         List<string> fieldKeys = new List<string>();
-        fieldKeys.AddRange(firstValue.Keys);
-        
+        foreach (var key in firstValue.Keys)
+        {
+            fieldKeys.Add(key);
+        }
+
         foreach (var key in fieldKeys)
         {
             columns.Add(key);
         }
-        
+
         configData.Columns = columns.ToArray();
-        
+
         // 处理每一行数据
         foreach (var key in keys)
         {
             var value = jsonObject[key].AsObject;
             object[] row = new object[columns.Count];
             row[0] = key; // ID
-            
+
             for (int i = 1; i < columns.Count; i++)
             {
                 string columnName = columns[i];
@@ -167,11 +176,13 @@ public class JsonReader : IConfigReader
                     LogUtility.Warning(LogLayer.Framework, "JsonReader", $"字段 '{columnName}' 在对象 '{key}' 中不存在");
                 }
             }
-            
+
             rows.Add(row);
         }
-        
+
         configData.Rows = rows;
         return configData;
     }
+
+    #endregion
 }

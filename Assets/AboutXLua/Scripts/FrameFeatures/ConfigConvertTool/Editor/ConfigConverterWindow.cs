@@ -33,7 +33,7 @@ public class ConfigConverterWindow : EditorWindow
         EditorGUILayout.BeginVertical("box");
         
         // 方法1: 转换单个文件
-        EditorGUILayout.LabelField("方法1: 转换单个文件", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("转换单个文件", EditorStyles.boldLabel);
         EditorGUILayout.BeginHorizontal();
         
         // 配置区域
@@ -45,10 +45,11 @@ public class ConfigConverterWindow : EditorWindow
         _singleFilePath = EditorGUILayout.TextField("文件路径", _singleFilePath);
         if (GUILayout.Button("浏览", GUILayout.Width(60)))
         {
-            string pattern = _singleChannel != null ? 
-                $"*.{_singleChannel.inputFormat.ToString().ToLower()}" : "*.*";
+            string extension = _singleChannel != null ? 
+                GetExtensionForFormat(_singleChannel.inputFormat) : "";
                 
-            string path = EditorUtility.OpenFilePanel("选择文件", Application.dataPath, pattern);
+            string path = EditorUtility.OpenFilePanel("选择文件", Application.dataPath, extension);
+            
             if (!string.IsNullOrEmpty(path))
             {
                 _singleFilePath = path;
@@ -72,7 +73,7 @@ public class ConfigConverterWindow : EditorWindow
         
         // 方法2: 转换单个通道
         EditorGUILayout.BeginVertical("box");
-        EditorGUILayout.LabelField("方法2: 转换单个通道", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("转换单个通道", EditorStyles.boldLabel);
         EditorGUILayout.BeginHorizontal();
         
         // 配置区域
@@ -112,7 +113,7 @@ public class ConfigConverterWindow : EditorWindow
                 EditorGUILayout.LabelField("通道列表:", EditorStyles.miniBoldLabel);
                 foreach (var channel in _settings.channels)
                 {
-                    EditorGUILayout.LabelField($"- {channel.name}: {channel.inputFormat} → {channel.outputFormat}", EditorStyles.miniLabel);
+                    EditorGUILayout.LabelField($"- {channel.name}: {channel.inputFormat} → {channel.outputFormat}", EditorStyles.label);
                 }
             }
         }
@@ -134,5 +135,22 @@ public class ConfigConverterWindow : EditorWindow
         EditorGUILayout.EndVertical();
         
         EditorGUILayout.EndScrollView();
+    }
+    
+    private string GetExtensionForFormat(ConfigFormat format)
+    {
+        switch (format)
+        {
+            case ConfigFormat.Csv:
+                return "csv";
+            case ConfigFormat.Lua:
+                return "lua";
+            case ConfigFormat.Json:
+                return "json";
+            case ConfigFormat.Xml:
+                return "xml";
+            default:
+                return "";
+        }
     }
 }

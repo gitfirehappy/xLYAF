@@ -12,7 +12,7 @@ public class LuaWriter : IConfigWriter
         using (var stream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
         using (var writer = new StreamWriter(stream, options.Encoding))
         {
-            // 写入文件头注释（可选）
+            // 写入文件头注释
             if (options.AddComment)
             {
                 writer.WriteLine("-- Auto-generated config file");
@@ -45,7 +45,7 @@ public class LuaWriter : IConfigWriter
                     var fieldValue = row[j];
                     
                     // 写入字段
-                    writer.Write($"{fieldName} = {FormatLuaValue(fieldValue)}");
+                    writer.Write($"[\"{fieldName}\"] = {FormatLuaValue(fieldValue)}");
                     
                     // 添加逗号（除了最后一个字段）
                     if (j < data.Columns.Length - 1)
