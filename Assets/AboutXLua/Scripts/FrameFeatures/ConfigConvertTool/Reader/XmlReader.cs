@@ -23,13 +23,15 @@ public class XmlReader : IConfigReader
             XMLNode rootNode = XMLNode.Parse(xmlContent);
 
             // 检查XML格式类型
-            if (IsTableFormat(rootNode))
+            if (IsArrayFormat(rootNode))
             {
-                return ParseTableFormat(rootNode, configData);
+                configData.Mode = ConfigMode.Array;
+                return ReadArray(rootNode, configData);
             }
             else if (IsKeyValueFormat(rootNode))
             {
-                return ParseKeyValueFormat(rootNode, configData);
+                configData.Mode = ConfigMode.KeyValue;
+                return ReadKeyValue(rootNode, configData);
             }
             else
             {
@@ -49,7 +51,7 @@ public class XmlReader : IConfigReader
     /// <summary>
     /// 检查XML格式是否为表格格式
     /// </summary>
-    private bool IsTableFormat(XMLNode rootNode)
+    private bool IsArrayFormat(XMLNode rootNode)
     {
         if (!rootNode.IsObject)
             return false;
@@ -117,7 +119,7 @@ public class XmlReader : IConfigReader
     ///   <item><id>2</id><name>B</name></item>
     /// </root>
     /// </summary>
-    private ConfigData ParseTableFormat(XMLNode rootNode, ConfigData configData)
+    private ConfigData ReadArray(XMLNode rootNode, ConfigData configData)
     {
         var rows = new List<object[]>();
         var obj = rootNode.AsObject;
@@ -204,7 +206,7 @@ public class XmlReader : IConfigReader
     ///   <player2><id>2</id><name>B</name></player2>
     /// </root>
     /// </summary>
-    private ConfigData ParseKeyValueFormat(XMLNode rootNode, ConfigData configData)
+    private ConfigData ReadKeyValue(XMLNode rootNode, ConfigData configData)
     {
         var rows = new List<object[]>();
         var obj = rootNode.AsObject;

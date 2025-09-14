@@ -4,6 +4,7 @@
 /// </summary>
 public interface IConfigReader
 {
-    ConfigData Read(string filePath);
     ConfigFormat SupportedFormat { get; } // 添加支持的格式属性
+
+    ConfigData Read(string filePath);
 }

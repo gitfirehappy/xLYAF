@@ -10,3 +10,12 @@ public enum ConfigFormat
     Xml,
     // 可以继续添加其他支持的格式
 }
+
+/// <summary>
+/// 配置文件类型: 数组或者键值对
+/// </summary>
+public enum ConfigMode
+{
+    Array,
+    KeyValue,
+}

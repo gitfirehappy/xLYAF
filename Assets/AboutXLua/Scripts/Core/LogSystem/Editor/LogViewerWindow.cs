@@ -46,10 +46,25 @@ public class LogViewerWindow : EditorWindow
         // 注册日志更新事件
         LogUtility.OnLogAdded += UpdateLogs;
         
-        // 初始化样式
-        _errorStyle = new GUIStyle(EditorStyles.label) { normal = { textColor = Color.red } };
-        _warningStyle = new GUIStyle(EditorStyles.label) { normal = { textColor = new Color(1f, 0.6f, 0f) } };
-        _infoStyle = new GUIStyle(EditorStyles.label) { normal = { textColor = Color.white } };
+        // 初始化样式（增加字体大小和自动换行）
+        _errorStyle = new GUIStyle(EditorStyles.label) { 
+            normal = { textColor = Color.red },
+            fontSize = 12, // 增大字体
+            wordWrap = true, // 启用自动换行
+            padding = new RectOffset(2, 2, 2, 2) // 增加内边距
+        };
+        _warningStyle = new GUIStyle(EditorStyles.label) { 
+            normal = { textColor = new Color(1f, 0.6f, 0f) },
+            fontSize = 12,
+            wordWrap = true,
+            padding = new RectOffset(2, 2, 2, 2)
+        };
+        _infoStyle = new GUIStyle(EditorStyles.label) { 
+            normal = { textColor = Color.white },
+            fontSize = 12,
+            wordWrap = true,
+            padding = new RectOffset(2, 2, 2, 2)
+        };
         
         UpdateLogs();
     }
@@ -103,6 +118,9 @@ public class LogViewerWindow : EditorWindow
         
         _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
         
+        // 增加日志条目之间的间距
+        var logSpacing = 6;
+        
         foreach (var log in _filteredLogs)
         {
             GUIStyle style = log.Level switch
@@ -112,7 +130,20 @@ public class LogViewerWindow : EditorWindow
                 _ => _infoStyle
             };
             
-            EditorGUILayout.LabelField($"{log.Time:HH:mm:ss} {log.FormattedMessage}", style);
+            // 用Box包裹每条日志，增加边框区分
+            EditorGUILayout.BeginVertical(EditorStyles.boldLabel);
+            {
+                // 日志内容（时间+消息）
+                EditorGUILayout.LabelField(
+                    $"{log.Time:HH:mm:ss} {log.FormattedMessage}", 
+                    style, 
+                    GUILayout.ExpandWidth(true)
+                );
+            }
+            EditorGUILayout.EndVertical();
+        
+            // 添加日志之间的间隔
+            EditorGUILayout.Space(logSpacing);
         }
         
         EditorGUILayout.EndScrollView();

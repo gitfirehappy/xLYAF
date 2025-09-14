@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -9,13 +10,58 @@ public class CsvReader : IConfigReader
     public ConfigData Read(string filePath)
     {
         var configData = new ConfigData();
-        var rows = new List<object[]>();
-
-        // 设置原始格式类型
         configData.PrimitiveFormat = ConfigFormat.Csv;
-        
+
         // 读取CSV文件所有行
         string[] allLines = File.ReadAllLines(filePath, Encoding.UTF8);
+        
+        try
+        {
+            if (IsArrayFormat(allLines))
+            {
+                configData.Mode = ConfigMode.Array;
+                return ReadArray(allLines, configData);
+            }
+            else if (IsKeyValueFormat(allLines))
+            {
+                configData.Mode = ConfigMode.KeyValue;
+                return ReadKeyValue(allLines, configData);
+            }
+            else
+            {
+                LogUtility.Error(LogLayer.Framework, "CsvReader", $"不支持的Csv格式: {filePath}");
+                return configData;
+            }
+        }
+        catch (Exception ex)
+        {
+            LogUtility.Error(LogLayer.Framework, "CsvReader", $"解析Csv文件时出错: {filePath}\n{ex.Message}");
+            return configData;
+        }
+    }
+
+    #region  检查Csv格式
+
+    public bool IsArrayFormat(string[] allLines)
+    {
+        // TODO: 检查Csv文件是否为数组格式
+        return true;
+    }
+    
+    public bool IsKeyValueFormat(string[] allLines)
+    {
+        // TODO: 检查Csv文件是否为键值对格式
+        LogUtility.Error(LogLayer.Framework, "CsvReader", "暂时不支持键值对格式");
+        return false;
+    }
+
+    #endregion
+
+    #region  解析Csv
+    
+    public ConfigData ReadArray(string[] allLines,ConfigData configData)
+    {
+        var rows = new List<object[]>();
 
         if (allLines.Length == 0)
             return configData;
@@ -36,7 +82,16 @@ public class CsvReader : IConfigReader
         configData.Rows = rows;
         return configData;
     }
-
+    
+    public ConfigData ReadKeyValue(string[] allLines,ConfigData data)
+    {
+        // TODO: 解析CSV文件为键值对格式
+        LogUtility.Error(LogLayer.Framework, "CsvReader", "暂时不支持键值对格式");
+        return data;
+    }
+    
+    #endregion
+    
     /// <summary>
     /// 解析CSV单行（处理逗号分隔和引号转义）
     /// </summary>

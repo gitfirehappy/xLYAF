@@ -20,12 +20,14 @@ public class JsonReader : IConfigReader
             // 尝试解析为数组格式
             if (jsonContent.Trim().StartsWith("["))
             {
-                return ParseArrayFormat(jsonContent, configData);
+                configData.Mode = ConfigMode.Array;
+                return ReadArray(jsonContent, configData);
             }
             // 尝试解析为对象格式（键值对）
             else if (jsonContent.Trim().StartsWith("{"))
             {
-                return ParseObjectFormat(jsonContent, configData);
+                configData.Mode = ConfigMode.KeyValue;
+                return ReadKeyValue(jsonContent, configData);
             }
             else
             {
@@ -45,7 +47,7 @@ public class JsonReader : IConfigReader
     /// <summary>
     /// 解析数组格式的JSON
     /// </summary>
-    private ConfigData ParseArrayFormat(string jsonContent, ConfigData configData)
+    public ConfigData ReadArray(string jsonContent, ConfigData configData)
     {
         var rows = new List<object[]>();
 
@@ -109,7 +111,7 @@ public class JsonReader : IConfigReader
     /// <summary>
     /// 解析对象格式的JSON（键值对）
     /// </summary>
-    private ConfigData ParseObjectFormat(string jsonContent, ConfigData configData)
+    public ConfigData ReadKeyValue(string jsonContent, ConfigData configData)
     {
         var rows = new List<object[]>();
 
