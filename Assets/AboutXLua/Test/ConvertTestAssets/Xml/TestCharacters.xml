@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Characters>
+    <Character>
+        <ID>1001</ID>
+        <Name>Warrior</Name>
+        <Health>150</Health>
+        <Attack>25</Attack>
+        <Defense>10</Defense>
+        <Speed>5.5</Speed>
+        <IsRanged>false</IsRanged>
+        <Skills>Charge;Cleave</Skills>
+    </Character>
+    <Character>
+        <ID>1002</ID>
+        <Name>Archer</Name>
+        <Health>90</Health>
+        <Attack>18</Attack>
+        <Defense>5</Defense>
+        <Speed>7.2</Speed>
+        <IsRanged>true</IsRanged>
+        <Skills>MultiShot;Stealth</Skills>
+    </Character>
+    <Character>
+        <ID>1003</ID>
+        <Name>Mage</Name>
+        <Health>80</Health>
+        <Attack>30</Attack>
+        <Defense>3</Defense>
+        <Speed>6.0</Speed>
+        <IsRanged>true</IsRanged>
+        <Skills>Fireball;IceNova</Skills>
+    </Character>
+</Characters>

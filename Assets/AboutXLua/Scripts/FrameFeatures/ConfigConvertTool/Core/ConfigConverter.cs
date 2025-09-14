@@ -11,6 +11,7 @@ public class ConfigConverter : Singleton<ConfigConverter>
     {
         { ConfigFormat.Csv, new CsvReader() },
         { ConfigFormat.Json, new JsonReader() },
+        { ConfigFormat.Xml, new XmlReader() },
         // 可以添加其他读取器
     };
 
