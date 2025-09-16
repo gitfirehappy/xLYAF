@@ -77,19 +77,22 @@ public class LuaWriter : IConfigWriter
         writer.WriteLine("return {");
         if (data.RootNode != null)
         {
-            WriteTreeNode(writer, data.RootNode, options.Indent, 1);
+            WriteTreeNode(writer, data.RootNode, options.Indent, 1,false);
         }
 
         writer.WriteLine("}");
     }
 
-    private void WriteTreeNode(StreamWriter writer, TreeNode node, string indent, int depth)
+    private void WriteTreeNode(StreamWriter writer, TreeNode node, string indent, int depth, bool isArrayElement)
     {
         var currentIndent = GetIndent(indent, depth);
         var childIndent = GetIndent(indent, depth + 1);
 
-        // 写入节点名称
-        writer.Write($"{currentIndent}[\"{node.Name}\"] = ");
+        // 如果不是数组元素，写入节点名称
+        if (!isArrayElement)
+        {
+            writer.Write($"{currentIndent}[\"{node.Name}\"] = ");
+        }
 
         switch (node.NodeType)
         {
@@ -111,7 +114,7 @@ public class LuaWriter : IConfigWriter
                 for (int i = 0; i < node.Children.Count; i++)
                 {
                     var child = node.Children[i];
-                    WriteTreeNode(writer, child, indent, depth + 1);
+                    WriteTreeNode(writer, child, indent, depth + 1, false);
                     // 子节点间用逗号分隔，最后一个子节点不写逗号
                     if (i < node.Children.Count - 1)
                         writer.WriteLine(",");
@@ -127,7 +130,7 @@ public class LuaWriter : IConfigWriter
                 for (int i = 0; i < node.Children.Count; i++)
                 {
                     var child = node.Children[i];
-                    writer.Write($"{childIndent}");
+                    writer.Write(childIndent);
                     // 数组元素直接写值，不写键名
                     WriteTreeNodeValue(writer, child, indent, depth + 1);
                     if (i < node.Children.Count - 1)
@@ -152,7 +155,7 @@ public class LuaWriter : IConfigWriter
         {
             case TreeNodeType.Object:
             case TreeNodeType.Array:
-                WriteTreeNode(writer, node, indent, depth);
+                WriteTreeNode(writer, node, indent, depth, true);
                 break;
             default:
                 writer.Write(FormatLuaValue(node.Value));

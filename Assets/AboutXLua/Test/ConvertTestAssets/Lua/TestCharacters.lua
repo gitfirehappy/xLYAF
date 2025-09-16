@@ -5,7 +5,7 @@
 
 return {
     ["Characters"] = {
-                ["0"] = {
+        {
             ["ID"] = 1001,
             ["Name"] = "Warrior",
             ["Health"] = 150,
@@ -16,7 +16,7 @@ return {
             ["Skills"] = "Charge;Cleave"
         }
 ,
-                ["1"] = {
+        {
             ["ID"] = 1002,
             ["Name"] = "Archer",
             ["Health"] = 90,
@@ -27,7 +27,7 @@ return {
             ["Skills"] = "MultiShot;Stealth"
         }
 ,
-                ["2"] = {
+        {
             ["ID"] = 1003,
             ["Name"] = "Mage",
             ["Health"] = 80,
