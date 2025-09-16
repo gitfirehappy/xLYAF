@@ -1,14 +1,15 @@
 using System.IO;
+using System.Linq;
 using System.Text;
 
 public class LuaWriter : IConfigWriter
 {
     public ConfigFormat SupportedFormat => ConfigFormat.Lua;
-    
+
     public void Write(string outputPath, ConfigData data, WriterOptions options = null)
     {
         options = options ?? new WriterOptions();
-        
+
         using (var stream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
         using (var writer = new StreamWriter(stream, options.Encoding))
         {
@@ -36,12 +37,12 @@ public class LuaWriter : IConfigWriter
             }
         }
     }
-    
+
     private void WriteArray(StreamWriter writer, ConfigData data, WriterOptions options)
-    { 
+    {
         // TODO: 以数组模式写入Lua文件
         writer.WriteLine("return {");
-        
+
         for (int i = 0; i < data.Rows.Count; i++)
         {
             var row = data.Rows[i];
@@ -51,7 +52,7 @@ public class LuaWriter : IConfigWriter
             {
                 var fieldName = data.Columns[j];
                 var fieldValue = row[j];
-                
+
                 writer.Write($"[\"{fieldName}\"] = {FormatLuaValue(fieldValue)}");
                 if (j < data.Columns.Length - 1)
                 {
@@ -64,66 +65,109 @@ public class LuaWriter : IConfigWriter
             {
                 writer.Write(",");
             }
+
             writer.WriteLine();
         }
-        
+
         writer.WriteLine("}");
     }
 
-    /// <summary>
-    /// 写入键值对模式的配置数据
-    /// 示例格式:
-    /// return {
-    ///     [1] = {name = "A"},
-    ///     [2] = {name = "B"}
-    /// }
-    /// </summary>
     private void WriteKeyValue(StreamWriter writer, ConfigData data, WriterOptions options)
     {
         writer.WriteLine("return {");
-        
-        for (int i = 0; i < data.Rows.Count; i++)
+        if (data.RootNode != null)
         {
-            var row = data.Rows[i];
-                
-            // 使用第一列作为主键（通常是ID）
-            var primaryKey = row[0].ToString();
-                
-            // 开始一行数据
-            writer.Write($"{options.Indent}[{FormatLuaValue(primaryKey)}] = {{");
-                
-            // 写入所有字段
-            for (int j = 0; j < data.Columns.Length; j++)
-            {
-                var fieldName = data.Columns[j];
-                var fieldValue = row[j];
-                    
-                // 写入字段
-                writer.Write($"[\"{fieldName}\"] = {FormatLuaValue(fieldValue)}");
-                    
-                // 添加逗号（除了最后一个字段）
-                if (j < data.Columns.Length - 1)
-                {
-                    writer.Write(", ");
-                }
-            }
-                
-            // 结束一行数据
-            writer.Write("}");
-                
-            // 添加逗号（除了最后一行）
-            if (i < data.Rows.Count - 1)
-            {
-                writer.Write(",");
-            }
-                
-            writer.WriteLine();
+            WriteTreeNode(writer, data.RootNode, options.Indent, 1);
         }
-            
-        // 结束Lua表
+
         writer.WriteLine("}");
     }
-    
+
+    private void WriteTreeNode(StreamWriter writer, TreeNode node, string indent, int depth)
+    {
+        var currentIndent = GetIndent(indent, depth);
+        var childIndent = GetIndent(indent, depth + 1);
+
+        // 写入节点名称
+        writer.Write($"{currentIndent}[\"{node.Name}\"] = ");
+
+        switch (node.NodeType)
+        {
+            case TreeNodeType.Object:
+                writer.WriteLine("{");
+                // 写入属性
+                for (int i = 0; i < node.Attributes.Count; i++)
+                {
+                    var attr = node.Attributes.ElementAt(i);
+                    writer.Write($"{childIndent}[\"@{attr.Key}\"] = {FormatLuaValue(attr.Value)}");
+                    // 属性间用逗号分隔，最后一个属性不写逗号
+                    if (i < node.Attributes.Count - 1)
+                        writer.WriteLine(",");
+                    else
+                        writer.WriteLine(); // 最后一个属性单独换行
+                }
+
+                // 写入子节点
+                for (int i = 0; i < node.Children.Count; i++)
+                {
+                    var child = node.Children[i];
+                    WriteTreeNode(writer, child, indent, depth + 1);
+                    // 子节点间用逗号分隔，最后一个子节点不写逗号
+                    if (i < node.Children.Count - 1)
+                        writer.WriteLine(",");
+                    else
+                        writer.WriteLine(); // 最后一个子节点单独换行
+                }
+
+                writer.WriteLine($"{currentIndent}}}"); // 闭合符单独占一行
+                break;
+
+            case TreeNodeType.Array:
+                writer.WriteLine("{");
+                for (int i = 0; i < node.Children.Count; i++)
+                {
+                    var child = node.Children[i];
+                    writer.Write($"{childIndent}");
+                    // 数组元素直接写值，不写键名
+                    WriteTreeNodeValue(writer, child, indent, depth + 1);
+                    if (i < node.Children.Count - 1)
+                        writer.WriteLine(",");
+                }
+
+                writer.WriteLine($"{currentIndent}}}");
+                break;
+
+            case TreeNodeType.Value:
+                writer.Write(FormatLuaValue(node.Value));
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 写入节点值（用于数组元素）
+    /// </summary>
+    private void WriteTreeNodeValue(StreamWriter writer, TreeNode node, string indent, int depth)
+    {
+        switch (node.NodeType)
+        {
+            case TreeNodeType.Object:
+            case TreeNodeType.Array:
+                WriteTreeNode(writer, node, indent, depth);
+                break;
+            default:
+                writer.Write(FormatLuaValue(node.Value));
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 获取指定深度的缩进字符串
+    /// </summary>
+    private string GetIndent(string baseIndent, int depth)
+    {
+        return string.Concat(System.Linq.Enumerable.Repeat(baseIndent, depth));
+    }
+
     /// <summary>
     /// 格式化Lua值（处理不同类型和转义）
     /// </summary>
@@ -131,33 +175,33 @@ public class LuaWriter : IConfigWriter
     {
         if (value == null)
             return "nil";
-        
+
         // 处理字符串类型
         if (value is string str)
         {
             // 转义特殊字符
             str = str.Replace("\\", "\\\\")
-                     .Replace("\"", "\\\"")
-                     .Replace("\'", "\\\'")
-                     .Replace("\n", "\\n")
-                     .Replace("\r", "\\r")
-                     .Replace("\t", "\\t");
-            
+                .Replace("\"", "\\\"")
+                .Replace("\'", "\\\'")
+                .Replace("\n", "\\n")
+                .Replace("\r", "\\r")
+                .Replace("\t", "\\t");
+
             return $"\"{str}\"";
         }
-        
+
         // 处理布尔类型
         if (value is bool boolVal)
         {
             return boolVal ? "true" : "false";
         }
-        
+
         // 处理数字类型（直接返回）
         if (value is int || value is float || value is double || value is decimal)
         {
             return value.ToString();
         }
-        
+
         // 默认转为字符串
         return $"\"{value}\"";
     }

@@ -113,78 +113,58 @@ public class JsonReader : IConfigReader
     /// </summary>
     public ConfigData ReadKeyValue(string jsonContent, ConfigData configData)
     {
-        var rows = new List<object[]>();
-
-        // 使用SimpleJSON解析JSON对象
-        var jsonObject = SimpleJSON.JSON.Parse(jsonContent).AsObject;
-
-        if (jsonObject == null || jsonObject.Count == 0)
-        {
-            LogUtility.Warning(LogLayer.Framework, "JsonReader", "JSON对象为空或格式不正确");
-            return configData;
-        }
-
-        // 获取所有字段名（从第一个值中获取）
-        List<string> keys = new List<string>();
-        foreach (var key in jsonObject.Keys)
-        {
-            keys.Add(key);
-        }
-
-        string firstKey = keys[0];
-        var firstValue = jsonObject[firstKey].AsObject;
-
-        List<string> columns = new List<string> { "id" }; // ID作为第一列
-
-        List<string> fieldKeys = new List<string>();
-        foreach (var key in firstValue.Keys)
-        {
-            fieldKeys.Add(key);
-        }
-
-        foreach (var key in fieldKeys)
-        {
-            columns.Add(key);
-        }
-
-        configData.Columns = columns.ToArray();
-
-        // 处理每一行数据
-        foreach (var key in keys)
-        {
-            var value = jsonObject[key].AsObject;
-            object[] row = new object[columns.Count];
-            row[0] = key; // ID
-
-            for (int i = 1; i < columns.Count; i++)
-            {
-                string columnName = columns[i];
-                if (value.HasKey(columnName))
-                {
-                    // 根据值的类型进行处理
-                    var fieldValue = value[columnName];
-                    if (fieldValue.IsString)
-                        row[i] = fieldValue.Value;
-                    else if (fieldValue.IsNumber)
-                        row[i] = fieldValue.AsFloat;
-                    else if (fieldValue.IsBoolean)
-                        row[i] = fieldValue.AsBool;
-                    else
-                        row[i] = fieldValue.Value;
-                }
-                else
-                {
-                    row[i] = null;
-                    LogUtility.Warning(LogLayer.Framework, "JsonReader", $"字段 '{columnName}' 在对象 '{key}' 中不存在");
-                }
-            }
-
-            rows.Add(row);
-        }
-
-        configData.Rows = rows;
+        var jsonObject = SimpleJSON.JSON.Parse(jsonContent);
+        
+        // 构建树结构
+        configData.RootNode = ConvertJsonToTreeNode("Root", jsonObject);
+        
         return configData;
     }
 
     #endregion
+    
+    private TreeNode ConvertJsonToTreeNode(string nodeName, SimpleJSON.JSONNode jsonNode)
+    { 
+        if (jsonNode == null)
+            return new TreeNode(nodeName, null, TreeNodeType.Value);
+
+        // 处理对象类型
+        if (jsonNode.IsObject)
+        {
+            var treeNode = new TreeNode(nodeName, null, TreeNodeType.Object);
+            foreach (var key in jsonNode.Keys)
+            {
+                var childNode = ConvertJsonToTreeNode(key, jsonNode[key]);
+                treeNode.AddChild(childNode);
+            }
+            return treeNode;
+        }
+        // 处理数组类型
+        else if (jsonNode.IsArray)
+        {
+            var treeNode = new TreeNode(nodeName, null, TreeNodeType.Array);
+            for (int i = 0; i < jsonNode.Count; i++)
+            {
+                // 数组元素使用索引作为节点名称
+                var childNode = ConvertJsonToTreeNode(i.ToString(), jsonNode[i]);
+                treeNode.AddChild(childNode);
+            }
+            return treeNode;
+        }
+        // 处理值类型
+        else
+        {
+            object value = null;
+            if (jsonNode.IsNumber)
+                value = jsonNode.AsDouble;
+            else if (jsonNode.IsBoolean)
+                value = jsonNode.AsBool;
+            else if (jsonNode.IsNull)
+                value = null;
+            else
+                value = jsonNode.Value; // 字符串类型
+
+            return new TreeNode(nodeName, value, TreeNodeType.Value);
+        }
+    }
 }

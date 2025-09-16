@@ -4,7 +4,24 @@
 -- Mode: KeyValue
 
 return {
-    ["buff_1"] = {["id"] = "buff_1", ["name"] = "buff1", ["time"] = 10, ["deplete"] = 100},
-    ["buff_2"] = {["id"] = "buff_2", ["name"] = "buff2", ["time"] = 15, ["deplete"] = 120},
-    ["buff_3"] = {["id"] = "buff_3", ["name"] = "buff3", ["time"] = 20, ["deplete"] = 150}
+    ["Root"] = {
+        ["buff_1"] = {
+            ["name"] = "buff1",
+            ["time"] = 10,
+            ["deplete"] = 100
+        }
+,
+        ["buff_2"] = {
+            ["name"] = "buff2",
+            ["time"] = 15,
+            ["deplete"] = 120
+        }
+,
+        ["buff_3"] = {
+            ["name"] = "buff3",
+            ["time"] = 20,
+            ["deplete"] = 150
+        }
+
+    }
 }

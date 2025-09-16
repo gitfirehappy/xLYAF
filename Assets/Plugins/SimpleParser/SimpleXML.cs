@@ -32,46 +32,118 @@ namespace SimpleXML
         None = 7,
         Custom = 0xFF,
     }
-    
+
     public abstract partial class XMLNode
     {
         #region common interface
-        
+
         public abstract XMLNodeTypeEX Tag { get; }
-        
-        public virtual XMLNode this[int aIndex] { get { return null; } set { } }
-        public virtual XMLNode this[string aKey] { get { return null; } set { } }
-        
-        public virtual string Value { get { return ""; } set { } }
-        public virtual int Count { get { return 0; } }
-        
-        public virtual bool IsNumber { get { return false; } }
-        public virtual bool IsString { get { return false; } }
-        public virtual bool IsBoolean { get { return false; } }
-        public virtual bool IsNull { get { return false; } }
-        public virtual bool IsArray { get { return false; } }
-        public virtual bool IsObject { get { return false; } }
-        
-        public virtual void Add(string aKey, XMLNode aItem) { }
-        public virtual void Add(XMLNode aItem) { Add("", aItem); }
-        
-        public virtual XMLNode Remove(string aKey) { return null; }
-        public virtual XMLNode Remove(int aIndex) { return null; }
-        public virtual XMLNode Remove(XMLNode aNode) { return aNode; }
-        
-        public virtual void Clear() { }
-        public virtual XMLNode Clone() { return null; }
-        
-        public virtual bool HasKey(string aKey) { return false; }
-        public virtual XMLNode GetValueOrDefault(string aKey, XMLNode aDefault) { return aDefault; }
-        
+
+        public abstract string Name { get; set; }
+
+        public virtual XMLNode this[int aIndex]
+        {
+            get { return null; }
+            set { }
+        }
+
+        public virtual XMLNode this[string aKey]
+        {
+            get { return null; }
+            set { }
+        }
+
+        public virtual string Value
+        {
+            get { return ""; }
+            set { }
+        }
+
+        public virtual int Count
+        {
+            get { return 0; }
+        }
+
+        public virtual bool IsNumber
+        {
+            get { return false; }
+        }
+
+        public virtual bool IsString
+        {
+            get { return false; }
+        }
+
+        public virtual bool IsBoolean
+        {
+            get { return false; }
+        }
+
+        public virtual bool IsNull
+        {
+            get { return false; }
+        }
+
+        public virtual bool IsArray
+        {
+            get { return false; }
+        }
+
+        public virtual bool IsObject
+        {
+            get { return false; }
+        }
+
+        public virtual void Add(string aKey, XMLNode aItem)
+        {
+        }
+
+        public virtual void Add(XMLNode aItem)
+        {
+            Add("", aItem);
+        }
+
+        public virtual XMLNode Remove(string aKey)
+        {
+            return null;
+        }
+
+        public virtual XMLNode Remove(int aIndex)
+        {
+            return null;
+        }
+
+        public virtual XMLNode Remove(XMLNode aNode)
+        {
+            return aNode;
+        }
+
+        public virtual void Clear()
+        {
+        }
+
+        public virtual XMLNode Clone()
+        {
+            return null;
+        }
+
+        public virtual bool HasKey(string aKey)
+        {
+            return false;
+        }
+
+        public virtual XMLNode GetValueOrDefault(string aKey, XMLNode aDefault)
+        {
+            return aDefault;
+        }
+
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
             WriteToStringBuilder(sb, 0, 0);
             return sb.ToString();
         }
-        
+
         internal abstract void WriteToStringBuilder(StringBuilder aSB, int aIndent, int aIndentInc);
 
         #endregion
@@ -126,8 +198,15 @@ namespace SimpleXML
             set { Value = value.ToString(); }
         }
 
-        public virtual XMLArray AsArray { get { return this as XMLArray; } }
-        public virtual XMLObject AsObject { get { return this as XMLObject; } }
+        public virtual XMLArray AsArray
+        {
+            get { return this as XMLArray; }
+        }
+
+        public virtual XMLObject AsObject
+        {
+            get { return this as XMLObject; }
+        }
 
         #endregion
 
@@ -145,35 +224,53 @@ namespace SimpleXML
                 throw new Exception("XML Parse error: " + ex.Message);
             }
         }
-        
+
         private static XMLNode ParseXElement(XElement element)
         {
+            string elementName = element.Name.LocalName; // 获取当前元素名称
+
             // 检查是否是空元素
             if (!element.HasElements && string.IsNullOrEmpty(element.Value))
-                return XMLNull.CreateOrGet();
+            {
+                var nullNode = XMLNull.CreateOrGet();
+                nullNode.Name = elementName; // 设置名称
+                return nullNode;
+            }
 
             // 检查是否是混合内容（文本和元素混合）
             if (element.Nodes().Any(n => n is XText) && element.Elements().Any())
             {
                 // 混合内容视为字符串
-                return new XMLString(element.Value);
+                var strNode = new XMLString(element.Value);
+                strNode.Name = elementName; // 设置名称
+                return strNode;
             }
 
             // 检查是否只有文本内容
             if (!element.HasElements && !string.IsNullOrEmpty(element.Value))
             {
                 string value = element.Value.Trim();
-                
+
                 // 尝试解析为布尔值
                 if (bool.TryParse(value, out bool boolResult))
-                    return new XMLBool(boolResult);
-                
+                {
+                    var boolNode = new XMLBool(boolResult);
+                    boolNode.Name = elementName; // 设置名称
+                    return boolNode;
+                }
+
                 // 尝试解析为数字
                 if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double doubleResult))
-                    return new XMLNumber(doubleResult);
-                
+                {
+                    var numNode = new XMLNumber(doubleResult);
+                    numNode.Name = elementName; // 设置名称
+                    return numNode;
+                }
+
                 // 默认作为字符串
-                return new XMLString(value);
+                var stringNode = new XMLString(value);
+                stringNode.Name = elementName; // 设置名称
+                return stringNode;
             }
 
             // 检查子元素是否都是相同名称（表示数组）
@@ -182,51 +279,75 @@ namespace SimpleXML
             {
                 string firstName = childElements[0].Name.LocalName;
                 bool allSameName = childElements.All(e => e.Name.LocalName == firstName);
-                
+
                 if (allSameName && childElements.Count >= 1)
                 {
                     // 作为数组处理
                     XMLArray array = new XMLArray();
+                    array.Name = elementName; // 设置数组节点自身的名称（父元素名称）
                     foreach (var child in childElements)
                     {
-                        array.Add(ParseXElement(child));
+                        var childNode = ParseXElement(child); // 子节点会在递归中设置自己的名称（如"number"）
+                        array.Add(childNode);
                     }
+
                     return array;
                 }
                 else
                 {
                     // 作为对象处理
                     XMLObject obj = new XMLObject();
+                    obj.Name = elementName; // 设置对象节点名称
                     foreach (var child in childElements)
                     {
-                        obj.Add(child.Name.LocalName, ParseXElement(child));
+                        var childNode = ParseXElement(child);
+                        obj.Add(child.Name.LocalName, childNode);
                     }
-                    
+
                     // 添加属性
                     foreach (var attr in element.Attributes())
                     {
-                        obj.Add("@" + attr.Name.LocalName, new XMLString(attr.Value));
+                        var attrNode = new XMLString(attr.Value);
+                        attrNode.Name = $"@{attr.Name.LocalName}"; // 属性节点名称带@前缀
+                        obj.Add("@" + attr.Name.LocalName, attrNode);
                     }
-                    
+
                     return obj;
                 }
             }
 
             // 默认作为空节点
-            return XMLNull.CreateOrGet();
+            var defaultNull = XMLNull.CreateOrGet();
+            defaultNull.Name = elementName; // 设置名称
+            return defaultNull;
         }
 
         #endregion
     }
     // End of XMLNode
-    
+
     public partial class XMLArray : XMLNode, IEnumerable<XMLNode>
-    { 
+    {
         private List<XMLNode> m_List = new List<XMLNode>();
 
-        public override XMLNodeTypeEX Tag { get { return XMLNodeTypeEX.Array; } }
-        public override bool IsArray { get { return true; } }
-        
+        public override XMLNodeTypeEX Tag
+        {
+            get { return XMLNodeTypeEX.Array; }
+        }
+
+        private string _name;
+
+        public override string Name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+
+        public override bool IsArray
+        {
+            get { return true; }
+        }
+
         public override XMLNode this[int aIndex]
         {
             get
@@ -246,7 +367,10 @@ namespace SimpleXML
             }
         }
 
-        public override int Count { get { return m_List.Count; } }
+        public override int Count
+        {
+            get { return m_List.Count; }
+        }
 
         public override void Add(string aKey, XMLNode aItem)
         {
@@ -279,6 +403,7 @@ namespace SimpleXML
                 else
                     node.Add(null);
             }
+
             return node;
         }
 
@@ -294,24 +419,26 @@ namespace SimpleXML
                 m_List[i].WriteToStringBuilder(aSB, aIndent + aIndentInc, aIndentInc);
                 aSB.Append("</item>");
             }
+
             if (m_List.Count > 0)
             {
                 aSB.AppendLine();
                 aSB.Append(' ', aIndent);
             }
+
             aSB.Append("</array>");
         }
-        
+
         public IEnumerator<XMLNode> GetEnumerator()
         {
             return m_List.GetEnumerator();
         }
-    
+
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
-    
+
         // Children 属性以便遍历
         public IEnumerable<XMLNode> Children
         {
@@ -323,16 +450,31 @@ namespace SimpleXML
         }
     }
     // End of XMLArray
-    
+
     public partial class XMLObject : XMLNode
     {
         private Dictionary<string, XMLNode> m_Dict = new Dictionary<string, XMLNode>();
 
-        public override XMLNodeTypeEX Tag { get { return XMLNodeTypeEX.Object; } }
-        public override bool IsObject { get { return true; } }
-        
+        public override XMLNodeTypeEX Tag
+        {
+            get { return XMLNodeTypeEX.Object; }
+        }
+
+        private string _name;
+
+        public override string Name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+
+        public override bool IsObject
+        {
+            get { return true; }
+        }
+
         public IEnumerable<string> Keys => m_Dict.Keys;
-        
+
         public override XMLNode this[string aKey]
         {
             get
@@ -352,13 +494,16 @@ namespace SimpleXML
             }
         }
 
-        public override int Count { get { return m_Dict.Count; } }
+        public override int Count
+        {
+            get { return m_Dict.Count; }
+        }
 
         public override void Add(string aKey, XMLNode aItem)
         {
             if (aItem == null)
                 aItem = XMLNull.CreateOrGet();
-            
+
             if (aKey != null)
             {
                 if (m_Dict.ContainsKey(aKey))
@@ -393,6 +538,7 @@ namespace SimpleXML
             {
                 node.Add(n.Key, n.Value.Clone());
             }
+
             return node;
         }
 
@@ -410,29 +556,46 @@ namespace SimpleXML
                 if (!first)
                     aSB.AppendLine();
                 first = false;
-                
+
                 aSB.Append(' ', aIndent + aIndentInc);
                 aSB.Append('<').Append(k.Key).Append('>');
                 k.Value.WriteToStringBuilder(aSB, aIndent + aIndentInc, aIndentInc);
                 aSB.Append("</").Append(k.Key).Append('>');
             }
+
             if (m_Dict.Count > 0)
             {
                 aSB.AppendLine();
                 aSB.Append(' ', aIndent);
             }
+
             aSB.Append("</object>");
         }
     }
     // End of XMLObject
-    
+
     public partial class XMLString : XMLNode
     {
         private string m_Data;
 
-        public override XMLNodeTypeEX Tag { get { return XMLNodeTypeEX.String; } }
-        public override bool IsString { get { return true; } }
-        
+        public override XMLNodeTypeEX Tag
+        {
+            get { return XMLNodeTypeEX.String; }
+        }
+
+        private string _name;
+
+        public override string Name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+
+        public override bool IsString
+        {
+            get { return true; }
+        }
+
         public override string Value
         {
             get { return m_Data; }
@@ -455,14 +618,29 @@ namespace SimpleXML
         }
     }
     // End of XMLString
-    
+
     public partial class XMLNumber : XMLNode
     {
         private double m_Data;
 
-        public override XMLNodeTypeEX Tag { get { return XMLNodeTypeEX.Number; } }
-        public override bool IsNumber { get { return true; } }
-        
+        public override XMLNodeTypeEX Tag
+        {
+            get { return XMLNodeTypeEX.Number; }
+        }
+
+        private string _name;
+
+        public override string Name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+
+        public override bool IsNumber
+        {
+            get { return true; }
+        }
+
         public override string Value
         {
             get { return m_Data.ToString(CultureInfo.InvariantCulture); }
@@ -501,9 +679,24 @@ namespace SimpleXML
     {
         private bool m_Data;
 
-        public override XMLNodeTypeEX Tag { get { return XMLNodeTypeEX.Boolean; } }
-        public override bool IsBoolean { get { return true; } }
-        
+        public override XMLNodeTypeEX Tag
+        {
+            get { return XMLNodeTypeEX.Boolean; }
+        }
+
+        private string _name;
+
+        public override string Name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+
+        public override bool IsBoolean
+        {
+            get { return true; }
+        }
+
         public override string Value
         {
             get { return m_Data.ToString(); }
@@ -537,24 +730,41 @@ namespace SimpleXML
         }
     }
     // End of XMLBool
-    
+
     public partial class XMLNull : XMLNode
     {
         static XMLNull m_StaticInstance = new XMLNull();
         public static bool reuseSameInstance = true;
-        
+
         public static XMLNull CreateOrGet()
         {
             if (reuseSameInstance)
                 return m_StaticInstance;
             return new XMLNull();
         }
-        
-        private XMLNull() { }
 
-        public override XMLNodeTypeEX Tag { get { return XMLNodeTypeEX.NullValue; } }
-        public override bool IsNull { get { return true; } }
-        
+        private XMLNull()
+        {
+        }
+
+        public override XMLNodeTypeEX Tag
+        {
+            get { return XMLNodeTypeEX.NullValue; }
+        }
+
+        private string _name;
+
+        public override string Name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+
+        public override bool IsNull
+        {
+            get { return true; }
+        }
+
         public override string Value
         {
             get { return "null"; }
@@ -572,14 +782,19 @@ namespace SimpleXML
         }
     }
     // End of XMLNull
-    
-    internal partial class XMLLazyCreator  : XMLNode
+
+    internal partial class XMLLazyCreator : XMLNode
     {
         private XMLNode m_Node = null;
         private string m_Key = null;
 
-        public override XMLNodeTypeEX Tag { get { return XMLNodeTypeEX.None; } }
-        
+        public override XMLNodeTypeEX Tag
+        {
+            get { return XMLNodeTypeEX.None; }
+        }
+
+        public override string Name { get; set; } = string.Empty;
+
         public XMLLazyCreator(XMLNode aNode)
         {
             m_Node = aNode;
@@ -626,19 +841,31 @@ namespace SimpleXML
 
         public override int AsInt
         {
-            get { Set(new XMLNumber(0)); return 0; }
+            get
+            {
+                Set(new XMLNumber(0));
+                return 0;
+            }
             set { Set(new XMLNumber(value)); }
         }
 
         public override double AsDouble
         {
-            get { Set(new XMLNumber(0.0)); return 0.0; }
+            get
+            {
+                Set(new XMLNumber(0.0));
+                return 0.0;
+            }
             set { Set(new XMLNumber(value)); }
         }
 
         public override bool AsBool
         {
-            get { Set(new XMLBool(false)); return false; }
+            get
+            {
+                Set(new XMLBool(false));
+                return false;
+            }
             set { Set(new XMLBool(value)); }
         }
 
@@ -658,12 +885,11 @@ namespace SimpleXML
         }
     }
     // End of XMLLazyCreator
-    
+
     public static class XML
     {
-        [ThreadStatic]
-        private static StringBuilder m_EscapeBuilder;
-        
+        [ThreadStatic] private static StringBuilder m_EscapeBuilder;
+
         internal static StringBuilder EscapeBuilder
         {
             get
@@ -673,14 +899,14 @@ namespace SimpleXML
                 return m_EscapeBuilder;
             }
         }
-        
+
         internal static string Escape(string aText)
         {
             var sb = EscapeBuilder;
             sb.Length = 0;
             if (sb.Capacity < aText.Length + aText.Length / 10)
                 sb.Capacity = aText.Length + aText.Length / 10;
-                
+
             foreach (char c in aText)
             {
                 switch (c)
@@ -693,12 +919,12 @@ namespace SimpleXML
                     default: sb.Append(c); break;
                 }
             }
-            
+
             string result = sb.ToString();
             sb.Length = 0;
             return result;
         }
-        
+
         public static XMLNode Parse(string aXML)
         {
             return XMLNode.Parse(aXML);

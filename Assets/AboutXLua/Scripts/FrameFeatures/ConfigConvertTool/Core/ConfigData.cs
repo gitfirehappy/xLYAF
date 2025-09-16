@@ -9,9 +9,55 @@ public class ConfigData
 
     public ConfigMode Mode { get; set;}
     
-    // 字段名列表（确定列顺序，如["id","name","level"]）
+    // 表格模式数据
     public string[] Columns { get; set; }
-    
-    // 行数据集合（每行是一个值数组，索引对应Columns的索引）
     public List<object[]> Rows { get; set; }
+    
+    // 键值对模式数据
+    public TreeNode RootNode { get; set; }
+}
+
+/// <summary>
+/// 树节点，用于表示键值对模式的层次结构
+/// </summary>
+public class TreeNode
+{
+    public string Name { get; set; }
+    public object Value { get; set; }
+    public TreeNodeType NodeType { get; set; }
+    public List<TreeNode> Children { get; set; }
+    public Dictionary<string, string> Attributes { get; set; }
+    
+    public TreeNode()
+    {
+        Children = new List<TreeNode>();
+        Attributes = new Dictionary<string, string>();
+    }
+    
+    public TreeNode(string name, object value, TreeNodeType nodeType = TreeNodeType.Value) : this()
+    {
+        Name = name;
+        Value = value;
+        NodeType = nodeType;
+    }
+    
+    public void AddChild(TreeNode child)
+    {
+        Children.Add(child);
+    }
+    
+    public void AddAttribute(string key, string value)
+    {
+        Attributes[key] = value;
+    }
+}
+
+/// <summary>
+/// 树节点类型
+/// </summary>
+public enum TreeNodeType
+{
+    Object,  // 对象节点
+    Array,   // 数组节点
+    Value    // 值节点
 }

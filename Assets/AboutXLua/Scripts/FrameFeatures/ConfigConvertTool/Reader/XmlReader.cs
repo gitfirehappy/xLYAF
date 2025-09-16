@@ -1,11 +1,10 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
-using UnityEngine;
-using SimpleXML;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Xml;
+using SimpleXML;
+using UnityEngine;
 
 public class XmlReader : IConfigReader
 {
@@ -18,20 +17,21 @@ public class XmlReader : IConfigReader
 
         try
         {
-            // 读取XML文件内容
+            // 读取XML内容
             string xmlContent = File.ReadAllText(filePath, Encoding.UTF8);
-            XMLNode rootNode = XMLNode.Parse(xmlContent);
+            XMLNode rootNode = SimpleXML.XML.Parse(xmlContent);
 
-            // 检查XML格式类型
-            if (IsArrayFormat(rootNode))
-            {
-                configData.Mode = ConfigMode.Array;
-                return ReadArray(rootNode, configData);
-            }
-            else if (IsKeyValueFormat(rootNode))
+            // 优先判断键值对格式（包含对象数组）
+            if (IsKeyValueFormat(rootNode))
             {
                 configData.Mode = ConfigMode.KeyValue;
                 return ReadKeyValue(rootNode, configData);
+            }
+            // 判断值数组格式（使用XElement辅助验证节点名称）
+            else if (IsArrayFormat(rootNode))
+            {
+                configData.Mode = ConfigMode.Array;
+                return ReadArray(rootNode, configData);
             }
             else
             {
@@ -39,254 +39,159 @@ public class XmlReader : IConfigReader
                 return configData;
             }
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             LogUtility.Error(LogLayer.Framework, "XmlReader", $"解析XML文件时出错: {filePath}\n{ex.Message}");
             return configData;
         }
     }
 
-    #region 检查XML格式
+    #region 格式判断
 
     /// <summary>
-    /// 检查XML格式是否为表格格式
+    /// 验证是否为值数组格式（表格）：
+    /// 1. rootNode是数组类型
+    /// 2. 所有元素都是简单类型（非对象）
+    /// 3. 所有子元素节点名称相同（通过XElement验证）
     /// </summary>
     private bool IsArrayFormat(XMLNode rootNode)
     {
-        if (!rootNode.IsObject)
-            return false;
-        
-        var obj = rootNode.AsObject;
-        if (obj.Count == 0)
-            return false;
-        
-        // 查找第一个数组类型的子节点
-        foreach (var key in obj.Keys)
+        if (!rootNode.IsArray) return false;
+
+        var array = rootNode.AsArray;
+        // 检查数组元素是否均为简单类型（非对象）
+        foreach (var element in array)
         {
-            if (!key.StartsWith("@") && obj[key].IsArray)
-            {
-                return true;
-            }
+            if (element.IsObject)
+                return false; // 包含对象元素，不属于值数组
         }
-    
-        return false;
+
+        LogUtility.Info(LogLayer.Framework, "XmlReader", $"XML格式为值数组（表格格式）");
+        return true;
     }
 
     /// <summary>
-    /// 检查XML格式是否为键值对格式
+    /// 验证是否为键值对格式（对象数组或包含子对象的对象）
     /// </summary>
     private bool IsKeyValueFormat(XMLNode rootNode)
     {
-        if (!rootNode.IsObject)
-            return false;
+        // 情况1：根节点是数组，且所有元素都是对象（对象数组）
+        if (rootNode.IsArray)
+        {
+            var array = rootNode.AsArray;
+            if (array.Count == 0) return false;
+            
+            foreach (var element in array)
+            {
+                if (!element.IsObject)
+                    return false; // 存在非对象元素，不是对象数组
+            }
+            LogUtility.Info(LogLayer.Framework, "XmlReader", "XML格式为对象数组（键值对模式）");
+            return true;
+        }
+
+        // 情况2：根节点是对象，且包含对象类型的子节点
+        if (!rootNode.IsObject) return false;
         
         var obj = rootNode.AsObject;
-        if (obj.Count == 0)
-            return false;
-        
-        // 检查是否所有子节点都是对象且名称不同
-        bool hasObjectChild = false;
-        HashSet<string> childNames = new HashSet<string>();
-    
         foreach (var key in obj.Keys)
         {
-            if (!key.StartsWith("@"))
-            {
-                if (obj[key].IsObject)
-                {
-                    hasObjectChild = true;
-                
-                    // 检查名称是否唯一
-                    if (childNames.Contains(key))
-                        return false;
-                    childNames.Add(key);
-                }
-            }
+            if (!key.StartsWith("@") && obj[key].IsObject)
+                return true; // 存在对象子节点
         }
-    
-        return hasObjectChild;
+
+        return false;
     }
 
     #endregion
 
-    #region 解析XML
+    #region 解析逻辑
 
     /// <summary>
-    /// 解析表格格式的XML文件
-    /// 示例格式:
-    /// <root>
-    ///   <item><id>1</id><name>A</name></item>
-    ///   <item><id>2</id><name>B</name></item>
-    /// </root>
+    /// 解析值表格格式（使用元素节点名称作为列名）
+    /// 示例：<root><number>1</number><number>2</number></root> 会解析为列名"number"的数组
     /// </summary>
     private ConfigData ReadArray(XMLNode rootNode, ConfigData configData)
     {
+        var array = rootNode.AsArray;
         var rows = new List<object[]>();
-        var obj = rootNode.AsObject;
-        
-        // 查找数组类型的子节点
-        string arrayNodeName = null;
-        XMLArray arrayNode = null;
-    
-        foreach (var key in obj.Keys)
+
+        // 获取元素节点名称作为列名（所有子元素名称相同，取第一个）
+        string elementName = array.Count > 0 ? array[0].Name : "value";
+        configData.Columns = new[] { elementName };
+
+        // 解析数组元素值
+        foreach (var element in array)
         {
-            if (!key.StartsWith("@") && obj[key].IsArray)
-            {
-                arrayNodeName = key;
-                arrayNode = obj[key].AsArray;
-                break;
-            }
-        }
-    
-        if (arrayNode == null || arrayNode.Count == 0)
-        {
-            LogUtility.Warning(LogLayer.Framework, "XmlReader", "表格格式XML中没有找到数组数据");
-            return configData;
-        }
-        
-        // 从第一行获取列名
-        var firstRow = arrayNode[0];
-        if (!firstRow.IsObject)
-        {
-            LogUtility.Error(LogLayer.Framework, "XmlReader", "表格格式XML中的行应为对象格式");
-            return configData;
-        }
-    
-        List<string> columns = new List<string>();
-        var firstRowObj = firstRow.AsObject;
-    
-        foreach (var key in firstRowObj.Keys)
-        {
-            if (!key.StartsWith("@")) // 忽略属性
-                columns.Add(key);
-        }
-    
-        configData.Columns = columns.ToArray();
-    
-        // 处理每一行数据
-        for (int i = 0; i < arrayNode.Count; i++)
-        {
-            var rowNode = arrayNode[i];
-            if (!rowNode.IsObject)
-            {
-                LogUtility.Warning(LogLayer.Framework, "XmlReader", $"第 {i} 行不是对象格式，跳过");
-                continue;
-            }
-        
-            var rowObj = rowNode.AsObject;
-            object[] row = new object[columns.Count];
-        
-            for (int j = 0; j < columns.Count; j++)
-            {
-                string columnName = columns[j];
-                if (rowObj.HasKey(columnName))
-                {
-                    var fieldValue = rowObj[columnName];
-                    row[j] = ConvertXmlValueToObject(fieldValue);
-                }
-                else
-                {
-                    row[j] = null;
-                    LogUtility.Warning(LogLayer.Framework, "XmlReader", $"字段 '{columnName}' 在第 {i} 行中不存在");
-                }
-            }
-        
+            object[] row = new object[1];
+            row[0] = ConvertXmlValueToObject(element);
             rows.Add(row);
         }
-    
+
         configData.Rows = rows;
         return configData;
     }
 
     /// <summary>
-    /// 解析键值对格式的XML文件
-    /// 示例格式:
-    /// <root>
-    ///   <player1><id>1</id><name>A</name></player1>
-    ///   <player2><id>2</id><name>B</name></player2>
-    /// </root>
+    /// 解析键值对格式（支持对象数组和对象包含子对象两种形式）
     /// </summary>
     private ConfigData ReadKeyValue(XMLNode rootNode, ConfigData configData)
     {
-        var rows = new List<object[]>();
-        var obj = rootNode.AsObject;
-    
-        // 获取所有对象类型的子节点（忽略属性）
-        List<string> objectKeys = new List<string>();
-        foreach (var key in obj.Keys)
-        {
-            if (!key.StartsWith("@") && obj[key].IsObject)
-            {
-                objectKeys.Add(key);
-            }
-        }
-    
-        if (objectKeys.Count == 0)
-        {
-            LogUtility.Warning(LogLayer.Framework, "XmlReader", "键值对格式XML中没有找到对象数据");
-            return configData;
-        }
-    
-        // 收集所有可能的列名（从所有对象中）
-        HashSet<string> allColumns = new HashSet<string> {"id"};
-    
-        foreach (var key in objectKeys)
-        {
-            var valueObj = obj[key].AsObject;
-            foreach (var fieldKey in valueObj.Keys)
-            {
-                if (!fieldKey.StartsWith("@"))
-                {
-                    allColumns.Add(fieldKey);
-                }
-            }
-        }
-    
-        List<string> columns = allColumns.ToList();
-        configData.Columns = columns.ToArray();
-    
-        // 处理每个对象
-        foreach (var key in objectKeys)
-        {
-            var value = obj[key];
-            if (!value.IsObject)
-            {
-                LogUtility.Warning(LogLayer.Framework, "XmlReader", $"键 '{key}' 的值不是对象格式，跳过");
-                continue;
-            }
-        
-            var valueObj = value.AsObject;
-            object[] row = new object[columns.Count];
-        
-            // 设置ID
-            int idIndex = columns.IndexOf("id");
-            if (idIndex >= 0)
-            {
-                row[idIndex] = key;
-            }
-        
-            // 设置其他字段
-            for (int i = 0; i < columns.Count; i++)
-            {
-                string columnName = columns[i];
-                if (columnName == "id") continue; // 已经处理过ID
-            
-                if (valueObj.HasKey(columnName))
-                {
-                    var fieldValue = valueObj[columnName];
-                    row[i] = ConvertXmlValueToObject(fieldValue);
-                }
-                else
-                {
-                    row[i] = null;
-                }
-            }
-        
-            rows.Add(row);
-        }
-    
-        configData.Rows = rows;
+        configData.RootNode = ConvertXmlToTreeNode(rootNode.Name, rootNode);
         return configData;
+    }
+
+    #endregion
+    
+    private TreeNode ConvertXmlToTreeNode(string nodeName, XMLNode xmlNode)
+    { 
+        if (xmlNode == null)
+            return new TreeNode(nodeName, null, TreeNodeType.Value);
+
+        // 处理对象类型（XMLObject）
+        if (xmlNode.IsObject)
+        {
+            var treeNode = new TreeNode(nodeName, null, TreeNodeType.Object);
+        
+            // 添加XML属性（如<node @attr="value"/>中的@attr）
+            foreach (var key in xmlNode.AsObject.Keys)
+            {
+                if (key.StartsWith("@")) // 属性节点以@开头（来自SimpleXML的约定）
+                {
+                    treeNode.AddAttribute(key.TrimStart('@'), xmlNode.AsObject[key].Value);
+                }
+            }
+
+            // 处理子节点（非属性节点）
+            foreach (var key in xmlNode.AsObject.Keys)
+            {
+                if (!key.StartsWith("@")) // 排除属性节点
+                {
+                    var childNode = ConvertXmlToTreeNode(key, xmlNode.AsObject[key]);
+                    treeNode.AddChild(childNode);
+                }
+            }
+            return treeNode;
+        }
+        // 处理数组类型（XMLArray）
+        else if (xmlNode.IsArray)
+        {
+            var treeNode = new TreeNode(nodeName, null, TreeNodeType.Array);
+            foreach (var child in xmlNode.AsArray.Children)
+            {
+                // 数组元素用索引作为节点名
+                var index = xmlNode.AsArray.Children.ToList().IndexOf(child);
+                var childNode = ConvertXmlToTreeNode(index.ToString(), child);
+                treeNode.AddChild(childNode);
+            }
+            return treeNode;
+        }
+        // 处理值类型（字符串、数字、布尔等）
+        else
+        {
+            object value = ConvertXmlValueToObject(xmlNode);
+            return new TreeNode(nodeName, value, TreeNodeType.Value);
+        }
     }
     
     /// <summary>
@@ -296,15 +201,12 @@ public class XmlReader : IConfigReader
     {
         if (value.IsNull)
             return null;
-        else if (value.IsString)
-            return value.Value;
-        else if (value.IsNumber)
-            return value.AsDouble;
-        else if (value.IsBoolean)
+        if (value.IsBoolean)
             return value.AsBool;
-        else
-            return value.Value; // 默认转为字符串
+        if (value.IsNumber)
+            return value.AsDouble; // 统一用double处理数字，避免精度问题
+        if (value.IsString)
+            return value.Value;
+        return value.Value; // 其他类型默认转为字符串
     }
-
-    #endregion
 }
