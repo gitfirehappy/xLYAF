@@ -1,5 +1,6 @@
---日志
 local Log = M.LogUtility
+
+-- 协程系统
 
 local coroutineBridge = {
     _coroutines = {},        -- [id] = { co = coroutine, status = "suspended/running/dead" }

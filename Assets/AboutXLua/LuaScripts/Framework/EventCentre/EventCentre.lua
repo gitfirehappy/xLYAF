@@ -1,8 +1,7 @@
 local Log = M.LogUtility
 
---[[
-    事件中心：用于Lua与Lua、Lua与C#之间的通信
-]]
+-- 事件中心：用于Lua与Lua、Lua与C#之间的通信
+
 local EventCentre = {}
 
 -- 将C#枚举映射到Lua

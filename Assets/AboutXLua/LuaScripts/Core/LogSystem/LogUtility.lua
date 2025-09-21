@@ -1,3 +1,4 @@
+-- 日志工具
 local LogUtility = {}
 
 -- C#中定义顺序就是这个

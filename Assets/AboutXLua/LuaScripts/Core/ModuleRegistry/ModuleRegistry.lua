@@ -1,3 +1,5 @@
+-- 常用头
+-- 需要在开始调用 C#端的 ModuleRegistry.Initialize()
 local M = {}
 local _modules = {}
 local _aliases = {}
