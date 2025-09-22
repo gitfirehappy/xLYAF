@@ -17,6 +17,6 @@ return {
     {["Sign"] = "#", ["ID"] = "10", ["Character"] = "小红", ["Position"] = "左", ["Content"] = "太好了，那我们一起去吧", ["NextID"] = "12", ["Func"] = "", ["Parameter"] = ""},
     {["Sign"] = "#", ["ID"] = "11", ["Character"] = "小红", ["Position"] = "左", ["Content"] = "那我们一起去食堂看看吧", ["NextID"] = "13", ["Func"] = ">ShowCanteen", ["Parameter"] = ""},
     {["Sign"] = "#", ["ID"] = "12", ["Character"] = "小明", ["Position"] = "右", ["Content"] = "等我带上头盔", ["NextID"] = "END", ["Func"] = "", ["Parameter"] = ""},
-    {["Sign"] = "#", ["ID"] = "13", ["Character"] = "小明", ["Position"] = "右", ["Content"] = "最近比较喜欢吃苹果", ["NextID"] = "14", ["Func"] = "", ["Parameter"] = ""},
+    {["Sign"] = "#", ["ID"] = "13", ["Character"] = "小明;小红", ["Position"] = "右;hide", ["Content"] = "最近比较喜欢吃苹果", ["NextID"] = "14", ["Func"] = "", ["Parameter"] = ""},
     {["Sign"] = "$", ["ID"] = "14", ["Character"] = "", ["Position"] = "", ["Content"] = "", ["NextID"] = "", ["Func"] = ">TurnTo", ["Parameter"] = "15;16;17"}
 }

@@ -18,7 +18,6 @@ public static class ModuleRegistry
             -- 调用初始化
             ModuleRegistry.Init()
         ");
-        LogUtility.Info(LogLayer.Core,"ModuleRegistry",
-            "Initialized Lua modules");
+        Debug.Log("Initialized regular Lua modules");
     }
 }

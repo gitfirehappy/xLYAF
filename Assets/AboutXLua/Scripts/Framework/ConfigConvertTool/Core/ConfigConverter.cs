@@ -33,15 +33,13 @@ public class ConfigConverter : Singleton<ConfigConverter>
     {
         if (!File.Exists(inputFile))
         {
-            LogUtility.Error(LogLayer.Framework, "ConfigConverter",
-                $"输入文件不存在: {inputFile}");
+            Debug.LogError($"输入文件不存在: {inputFile}");
             return false;
         }
 
         if (!ValidateChannel(channel))
         {
-            LogUtility.Error(LogLayer.Framework, "ConfigConverter",
-                $"通道配置验证失败: {channel.name}");
+            Debug.LogError($"通道配置验证失败: {channel.name}");
             return false;
         }
 
@@ -60,15 +58,13 @@ public class ConfigConverter : Singleton<ConfigConverter>
             if (!Directory.Exists(outputDir))
             {
                 Directory.CreateDirectory(outputDir);
-                LogUtility.Info(LogLayer.Framework, "ConfigConverter",
-                    $"输出目录不存在，已创建: {outputDir}");
+                Debug.Log($"输出目录不存在，已创建: {outputDir}");
             }
 
             // 读取文件
             if (!_readers.TryGetValue(channel.inputFormat, out IConfigReader reader))
             {
-                LogUtility.Error(LogLayer.Framework, "ConfigConverter",
-                    $"找不到 {channel.inputFormat} 格式的读取器");
+                Debug.LogError($"找不到 {channel.inputFormat} 格式的读取器");
                 return false;
             }
 
@@ -77,22 +73,19 @@ public class ConfigConverter : Singleton<ConfigConverter>
             // 写入文件
             if (!_writers.TryGetValue(channel.outputFormat, out IConfigWriter writer))
             {
-                LogUtility.Error(LogLayer.Framework, "ConfigConverter",
-                    $"找不到 {channel.outputFormat} 格式的写入器");
+                Debug.LogError($"找不到 {channel.outputFormat} 格式的写入器");
                 return false;
             }
 
             // 使用默认选项写入
             writer.Write(outputFilePath, data);
 
-            LogUtility.Info(LogLayer.Framework, "ConfigConverter",
-                $"转换成功: {inputFile} -> {outputFilePath}");
+            Debug.Log($"转换成功: {inputFile} -> {outputFilePath}");
             return true;
         }
         catch (System.Exception ex)
         {
-            LogUtility.Error(LogLayer.Framework, "ConfigConverter",
-                $"转换文件 {inputFile} 时出错: {ex.Message}\n{ex.StackTrace}");
+            Debug.LogError($"转换文件 {inputFile} 时出错: {ex.Message}\n{ex.StackTrace}");
             return false;
         }
     }
@@ -110,8 +103,7 @@ public class ConfigConverter : Singleton<ConfigConverter>
 
         if (inputFiles.Length == 0)
         {
-            LogUtility.Warning(LogLayer.Framework, "ConfigConverter",
-                $"在目录 {channel.inputFolder} 中没有找到 {channel.inputFormat} 文件");
+            Debug.LogWarning($"在目录 {channel.inputFolder} 中没有找到 {channel.inputFormat} 文件");
             return;
         }
 
@@ -124,8 +116,7 @@ public class ConfigConverter : Singleton<ConfigConverter>
             }
         }
 
-        LogUtility.Info(LogLayer.Framework, "ConfigConverter",
-            $"通道: {channel.name} 转换完成: {successCount}/{inputFiles.Length} 个文件成功转换");
+        Debug.Log($"通道: {channel.name} 转换完成: {successCount}/{inputFiles.Length} 个文件成功转换");
     }
 
     /// <summary>
@@ -135,8 +126,7 @@ public class ConfigConverter : Singleton<ConfigConverter>
     {
         if (settings == null || settings.channels == null || settings.channels.Count == 0)
         {
-            LogUtility.Warning(LogLayer.Framework, "ConfigConverter",
-                "没有配置转换通道，请检查ConfigConvertSettings");
+            Debug.LogWarning("没有配置转换通道，请检查ConfigConvertSettings");
             return;
         }
 
@@ -145,15 +135,13 @@ public class ConfigConverter : Singleton<ConfigConverter>
 
         foreach (var channel in settings.channels)
         {
-            LogUtility.Info(LogLayer.Framework, "ConfigConverter",
-                $"开始转换通道: {channel.name} ({completedChannels + 1}/{totalChannels})");
+            Debug.Log($"开始转换通道: {channel.name} ({completedChannels + 1}/{totalChannels})");
 
             Convert(channel);
             completedChannels++;
         }
 
-        LogUtility.Info(LogLayer.Framework, "ConfigConverter",
-            $"所有通道转换完成: {completedChannels}/{totalChannels} 个通道成功处理");
+        Debug.Log($"所有通道转换完成: {completedChannels}/{totalChannels} 个通道成功处理");
     }
 
     #endregion
@@ -167,29 +155,25 @@ public class ConfigConverter : Singleton<ConfigConverter>
     {
         if (string.IsNullOrEmpty(channel.inputFolder) || !Directory.Exists(channel.inputFolder))
         {
-            LogUtility.Error(LogLayer.Framework, "ConfigConverter",
-                $"通道 '{channel.name}' 的输入目录不存在: {channel.inputFolder}");
+            Debug.LogError($"通道 '{channel.name}' 的输入目录不存在: {channel.inputFolder}");
             return false;
         }
 
         if (string.IsNullOrEmpty(channel.outputFolder))
         {
-            LogUtility.Error(LogLayer.Framework, "ConfigConverter",
-                $"通道 '{channel.name}' 的输出目录未设置");
+            Debug.LogError($"通道 '{channel.name}' 的输出目录未设置");
             return false;
         }
 
         if (!_readers.ContainsKey(channel.inputFormat))
         {
-            LogUtility.Error(LogLayer.Framework, "ConfigConverter",
-                $"通道 '{channel.name}' 的输入格式 {channel.inputFormat} 不受支持");
+            Debug.LogError($"通道 '{channel.name}' 的输入格式 {channel.inputFormat} 不受支持");
             return false;
         }
 
         if (!_writers.ContainsKey(channel.outputFormat))
         {
-            LogUtility.Error(LogLayer.Framework, "ConfigConverter",
-                $"通道 '{channel.name}' 的输出格式 {channel.outputFormat} 不受支持");
+            Debug.LogError($"通道 '{channel.name}' 的输出格式 {channel.outputFormat} 不受支持");
             return false;
         }
 

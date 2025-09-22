@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 public class LuaWriter : IConfigWriter
 {
@@ -32,7 +33,7 @@ public class LuaWriter : IConfigWriter
                     WriteKeyValue(writer, data, options);
                     break;
                 default:
-                    LogUtility.Error(LogLayer.Framework, "LuaWriter", $"不支持的配置模式: {data.Mode}");
+                    Debug.LogError($"不支持的配置模式: {data.Mode}");
                     break;
             }
         }
@@ -40,7 +41,6 @@ public class LuaWriter : IConfigWriter
 
     private void WriteArray(StreamWriter writer, ConfigData data, WriterOptions options)
     {
-        // TODO: 以数组模式写入Lua文件
         writer.WriteLine("return {");
 
         for (int i = 0; i < data.Rows.Count; i++)

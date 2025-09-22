@@ -1,5 +1,3 @@
-local Log = M.LogUtility
-
 local DialogueDataManager = {}
 local loadedDialogues = {} -- 缓存已加载的对话
 
@@ -16,7 +14,7 @@ function DialogueDataManager.LoadDialogueData(fileName)
         loadedDialogues[fileName] = data
         return data
     else
-        Log.Error(Log.LogLayer.Framework,"DialogueDataManager","Load dialogue file failed: " .. fileName)
+        CS.Debug.LogError("Load dialogue file failed: " .. fileName)
         return nil
     end
 end

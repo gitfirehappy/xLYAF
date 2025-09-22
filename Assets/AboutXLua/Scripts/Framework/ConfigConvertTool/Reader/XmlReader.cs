@@ -35,13 +35,13 @@ public class XmlReader : IConfigReader
             }
             else
             {
-                LogUtility.Error(LogLayer.Framework, "XmlReader", $"不支持的XML格式: {filePath}");
+                Debug.LogError($"不支持的XML格式: {filePath}");
                 return configData;
             }
         }
         catch (Exception ex)
         {
-            LogUtility.Error(LogLayer.Framework, "XmlReader", $"解析XML文件时出错: {filePath}\n{ex.Message}");
+            Debug.LogError($"解析XML文件时出错: {filePath}\n{ex.Message}");
             return configData;
         }
     }
@@ -66,7 +66,7 @@ public class XmlReader : IConfigReader
                 return false; // 包含对象元素，不属于值数组
         }
 
-        LogUtility.Info(LogLayer.Framework, "XmlReader", $"XML格式为值数组（表格格式）");
+        Debug.Log($"XML格式为值数组（表格格式）");
         return true;
     }
 
@@ -86,7 +86,7 @@ public class XmlReader : IConfigReader
                 if (!element.IsObject)
                     return false; // 存在非对象元素，不是对象数组
             }
-            LogUtility.Info(LogLayer.Framework, "XmlReader", "XML格式为对象数组（键值对模式）");
+            Debug.Log("XML格式为对象数组（键值对模式）");
             return true;
         }
 

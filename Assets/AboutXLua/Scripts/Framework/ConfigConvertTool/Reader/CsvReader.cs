@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using UnityEngine;
 
 public class CsvReader : IConfigReader
 {
@@ -29,13 +30,13 @@ public class CsvReader : IConfigReader
             }
             else
             {
-                LogUtility.Error(LogLayer.Framework, "CsvReader", $"不支持的Csv格式: {filePath}");
+                Debug.LogError($"不支持的Csv格式: {filePath}");
                 return configData;
             }
         }
         catch (Exception ex)
         {
-            LogUtility.Error(LogLayer.Framework, "CsvReader", $"解析Csv文件时出错: {filePath}\n{ex.Message}");
+            Debug.LogError($"解析Csv文件时出错: {filePath}\n{ex.Message}");
             return configData;
         }
     }
@@ -51,7 +52,7 @@ public class CsvReader : IConfigReader
     public bool IsKeyValueFormat(string[] allLines)
     {
         // TODO: 检查Csv文件是否为键值对格式
-        LogUtility.Error(LogLayer.Framework, "CsvReader", "暂时不支持键值对格式");
+        Debug.LogError("暂时不支持键值对格式");
         return false;
     }
 
@@ -86,7 +87,7 @@ public class CsvReader : IConfigReader
     public ConfigData ReadKeyValue(string[] allLines,ConfigData data)
     {
         // TODO: 解析CSV文件为键值对格式
-        LogUtility.Error(LogLayer.Framework, "CsvReader", "暂时不支持键值对格式");
+        Debug.LogError("暂时不支持键值对格式");
         return data;
     }
     

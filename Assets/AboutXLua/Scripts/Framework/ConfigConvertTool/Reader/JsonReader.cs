@@ -31,13 +31,13 @@ public class JsonReader : IConfigReader
             }
             else
             {
-                LogUtility.Error(LogLayer.Framework, "JsonReader", $"不支持的JSON格式: {filePath}");
+                Debug.LogError($"不支持的JSON格式: {filePath}");
                 return configData;
             }
         }
         catch (System.Exception ex)
         {
-            LogUtility.Error(LogLayer.Framework, "JsonReader", $"解析JSON文件时出错: {filePath}\n{ex.Message}");
+            Debug.LogError($"解析JSON文件时出错: {filePath}\n{ex.Message}");
             return configData;
         }
     }
@@ -56,7 +56,7 @@ public class JsonReader : IConfigReader
 
         if (jsonArray == null || jsonArray.Count == 0)
         {
-            LogUtility.Warning(LogLayer.Framework, "JsonReader", "JSON数组为空或格式不正确");
+            Debug.LogWarning("JSON数组为空或格式不正确");
             return configData;
         }
 
@@ -97,7 +97,7 @@ public class JsonReader : IConfigReader
                 else
                 {
                     row[j] = null;
-                    LogUtility.Warning(LogLayer.Framework, "JsonReader", $"字段 '{columnName}' 在第 {i + 1} 个对象中不存在");
+                    Debug.LogWarning($"字段 '{columnName}' 在第 {i + 1} 个对象中不存在");
                 }
             }
 

@@ -32,8 +32,7 @@ public static class XluaTypeConfigLoader
     /// /// <param name="configLabel">Addressables标签名，默认为"XLuaConfigs"</param>
     public static void Init(string configLabel = DefaultConfigLabel)
     {
-        LogUtility.Info(LogLayer.Core,"XluaTypeConfigLoader",
-            "Initializing type lists...");
+        Debug.Log("Initializing type lists...");
 
         // 1. 初始化列表
         HotfixTypes = new List<Type>();
@@ -56,8 +55,7 @@ public static class XluaTypeConfigLoader
         }
         catch (Exception ex)
         {
-            LogUtility.Error(LogLayer.Core,"XLuaTypeConfigLoader",
-                $"Failed to load XLua configs from Addressables label '{configLabel}'. Error: {ex.Message}");
+            Debug.LogError($"Failed to load XLua configs from Addressables label '{configLabel}'. Error: {ex.Message}");
             return; // 加载失败，直接返回
         }
         finally
@@ -67,8 +65,7 @@ public static class XluaTypeConfigLoader
 
         if (allConfigs == null || allConfigs.Count == 0)
         {
-            LogUtility.Warning(LogLayer.Core,"XLuaTypeConfigLoader",
-                $"No TypeListSO assets found with label '{configLabel}'. Please ensure they are addressable and tagged correctly.");
+            Debug.LogWarning($"No TypeListSO assets found with label '{configLabel}'. Please ensure they are addressable and tagged correctly.");
             return;
         }
 
@@ -77,8 +74,7 @@ public static class XluaTypeConfigLoader
         {
             if (config == null)
             {
-                LogUtility.Warning(LogLayer.Core,"XLuaTypeConfigLoader",
-                    "Found a null TypeListSO asset during loading.");
+                Debug.LogWarning("Found a null TypeListSO asset during loading.");
                 continue;
             }
 
@@ -113,29 +109,25 @@ public static class XluaTypeConfigLoader
                 case TypeMemberListSO.ConfigTag.Hotfix:
                     HotfixTypes.AddRange(resolvedTypes);
                     HotfixMembers.AddRange(resolvedMembers);
-                    LogUtility.Info(LogLayer.Core,"XluaTypeConfigLoader",
-                        $"Loaded {resolvedTypes.Count} Hotfix types and {resolvedMembers.Count} members from '{config.name}'.");
+                    Debug.Log($"Loaded {resolvedTypes.Count} Hotfix types and {resolvedMembers.Count} members from '{config.name}'.");
                     break;
                 case TypeMemberListSO.ConfigTag.LuaCallCSharp:
                     LuaCallCSharpTypes.AddRange(resolvedTypes);
                     LuaCallCSharpMembers.AddRange(resolvedMembers);
-                    LogUtility.Info(LogLayer.Core,"XluaTypeConfigLoader",
-                        $"Loaded {resolvedTypes.Count} LuaCallCSharp types and {resolvedMembers.Count} members from '{config.name}'.");
+                    Debug.Log($"Loaded {resolvedTypes.Count} LuaCallCSharp types and {resolvedMembers.Count} members from '{config.name}'.");
                     break;
                 case TypeMemberListSO.ConfigTag.CSharpCallLua:
                     CSharpCallLuaTypes.AddRange(resolvedTypes);
                     CSharpCallLuaMembers.AddRange(resolvedMembers);
-                    LogUtility.Info(LogLayer.Core,"XluaTypeConfigLoader",
-                        $"Loaded {resolvedTypes.Count} CSharpCallLua types and {resolvedMembers.Count} members from '{config.name}'.");
+                    Debug.Log($"Loaded {resolvedTypes.Count} CSharpCallLua types and {resolvedMembers.Count} members from '{config.name}'.");
                     break;
                 default:
-                    LogUtility.Warning(LogLayer.Core,"XluaTypeConfigLoader",
-                        $"Unknown ConfigTag '{config.tag}' in '{config.name}'.");
+                    Debug.LogWarning($"Unknown ConfigTag '{config.tag}' in '{config.name}'.");
                     break;
             }
         }
 
-        LogUtility.Info(LogLayer.Core,"XluaTypeConfigLoader",
+        Debug.Log(
             $"Initialization complete. " +
             $"Hotfix: {HotfixTypes.Count} types, {HotfixMembers.Count} members; " +
             $"LuaCallCSharp: {LuaCallCSharpTypes.Count} types, {LuaCallCSharpMembers.Count} members; " +

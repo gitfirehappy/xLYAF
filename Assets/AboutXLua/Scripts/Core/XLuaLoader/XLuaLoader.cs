@@ -57,14 +57,12 @@ public static class XLuaLoader
             
             if (bytes == null && opt.log) 
             {
-               LogUtility.Warning(LogLayer.Core, "XLuaLoader", 
-                   $"Module not found: {key}");
+               Debug.LogWarning($"Module not found: {key}");
             }
             return bytes;
         });
         
-        if (opt.log) LogUtility.Info(LogLayer.Core, "XLuaLoader", 
-            $"Registered. Mode={opt.mode}");
+        if (opt.log) Debug.Log($"Registered. Mode={opt.mode}");
     }
 
     #endregion
@@ -88,16 +86,14 @@ public static class XLuaLoader
                         bytes = File.ReadAllBytes(path);
                         if (opt.log)
                         {
-                            LogUtility.Info(LogLayer.Core, "XLuaLoader", 
-                                $"Editor hit: {path}");
+                            Debug.Log($"Editor hit: {path}");
                         }
                         return;
                     }
                 }
                 catch (Exception e)
                 {
-                    LogUtility.Error(LogLayer.Core, "XLuaLoader", 
-                        $"File error: {path}\n{e.Message}");
+                    Debug.LogError($"File error: {path}\n{e.Message}");
                 }
             }
         }
@@ -132,8 +128,7 @@ public static class XLuaLoader
                                     bytes = asset.bytes;
                                     if (opt.log)
                                     {
-                                        LogUtility.Info(LogLayer.Core, "XLuaLoader", 
-                                            $"AA hit (label={label}): {loc.PrimaryKey}");
+                                        Debug.Log($"AA hit (label={label}): {loc.PrimaryKey}");
                                     }
                                     Addressables.Release(assetHandle);
                                     Addressables.Release(locHandle);
@@ -149,8 +144,7 @@ public static class XLuaLoader
                 {
                     if (opt.log)
                     {
-                        LogUtility.Error(LogLayer.Core, "XLuaLoader", 
-                            $"AA label scan failed for '{label}': {e.Message}");
+                        Debug.LogError($"AA label scan failed for '{label}': {e.Message}");
                     }
                 }
             }

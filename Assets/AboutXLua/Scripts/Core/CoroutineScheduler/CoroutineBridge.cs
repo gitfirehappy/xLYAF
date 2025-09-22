@@ -48,8 +48,7 @@ public static class CoroutineBridge
     public static void LuaWaitForCSharp(int luaCoId, int csCoId)
     {
         if (csCoId <= 0) {
-            LogUtility.Error(LogLayer.Core, "CoroutineBridge", 
-                $"Invalid C# Coroutine ID: {csCoId}");
+            Debug.LogError($"Invalid C# Coroutine ID: {csCoId}");
             return;
         }
         
@@ -62,8 +61,7 @@ public static class CoroutineBridge
             _csharpToLuaWaiters[csCoId] = list;
         }
         list.Add(luaCoId);
-        LogUtility.Info(LogLayer.Core, "CoroutineBridge", 
-            $"Lua#{luaCoId} 开始等待 C##{csCoId}");
+        Debug.Log($"Lua : {luaCoId} 开始等待 C# : {csCoId}");
     }
     
     /// <summary>
@@ -72,8 +70,7 @@ public static class CoroutineBridge
     public static void CSharpWaitForLua(int csCoId, int luaCoId)
     {
         if (luaCoId <= 0) {
-            LogUtility.Error(LogLayer.Core, "CoroutineBridge", 
-                $"Invalid Lua Coroutine ID: {luaCoId}");
+            Debug.LogError($"Invalid Lua Coroutine ID: {luaCoId}");
             return;
         }
         
@@ -85,8 +82,7 @@ public static class CoroutineBridge
             _luaToCSharpWaiters[luaCoId] = list;
         }
         list.Add(csCoId);
-        LogUtility.Info(LogLayer.Core, "CoroutineBridge", 
-            $"C##{csCoId} 开始等待 Lua#{luaCoId}");
+        Debug.Log($"C# : {csCoId} 开始等待 Lua : {luaCoId}");
     }
     
     /// <summary>
@@ -102,36 +98,31 @@ public static class CoroutineBridge
         }
         catch (Exception ex)
         {
-            LogUtility.Error(LogLayer.Core, "CoroutineBridge", 
-                $"Failed to get LuaEnv: {ex.Message}");
+            Debug.LogError($"Failed to get LuaEnv: {ex.Message}");
             return;
         }
         
         if (luaEnv == null) {
-            LogUtility.Error(LogLayer.Core, "CoroutineBridge", 
-                "LuaEnv is null!");
+            Debug.LogError("LuaEnv is null!");
             return;
         }
         
         // 通知所有等待此C#协程的Lua协程
         if (_csharpToLuaWaiters.TryGetValue(csCoId, out var luaWaiters))
         {
-            LogUtility.Info(LogLayer.Core, "CoroutineBridge", 
-                $"C##{csCoId} 完成，通知 {luaWaiters.Count} 个Lua协程恢复");
+            Debug.Log($"C# : {csCoId} 完成，通知 {luaWaiters.Count} 个Lua协程恢复");
             foreach (var luaCoId in luaWaiters)
             {
                 _luaWaitingForCSharp.Remove(luaCoId);
                 // 恢复等待的Lua协程
                 LuaCoroutineScheduler.Resume(luaCoId, luaEnv);
-                LogUtility.Info(LogLayer.Core, "CoroutineBridge", 
-                    $"尝试恢复 Lua#{luaCoId}");
+                Debug.Log($"尝试恢复 Lua : {luaCoId}");
             }
             _csharpToLuaWaiters.Remove(csCoId);
         }
         else
         {
-            LogUtility.Warning(LogLayer.Core, "CoroutineBridge", 
-                $"[CoroutineBridge] C##{csCoId} 完成，但无等待的Lua协程");
+            Debug.LogWarning($"C# : {csCoId} 完成，但无等待的Lua协程");
         }
     }
     
@@ -143,8 +134,7 @@ public static class CoroutineBridge
         // 通知所有等待此Lua协程的C#协程
         if (_luaToCSharpWaiters.TryGetValue(luaCoId, out var csWaiters))
         {
-            LogUtility.Info(LogLayer.Core, "CoroutineBridge", 
-                $" Lua#{luaCoId} 完成，通知 {csWaiters.Count} 个C#协程恢复");
+            Debug.Log($"Lua : {luaCoId} 完成，通知 {csWaiters.Count} 个C#协程恢复");
             foreach (var csCoId in csWaiters)
             {
                 _csharpWaitingForLua.Remove(csCoId);
@@ -153,8 +143,7 @@ public static class CoroutineBridge
         }
         else
         {
-            LogUtility.Warning(LogLayer.Core, "CoroutineBridge", 
-                $"Lua#{luaCoId} 完成，但无等待的C#协程");
+            Debug.LogWarning($"Lua : {luaCoId} 完成，但无等待的C#协程");
         }
     }
 
@@ -166,8 +155,7 @@ public static class CoroutineBridge
         int csCoId = CSharpCoroutineScheduler.GetCurrentCoroutineId();
         if (csCoId == -1)
         {
-           LogUtility.Warning(LogLayer.Core, "CoroutineBridge", 
-               "CSharpWaitForLua called outside of a coroutine");
+           Debug.LogWarning("CSharpWaitForLua called outside of a coroutine");
             yield break;
         }
         

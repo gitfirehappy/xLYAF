@@ -65,8 +65,7 @@ public class TypeReference
             // 检查循环引用
             if (_resolutionPath.Contains(this))
             {
-                LogUtility.Warning(LogLayer.Core,"TypeReference", 
-                    $"循环引用检测: 类型 {typeName} 的泛型参数包含自身引用");
+                Debug.LogWarning($"循环引用检测: 类型 {typeName} 的泛型参数包含自身引用");
                 return CacheAndReturn(null);
             }
             
@@ -84,8 +83,7 @@ public class TypeReference
             Type type = assembly.GetType(typeName);
             if (type == null)
             {
-                LogUtility.Warning(LogLayer.Core,"TypeReference", 
-                    $"Type not found: {typeName} in {assemblyName}");
+                Debug.LogWarning($"Type not found: {typeName} in {assemblyName}");
                 return CacheAndReturn(null);
             }
             
@@ -103,8 +101,7 @@ public class TypeReference
         }
         catch (Exception ex)
         {
-            LogUtility.Error(LogLayer.Core,"TypeReference", 
-                $"构造泛型类型失败: {typeName}: {ex.Message}");
+            Debug.LogError($"构造泛型类型失败: {typeName}: {ex.Message}");
             return CacheAndReturn(null);
         }
     }
@@ -124,8 +121,7 @@ public class TypeReference
         }
         catch (Exception ex)
         {
-            LogUtility.Error(LogLayer.Core,"TypeReference", 
-                $"Assembly load failed: {assemblyName}. Error: {ex.Message}");
+            Debug.LogError($"Assembly load failed: {assemblyName}. Error: {ex.Message}");
             return null;
         }
     }
@@ -145,16 +141,14 @@ public class TypeReference
         // 深度保护
         if (currentDepth >= MAX_DEPTH)
         {
-            LogUtility.Error(LogLayer.Core,"TypeReference", 
-                $"泛型参数解析超过最大深度限制({MAX_DEPTH})！可能存在循环引用");
+            Debug.LogError($"泛型参数解析超过最大深度限制({MAX_DEPTH})！可能存在循环引用");
             return null;
         }
         
         // 循环引用检测
         if (visited.Contains(this))
         {
-            LogUtility.Error(LogLayer.Core,"TypeReference", 
-                $"循环引用检测: 类型 {typeName} 在泛型参数链中被重复引用");
+            Debug.LogError($"循环引用检测: 类型 {typeName} 在泛型参数链中被重复引用");
             return null;
         }
         visited.Add(this);
@@ -165,8 +159,7 @@ public class TypeReference
             Type argType = argRef.GetTypeCache();
             if (argType == null)
             {
-                LogUtility.Error(LogLayer.Core,"TypeReference", 
-                    $"无法解析泛型参数: {argRef}");
+                Debug.LogError($"无法解析泛型参数: {argRef}");
                 return null;
             }
             
