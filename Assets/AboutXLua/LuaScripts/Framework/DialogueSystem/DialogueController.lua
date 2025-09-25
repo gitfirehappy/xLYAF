@@ -5,21 +5,41 @@ local model = require("DialogueModel")
 local dataManager = require("DialogueDataManager")
 local currentDialogueFile = nil
 
--- 开始一段对话
+-- 开始对话
 function DialogueController.Start(fileName)
     print("Start dialogue: " .. fileName)
     currentDialogueFile = fileName
-    
-    -- 加载对话数据并初始化Model
-    local dialogueDta = dataManager.LoadDialogueData(fileName)
-    if dialogueDta == nil then
-        CS.Debug.LogError("Load dialogue data failed")
+
+    local dialogueData = dataManager.LoadDialogueData(fileName)
+    if not dialogueData then
+        CS.Debug.LogError("Load dialogue data failed: " .. fileName)
         return
     end
-    model:Init(dialogueDta)
-    
-    -- 更新View
-    view.ShowDialogue();
+
+    model:Init(dialogueData)
+    view.ShowDialogue()
+    DialogueController.Refresh()
+end
+
+-- 下一条对话（处理当前对话的交互逻辑）
+function DialogueController.Next()
+    local currentDialogue = model:GetCurrentDialogue()
+    if not currentDialogue then return end
+
+    -- 执行点击后函数（<前缀）
+    local funcName, params = model:GetInteractiveFunc()
+    if funcName then
+        DialogueController.Execute(funcName, params)
+    end
+
+    -- 更新当前ID（自动处理选项ID列表）
+    model:UpdateCurrentID(currentDialogue.NextID or "END")
+    DialogueController.Refresh()
+end
+
+-- 选项选中处理
+function DialogueController.OnOptionSelect(optionID)
+    model:UpdateCurrentID(optionID)  -- 直接跳转至选项对应的ID
     DialogueController.Refresh()
 end
 
@@ -27,54 +47,52 @@ end
 function DialogueController.Refresh()
     if model.isEnd then
         DialogueController.End()
+        return
     end
+    
+    view.HideOptions()
 
-    -- 获取当前对话并检查有效性
-    local currentDialog = model:GetCurrentDialogue()
-    if not currentDialog then
+    local currentDialogue = model:GetCurrentDialogue()
+    if not currentDialogue then
         DialogueController.End()
         return
     end
 
-    -- 执行即时函数（>前缀，出现时执行）
+    -- 执行即时函数（>前缀）
     local funcName, params = model:GetImmediateFunc()
     if funcName then
-        DialogueController.Execute(funcName, params)
+        local result = DialogueController.Execute(funcName, params)
+        
+        -- 处理条件判断返回值（仅条件类型需要）
+        if model:IsConditionType() and result then
+            model:UpdateCurrentID(tostring(result))
+            DialogueController.Refresh()
+        end
     end
-    
-    -- 根据类型更新视图
-    if model:IsNormalType() then
-        
-    elseif model:IsOptionType() then
-        
-    elseif model:IsConditionType() then
-        
-    end
-end
 
--- 下一条对话
-function DialogueController.Next()
-    
-end 
-
--- 执行函数
-function DialogueController.Execute(funcName, params)
-    print("Execute: " .. funcName)
-    -- xlua 调用 C#函数（C#注册对话函数表）
-    -- local csharpFunc = 
-    if csharpFunc then
-        -- 返回条件判断所需参数
+    -- 显示选项或普通对话
+    local options = model:GetOptions()
+    if #options > 0 then
+        view.ShowOptions(options, DialogueController.OnOptionSelect)
     else
-        CS.Debug.LogWarning("Func not found: " .. funcName)        
+        view.UpdateDialogue(currentDialogue)
     end
 end
 
--- 结束这段对话
+-- 执行注册的函数
+function DialogueController.Execute(funcName, params)
+    print("Execute function: " .. funcName)
+    return CS.DialogueFuncRegistry.InvokeFunction(funcName, params)
+end
+
+-- 结束对话
 function DialogueController.End()
     print("End dialogue: " .. (currentDialogueFile or ""))
+    view.HideOptions()
     view.HideDialogue()
     model:Cleanup()
-    -- 可选：卸载数据
-    -- dataManager.UnloadDialogueData(currentDialogueFile)
     currentDialogueFile = nil
-end 
+    -- 可选：卸载文件
+end
+
+return DialogueController
