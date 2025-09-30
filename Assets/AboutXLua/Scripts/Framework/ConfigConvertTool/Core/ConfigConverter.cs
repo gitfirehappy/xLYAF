@@ -17,7 +17,9 @@ public class ConfigConverter : Singleton<ConfigConverter>
 
     private Dictionary<ConfigFormat, IConfigWriter> _writers = new Dictionary<ConfigFormat, IConfigWriter>
     {
-        { ConfigFormat.Lua, new LuaWriter() }
+        { ConfigFormat.Lua, new LuaWriter() },
+        { ConfigFormat.Json, new JsonWriter() },
+        { ConfigFormat.Xml, new XmlWriter() },
         // 可以添加其他写入器
     };
 

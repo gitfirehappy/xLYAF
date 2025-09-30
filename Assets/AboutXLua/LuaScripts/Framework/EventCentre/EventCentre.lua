@@ -1,5 +1,3 @@
-local Log = M.LogUtility
-
 -- 事件中心：用于Lua与Lua、Lua与C#之间的通信
 
 local EventCentre = {}
@@ -16,7 +14,7 @@ EventCentre.Port = {
 local eventHandlers = {}
 
 function EventCentre.init()
-    Log.info(Log.LogLayer.Framework, "EventCentre", "EventCentre.lua initialized")
+    print("EventCentre.lua initialized")
     for port = 0, 3 do
         eventHandlers[port] = {}
     end

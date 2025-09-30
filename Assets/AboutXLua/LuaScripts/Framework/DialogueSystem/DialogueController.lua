@@ -3,6 +3,7 @@ local DialogueController = {}
 local view = require("DialogueView")
 local model = require("DialogueModel")
 local dataManager = require("DialogueDataManager")
+local uiEventUtils = require("UIEventUtils")
 local currentDialogueFile = nil
 
 -- 开始对话
@@ -17,29 +18,8 @@ function DialogueController.Start(fileName)
     end
 
     model:Init(dialogueData)
+
     view.ShowDialogue()
-    DialogueController.Refresh()
-end
-
--- 下一条对话（处理当前对话的交互逻辑）
-function DialogueController.Next()
-    local currentDialogue = model:GetCurrentDialogue()
-    if not currentDialogue then return end
-
-    -- 执行点击后函数（<前缀）
-    local funcName, params = model:GetInteractiveFunc()
-    if funcName then
-        DialogueController.Execute(funcName, params)
-    end
-
-    -- 更新当前ID（自动处理选项ID列表）
-    model:UpdateCurrentID(currentDialogue.NextID or "END")
-    DialogueController.Refresh()
-end
-
--- 选项选中处理
-function DialogueController.OnOptionSelect(optionID)
-    model:UpdateCurrentID(optionID)  -- 直接跳转至选项对应的ID
     DialogueController.Refresh()
 end
 
@@ -65,8 +45,7 @@ function DialogueController.Refresh()
         
         -- 处理条件判断返回值（仅条件类型需要）
         if model:IsConditionType() and result then
-            model:UpdateCurrentID(tostring(result))
-            DialogueController.Refresh()
+            DialogueController.Next(result)
         end
     end
 
@@ -79,10 +58,45 @@ function DialogueController.Refresh()
     end
 end
 
+-- UI交互回调函数
+
+-- 下一条对话（平台对话点击面板回调，选项和条件判断跳转调用）
+function DialogueController.Next(nextID)
+    local currentDialogue = model:GetCurrentDialogue()
+    if not currentDialogue then return end
+
+    -- 后执行函数（<前缀）
+    local funcName, params = model:GetInteractiveFunc()
+    if funcName then
+        DialogueController.Execute(funcName, params)
+    end
+
+    -- 更新当前ID（自动处理选项ID列表）
+    local targetNextID = nextID or currentDialogue.NextID or "END"
+    model:UpdateCurrentID(targetNextID)
+    DialogueController.Refresh()
+end
+
+-- 选项选中回调，在view层绑定至按钮
+function DialogueController.OnOptionSelect(optionIndex)
+    local options = model:GetOptions()
+    if optionIndex and options[optionIndex] then -- 默认从1开始，可根据需求调整
+        local selectedOption = options[optionIndex]
+        -- 执行选项对应的跳转
+        DialogueController.Next(selectedOption.NextID)
+    end
+end
+
+-- end
+
 -- 执行注册的函数
 function DialogueController.Execute(funcName, params)
     print("Execute function: " .. funcName)
+    if params and #params > 0 then
     return CS.DialogueFuncRegistry.InvokeFunction(funcName, params)
+    else
+    return CS.DialogueFuncRegistry.InvokeFunction(funcName)
+    end
 end
 
 -- 结束对话

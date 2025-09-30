@@ -19,10 +19,16 @@ function DialogueModel:GetCurrentDialogue()
     return nil
 end
 
--- 检查是否为条件判断类型（仅保留必要类型判断）
+-- 检查是否为条件判断类型
 function DialogueModel:IsConditionType()
     local current = self:GetCurrentDialogue()
     return current and current.Sign == "$"
+end
+
+-- 检查是否为普通语句类型
+function DialogueModel:IsNormalType()
+    local current = self:GetCurrentDialogue()
+    return current and current.Sign == "#"
 end
 
 -- 获取即时执行函数（>前缀）

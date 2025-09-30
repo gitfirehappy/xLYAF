@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using XLua;
 
 public static class DialogueFuncRegistry
 {
@@ -59,6 +60,7 @@ public static class DialogueFuncRegistry
         return method;
     }
 
+    [LuaCallCSharp]
     public static object InvokeFunction(string funcName, params object[] parameters)
     {
         
