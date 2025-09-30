@@ -73,7 +73,23 @@ public class XmlWriter : IConfigWriter
     {
         if (data.RootNode != null)
         {
-            WriteTreeNode(writer, data.RootNode, options.Indent, 0);
+            // 判断根节点是否为"无意义的容器节点"：名称为空且类型为Object/Array
+            bool isRootContainer = string.IsNullOrEmpty(data.RootNode.Name) 
+                                   && (data.RootNode.NodeType == TreeNodeType.Object || data.RootNode.NodeType == TreeNodeType.Array);
+
+            if (isRootContainer)
+            {
+                // 直接写入根节点的所有子节点（作为XML顶层元素）
+                foreach (var child in data.RootNode.Children)
+                {
+                    WriteTreeNode(writer, child, options.Indent, 0);
+                }
+            }
+            else
+            {
+                // 正常写入根节点（适用于有实际名称的根节点）
+                WriteTreeNode(writer, data.RootNode, options.Indent, 0);
+            }
         }
         else
         {
@@ -190,7 +206,7 @@ public class XmlWriter : IConfigWriter
     private string EscapeXmlName(string name)
     {
         if (string.IsNullOrEmpty(name))
-            return "node";
+            return "";
 
         // 替换非法字符
         return name.Replace(" ", "_")

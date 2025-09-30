@@ -1,6 +1,6 @@
 ﻿{
-    "Characters": [
-        {
+    "Characters": {
+        "Item0": {
             "ID": 1001,
             "Name": "Warrior",
             "Health": 150,
@@ -10,7 +10,7 @@
             "IsRanged": false,
             "Skills": "Charge;Cleave"
         },
-        {
+        "Item1": {
             "ID": 1002,
             "Name": "Archer",
             "Health": 90,
@@ -20,7 +20,7 @@
             "IsRanged": true,
             "Skills": "MultiShot;Stealth"
         },
-        {
+        "Item2": {
             "ID": 1003,
             "Name": "Mage",
             "Health": 80,
@@ -30,5 +30,5 @@
             "IsRanged": true,
             "Skills": "Fireball;IceNova"
         }
-    ]
+    }
 }

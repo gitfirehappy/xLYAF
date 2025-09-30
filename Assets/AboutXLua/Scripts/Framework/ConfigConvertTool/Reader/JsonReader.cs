@@ -116,7 +116,7 @@ public class JsonReader : IConfigReader
         var jsonObject = SimpleJSON.JSON.Parse(jsonContent);
         
         // 构建树结构
-        configData.RootNode = ConvertJsonToTreeNode("Root", jsonObject);
+        configData.RootNode = ConvertJsonToTreeNode("", jsonObject);
         
         return configData;
     }
