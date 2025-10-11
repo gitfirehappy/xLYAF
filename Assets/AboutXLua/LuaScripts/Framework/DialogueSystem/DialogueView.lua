@@ -9,7 +9,6 @@ local uiRefs = {
     optionsParent = nil,
     characterNameText = nil,
     contentText = nil,
-    characterImages = {} -- 角色图片引用
 }
 
 local function InitUI()
@@ -46,7 +45,6 @@ function DialogueView.HideDialogue()
         uiRefs.optionsParent = nil
         uiRefs.contentText = nil
         uiRefs.characterNameText = nil
-        uiRefs.characterImages = {}
     end
 end
 
@@ -76,7 +74,7 @@ function DialogueView.ShowOptions(options, callback)
 
     -- 提取选项文本
     local optionTexts = {}
-    for i, option in ipairs(options) do
+    for _, option in ipairs(options) do
         table.insert(optionTexts, option.Content or "")
     end
     

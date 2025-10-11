@@ -7,16 +7,20 @@ function DialogueModel:Init(data)
     self.dialogueData = data   -- 整段对话配置数据
     self.isEnd = false         -- 对话是否结束
     self.optionIDs = nil       -- 选项ID列表（多个NextID时使用）
+
+    -- 用于缓存对话数据的哈希表
+    self.dialogueCache = {}
+    for _, dialog in ipairs(self.dialogueData) do
+        self.dialogueCache[dialog.ID] = dialog
+    end
+
+    -- 用于跟踪已访问过的ID，防止无限循环
+    self.visitedIDs = {}
 end
 
 -- 获取当前对话数据
 function DialogueModel:GetCurrentDialogue()
-    for _, dialog in ipairs(self.dialogueData) do
-        if dialog.ID == self.currentID then
-            return dialog
-        end
-    end
-    return nil
+    return self.dialogueCache[self.currentID]
 end
 
 -- 检查是否为条件判断类型
@@ -63,6 +67,16 @@ function DialogueModel:UpdateCurrentID(nextID)
         -- 多个ID视为选项
         self.optionIDs = stringUtil.SplitSemicolon(nextID)
     else
+        -- 检测是否进入无限循环
+        if self.visitedIDs[nextID] then
+            CS.Debug.LogError("警告: 检测到对话ID " .. nextID .. " 出现循环引用，强制结束对话")
+            self.isEnd = true
+            self.currentID = nil
+            return
+        end
+
+        -- 记录访问过的ID
+        self.visitedIDs[nextID] = true
         self.currentID = nextID
     end
 end

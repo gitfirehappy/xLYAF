@@ -43,30 +43,40 @@ public class XmlWriter : IConfigWriter
             }
         }
     }
-
+    
     private void WriteArray(StreamWriter writer, ConfigData data, WriterOptions options)
     {
-        // 直接写入数组元素
+        // 确定子元素名称（使用第一列列名或默认"Item"）
         var itemName = data.Columns.Length > 0 ? data.Columns[0] : "Item";
+        // 根节点名称（可自定义，这里用"Root"）
+        var rootName = "Root";
 
-        // 直接循环写入子元素，不添加根节点
+        // 写入根节点开始标签（添加根节点）
+        writer.WriteLine($"{GetIndent(options.Indent, 0)}<{rootName}>");
+
+        // 循环写入子元素（放在根节点内部）
         foreach (var row in data.Rows)
         {
-            writer.WriteLine($"{GetIndent(options.Indent, 0)}<{itemName}>"); // 缩进从0开始
+            // 子元素缩进为1（根节点内部）
+            writer.WriteLine($"{GetIndent(options.Indent, 1)}<{itemName}>");
 
             for (int j = 0; j < data.Columns.Length; j++)
             {
                 var fieldName = data.Columns[j];
                 var fieldValue = row[j];
-                var indent = GetIndent(options.Indent, 1); // 子节点缩进+1
+                var indent = GetIndent(options.Indent, 2); // 字段缩进为2（子元素内部）
 
                 writer.Write($"{indent}<{fieldName}>");
                 writer.Write(FormatXmlValue(fieldValue));
                 writer.WriteLine($"</{fieldName}>");
             }
 
-            writer.WriteLine($"{GetIndent(options.Indent, 0)}</{itemName}>"); // 闭合标签缩进0
+            // 闭合子元素标签
+            writer.WriteLine($"{GetIndent(options.Indent, 1)}</{itemName}>");
         }
+
+        // 写入根节点结束标签
+        writer.WriteLine($"{GetIndent(options.Indent, 0)}</{rootName}>");
     }
 
     private void WriteKeyValue(StreamWriter writer, ConfigData data, WriterOptions options)

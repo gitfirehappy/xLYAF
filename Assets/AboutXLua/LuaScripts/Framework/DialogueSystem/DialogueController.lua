@@ -3,7 +3,6 @@ local DialogueController = {}
 local view = require("DialogueView")
 local model = require("DialogueModel")
 local dataManager = require("DialogueDataManager")
-local uiEventUtils = require("UIEventUtils")
 local currentDialogueFile = nil
 
 -- 开始对话
@@ -58,8 +57,6 @@ function DialogueController.Refresh()
     end
 end
 
--- UI交互回调函数
-
 -- 下一条对话（平台对话点击面板回调，选项和条件判断跳转调用）
 function DialogueController.Next(nextID)
     local currentDialogue = model:GetCurrentDialogue()
@@ -86,8 +83,6 @@ function DialogueController.OnOptionSelect(optionIndex)
         DialogueController.Next(selectedOption.NextID)
     end
 end
-
--- end
 
 -- 执行注册的函数
 function DialogueController.Execute(funcName, params)
