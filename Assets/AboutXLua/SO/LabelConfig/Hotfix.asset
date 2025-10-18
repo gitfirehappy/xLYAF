@@ -14,20 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   remind: "\u7CFB\u7EDF\u7C7B\u578B\u5728XLuaConfig\u7EDF\u4E00\u9759\u6001\u6CE8\u518C,SO\u53EA\u7BA1\u7406\u81EA\u5B9A\u4E49\u7C7B\u578B"
   tag: 0
-  configurations:
-  - typeRef:
-      rid: 2100132495795421191
-    memberRef:
-      rid: -2
-    isEntireType: 1
+  configurations: []
   references:
     version: 2
-    RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
-    - rid: 2100132495795421191
-      type: {class: TypeReference, ns: , asm: Assembly-CSharp}
-      data:
-        assemblyName: Assembly-CSharp
-        typeName: HelloWorldForTest
-        _serializedGenerics: []
+    RefIds: []

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using XLua;
 
-public static class ModuleRegistry
+public static class LuaModuleRegistry
 {
     /// <summary>
     /// require常用的Lua模块

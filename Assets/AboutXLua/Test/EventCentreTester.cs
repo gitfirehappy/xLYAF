@@ -34,7 +34,7 @@ public class EventCentreTester : MonoBehaviour
         });
 
         // 加载常用的Lua模块
-        ModuleRegistry.Initialize();
+        LuaModuleRegistry.Initialize();
         
         // 初始化事件中心Lua端
         luaEnv.DoString("require 'EventCentre'");

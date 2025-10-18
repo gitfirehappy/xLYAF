@@ -53,7 +53,6 @@ public class XLuaLoaderTester : MonoBehaviour
             mode = (XLuaLoader.Mode)testMode,
             editorRoots = editorRoots,
             aaLabels = aaLabels,
-            log = enableLog
         };
 
         // 注册加载器

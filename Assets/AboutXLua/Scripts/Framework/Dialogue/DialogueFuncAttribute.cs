@@ -6,7 +6,9 @@ using UnityEngine;
 [AttributeUsage(AttributeTargets.Method,Inherited = false,AllowMultiple = false)]
 public class DialogueFuncAttribute : Attribute
 {
-    public string DisplayName;
+    public string DisplayName { get; set; }
+    
+    public DialogueFuncAttribute() { }
     
     public DialogueFuncAttribute(string name)
     {

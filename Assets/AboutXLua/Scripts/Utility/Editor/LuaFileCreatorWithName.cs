@@ -3,7 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace AboutXLua.Editor
+namespace AboutXLua.Utility
 {
     public class LuaFileCreatorWithName
     {

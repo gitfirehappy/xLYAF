@@ -4,17 +4,43 @@ using UnityEngine;
 
 public class DialogueFunctions : IDialogueFuncProvider
 {
-    [DialogueFunc("Check")]
-    public static int Check(int a)
+    [DialogueFunc("TestImmediateFunc")]
+    public static void TestImmediateFunc(string param)
     {
-        int rightNextID = 15;
-        int wrongNextID = 16;
+        Debug.Log($"即时函数执行，参数: {param}");
+    }
+    
+    [DialogueFunc("TestInteractiveFunc")]
+    public static void TestInteractiveFunc(string param)
+    {
+        Debug.Log($"交互函数执行，参数: {param}");
+    }
+    
+    [DialogueFunc("CheckCondition")]
+    public static string CheckCondition(string branchA, string branchB)
+    {
+        // 简单条件判断，随机返回一个分支
+        bool condition = Random.Range(0, 2) == 0;
+        string result = condition ? branchA : branchB;
+        Debug.Log($"条件判断，返回分支: {result}");
+        return result;
+    }
+    
+    [DialogueFunc("ShowSpecialEffect")]
+    public static void ShowSpecialEffect(string effectName)
+    {
+        Debug.Log($"显示特效: {effectName}");
+    }
+    
+    [DialogueFunc("PlaySound")] 
+    public static void PlaySound(string soundName)
+    {
+        Debug.Log($"播放音效: {soundName}");
+    }
+    
+    [DialogueFunc("StartDialogue")]
+    public static void StartDialogue(string fileName)
+    {
         
-        if (a > 0)
-        {
-            return rightNextID;
-        }
-
-        return wrongNextID;
     }
 }

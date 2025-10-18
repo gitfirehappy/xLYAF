@@ -387,7 +387,11 @@ public class UIManager : Singleton<UIManager>
 
     public T GetForm<T>() where T : UIFormBase => GetForm(typeof(T).Name) as T;
 
-    public bool IsShown(string className) => GetForm(className)?.IsOpen ?? false;
+    public bool IsShown(string className)
+    {
+        var form = GetForm(className);
+        return form != null && form.CurrentState == FormState.Opened;
+    }
 
     public UIFormBase TryShowForm(string className, string canvasGroupID = null)
     {
@@ -534,7 +538,6 @@ public class UIManager : Singleton<UIManager>
 
     #endregion
 }
-
 
 public interface IUIForm
 {

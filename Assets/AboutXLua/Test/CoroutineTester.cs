@@ -31,7 +31,7 @@ public class CoroutineTester : MonoBehaviour
         });
         
         // 加载常用的Lua模块
-        ModuleRegistry.Initialize();
+        LuaModuleRegistry.Initialize();
         
         // 正确加载Lua模块
         _luaEnv.DoString("coroutineBridge = require 'coroutineBridge'");

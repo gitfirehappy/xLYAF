@@ -31,7 +31,8 @@ public static class DialogueFuncRegistry
                 var attr = method.GetCustomAttribute<DialogueFuncAttribute>();
                 if (attr != null)
                 {
-                    string funcName = attr.DisplayName;
+                    string funcName = !string.IsNullOrEmpty(attr.DisplayName) ? 
+                        attr.DisplayName : method.Name;
                     if (string.IsNullOrEmpty(funcName))
                     {
                         Debug.LogWarning($"对话函数名不能为空：{type.Name}.{method.Name}");
@@ -73,6 +74,7 @@ public static class DialogueFuncRegistry
 
         try
         {
+            // TODO:处理XLua参数转换
             return method.Invoke(null, parameters);
         }
         catch (Exception e)

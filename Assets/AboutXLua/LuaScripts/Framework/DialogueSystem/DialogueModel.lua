@@ -38,23 +38,61 @@ end
 -- 获取即时执行函数（>前缀）
 function DialogueModel:GetImmediateFunc()
     local current = self:GetCurrentDialogue()
-    if not current then return nil, nil end
-    local func = current.Func or ""
-    if string.sub(func, 1, 1) == ">" then
-        return string.sub(func, 2), stringUtil.SplitSemicolon(current.Params or "")
+    if not current then return {}, {} end
+
+    local funcStr = current.Func or ""
+    local paramStr = current.Params or ""
+
+    local funcList = {}
+    local paramList = {}
+
+    -- 按分号分割函数和参数
+    local funcs = stringUtil.SplitSemicolon(funcStr)
+    local params = stringUtil.SplitSemicolon(paramStr)
+
+    -- 过滤出>前缀的函数并匹配参数
+    for i, func in ipairs(funcs) do
+        if string.sub(func, 1, 1) == ">" then
+            table.insert(funcList, string.sub(func, 2))  -- 移除>前缀
+            -- 单个函数的参数用&分割，参数列表索引与函数对应
+            table.insert(paramList, stringUtil.SplitAmpersand(params[i] or ""))
+        end
     end
-    return nil, nil
+    
+    CS.UnityEngine.Debug.Log("获取执行即时函数: " .. table.concat(funcList, ", ")
+        .. "参数：" .. table.concat(paramList, ", "))
+
+    return funcList, paramList
 end
 
 -- 获取交互执行函数（<前缀）
 function DialogueModel:GetInteractiveFunc()
     local current = self:GetCurrentDialogue()
-    if not current then return nil, nil end
-    local func = current.Func or ""
-    if string.sub(func, 1, 1) == "<" then
-        return string.sub(func, 2), stringUtil.SplitSemicolon(current.Params or "")
+    if not current then return {}, {} end
+
+    local funcStr = current.Func or ""
+    local paramStr = current.Params or ""
+
+    local funcList = {}
+    local paramList = {}
+
+    -- 按分号分割函数和参数
+    local funcs = stringUtil.SplitSemicolon(funcStr)
+    local params = stringUtil.SplitSemicolon(paramStr)
+
+    -- 过滤出<前缀的函数并匹配参数
+    for i, func in ipairs(funcs) do
+        if string.sub(func, 1, 1) == "<" then
+            table.insert(funcList, string.sub(func, 2))  -- 移除<前缀
+            -- 单个函数的参数用&分割，参数列表索引与函数对应
+            table.insert(paramList, stringUtil.SplitAmpersand(params[i] or ""))
+        end
     end
-    return nil, nil
+
+    CS.UnityEngine.Debug.Log("获取执行交互函数: " .. table.concat(funcList, ", ") 
+            .. "参数：" .. table.concat(paramList, ", "))
+    
+    return funcList, paramList
 end
 
 -- 更新当前ID（处理END和选项ID列表）
@@ -69,7 +107,7 @@ function DialogueModel:UpdateCurrentID(nextID)
     else
         -- 检测是否进入无限循环
         if self.visitedIDs[nextID] then
-            CS.Debug.LogError("警告: 检测到对话ID " .. nextID .. " 出现循环引用，强制结束对话")
+            CS.UnityEngine.Debug.LogError("警告: 检测到对话ID " .. nextID .. " 出现循环引用，强制结束对话")
             self.isEnd = true
             self.currentID = nil
             return

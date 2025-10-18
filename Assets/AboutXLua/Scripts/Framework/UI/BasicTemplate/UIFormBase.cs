@@ -10,7 +10,7 @@ public class UIFormBase : MonoBehaviour, IUIForm
 {
     protected UIManager uIManager;
 
-    public bool IsOpen = false;
+    public FormState CurrentState { get; private set; } = FormState.Closed;
     public bool IsInited = false;
 
     [SerializeField]
@@ -29,6 +29,15 @@ public class UIFormBase : MonoBehaviour, IUIForm
     public bool IsDynamicForm => isDynamicForm;
     public string DynamicGroupID => dynamicGroupID;
 
+    private CanvasGroup _canvasGroup;
+    public CanvasGroup CanvasGroup
+    {
+        get
+        {
+            if (_canvasGroup == null) _canvasGroup = GetComponent<CanvasGroup>();
+            return _canvasGroup;
+        }
+    }
 
     private void Awake()
     {
@@ -48,12 +57,7 @@ public class UIFormBase : MonoBehaviour, IUIForm
         // Fade面板初始化CanvasGroup alpha为0，保证第一次打开时能淡入
         if (AnimType == FormAnimType.Fade)
         {
-            var cg = gameObject.GetComponent<CanvasGroup>();
-            if (cg == null)
-            {
-                cg = gameObject.AddComponent<CanvasGroup>();
-            }
-            cg.alpha = 0f;
+            CanvasGroup.alpha = 0f;
         }
     }
 
@@ -65,6 +69,8 @@ public class UIFormBase : MonoBehaviour, IUIForm
 
     public void Open(UIManager uIManager)
     {
+        if (CurrentState == FormState.Opened || CurrentState == FormState.Opening) return;
+        
         this.uIManager = uIManager;
         if (!IsInited)
         {
@@ -72,13 +78,15 @@ public class UIFormBase : MonoBehaviour, IUIForm
             Init(); // 首次打开时初始化
         }
 
+        CurrentState =  FormState.Opening;
         OpenAnim();
     }
 
     public void Close()
     {
-        if (!IsOpen) return;
+        if (CurrentState == FormState.Closed || CurrentState == FormState.Closing) return;
 
+        CurrentState = FormState.Closing;
         CloseAnim();
     }
 
@@ -90,15 +98,11 @@ public class UIFormBase : MonoBehaviour, IUIForm
         // 若是Fade动画，关闭时alpha也要重置为0，确保下次打开能淡入
         if (AnimType == FormAnimType.Fade)
         {
-            var cg = gameObject.GetComponent<CanvasGroup>();
-            if (cg != null)
-            {
-                cg.alpha = 0f;
-            }
+            CanvasGroup.alpha = 0f;
         }
 
         gameObject.SetActive(false);
-        IsOpen = false;
+        CurrentState = FormState.Closed;
     }
 
     /// <summary>
@@ -108,44 +112,54 @@ public class UIFormBase : MonoBehaviour, IUIForm
 
     private void OpenAnim()
     {
+        CanvasGroup.blocksRaycasts = false;
+
+        Action onOpenComplete = () =>
+        {
+            CurrentState = FormState.Opened;
+            CanvasGroup.blocksRaycasts = true;
+        };
+        
         switch (AnimType)
         {
             case FormAnimType.None:
                 gameObject.SetActive(true);
-                IsOpen = true;
+                onOpenComplete();
                 break;
             case FormAnimType.Fade:
-                UIAnimation.FadeIn(this, () => IsOpen = true);
+                UIAnimation.FadeIn(this, onOpenComplete);
                 break;
             case FormAnimType.Zoom:
-                UIAnimation.ZoomIn(this, () => IsOpen = true);
+                UIAnimation.ZoomIn(this, onOpenComplete);
                 break;
             case FormAnimType.Pop:
-                UIAnimation.PopIn(this, () => IsOpen = true);
+                UIAnimation.PopIn(this, onOpenComplete);
                 break;
             case FormAnimType.SlideLeft:
-                UIAnimation.SlideIn(this, new Vector3(-Screen.width, 0, 0), () => IsOpen = true);
+                UIAnimation.SlideIn(this, new Vector3(-Screen.width, 0, 0), onOpenComplete);
                 break;
             case FormAnimType.SlideRight:
-                UIAnimation.SlideIn(this, new Vector3(Screen.width, 0, 0), () => IsOpen = true);
+                UIAnimation.SlideIn(this, new Vector3(Screen.width, 0, 0), onOpenComplete);
                 break;
             case FormAnimType.SlideUp:
-                UIAnimation.SlideIn(this, new Vector3(0, Screen.height, 0), () => IsOpen = true);
+                UIAnimation.SlideIn(this, new Vector3(0, Screen.height, 0), onOpenComplete);
                 break;
             case FormAnimType.SlideDown:
-                UIAnimation.SlideIn(this, new Vector3(0, -Screen.height, 0), () => IsOpen = true);
+                UIAnimation.SlideIn(this, new Vector3(0, -Screen.height, 0), onOpenComplete);
                 break;
             case FormAnimType.FadeSlide:
-                UIAnimation.FadeSlideIn(this, new Vector3(0, -100, 0), () => IsOpen = true);
+                UIAnimation.FadeSlideIn(this, new Vector3(0, -100, 0), onOpenComplete);
                 break;
         }
     }
 
     private void CloseAnim()
     {
+        CanvasGroup.blocksRaycasts = false;
+        
         Action onCloseComplete = () =>
         {
-            IsOpen = false;
+            CurrentState = FormState.Closed;
 
             if (!Cached)
             {
@@ -217,4 +231,12 @@ public class UIFormBase : MonoBehaviour, IUIForm
 
     #endregion
 
+}
+
+public enum FormState
+{
+    Opening,
+    Opened,
+    Closing,
+    Closed
 }

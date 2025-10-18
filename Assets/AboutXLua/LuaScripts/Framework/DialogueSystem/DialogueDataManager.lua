@@ -12,9 +12,10 @@ function DialogueDataManager.LoadDialogueData(fileName)
     local ok, data = pcall(require, fileName)
     if ok and data then
         loadedDialogues[fileName] = data
+        CS.UnityEngine.Debug.Log("Successfully loaded dialogue: " .. fileName)
         return data
     else
-        CS.Debug.LogError("Load dialogue file failed: " .. fileName)
+        CS.UnityEngine.Debug.LogError("Load dialogue file failed: " .. fileName .. ", error: " .. tostring(data))
         return nil
     end
 end

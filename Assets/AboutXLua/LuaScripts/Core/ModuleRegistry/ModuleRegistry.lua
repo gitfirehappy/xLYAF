@@ -10,7 +10,7 @@ function M.Init()
     M.util = M.require("xlua.util")
     
     -- 底层核心类
-    M.LogUtility = M.require("LogUtility")
+    -- M.LogUtility = M.require("LogUtility")
 
     -- 设置全局访问点
     _G.M = M

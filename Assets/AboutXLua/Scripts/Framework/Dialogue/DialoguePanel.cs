@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using XLua;
 
 public class DialoguePanel : UIFormBase
 {
@@ -13,9 +14,9 @@ public class DialoguePanel : UIFormBase
     public TextMeshProUGUI characterNameText;
     public Transform optionsParent;
     public GameObject optionPrefab;
-    public int characterImageSortingLayer;
+    public Transform characterImageParent; 
     
-    [Header("配置")]
+    [Header("静态配置")]
     [SerializeField] private List<CharacterImageSources> characterImages;
     [SerializeField] private List<PosCanChoose> characterPos;
     
@@ -30,6 +31,7 @@ public class DialoguePanel : UIFormBase
     /// <summary>
     /// 创建并显示选项
     /// </summary>
+    [LuaCallCSharp]
     public void CreateOptions(List<string> optionTexts, System.Action<int> onOptionSelected)
     {
         ClearOptions();
@@ -58,6 +60,7 @@ public class DialoguePanel : UIFormBase
     /// <summary>
     /// 清空并隐藏选项
     /// </summary>
+    [LuaCallCSharp]
     public void ClearOptions()
     {
         foreach (var option in currentOptions)
@@ -76,6 +79,7 @@ public class DialoguePanel : UIFormBase
     /// </summary>
     /// <param name="characterNames">需要调整的角色名称</param>
     /// <param name="posAndOps">位置或快捷操作</param>
+    [LuaCallCSharp]
     public void UpdateCharacter(List<string> characterNames, List<string> posAndOps)
     {
         if (characterNames == null || characterNames.Count == 0) return;
@@ -171,7 +175,7 @@ public class DialoguePanel : UIFormBase
             runtimeState = new CharacterRuntimeState
             {
                 CharacterName = characterName,
-                CurrentRenderer = CreateCharacterRenderer(characterName, characterConfig.Images[0])
+                CurrentImage = CreateCharacterImage(characterName, characterConfig.Images[0])
             };
             activeCharacters[characterName] = runtimeState;
         }
@@ -183,7 +187,7 @@ public class DialoguePanel : UIFormBase
         }
         
         // 设置新位置
-        runtimeState.CurrentRenderer.transform.position = posConfig.transform.position;
+        runtimeState.CurrentImage.rectTransform.localPosition = posConfig.transform.localPosition;
         runtimeState.CurrentPos = pos;
         positionOccupancy[pos] = characterName;
     }
@@ -204,13 +208,13 @@ public class DialoguePanel : UIFormBase
             runtimeState = new CharacterRuntimeState
             {
                 CharacterName = characterName,
-                CurrentRenderer = CreateCharacterRenderer(characterName, characterConfig.Images[0])
+                CurrentImage = CreateCharacterImage(characterName, characterConfig.Images[0])
             };
             activeCharacters[characterName] = runtimeState;
         }
         
         // 显示角色
-        runtimeState.CurrentRenderer.gameObject.SetActive(true);
+        runtimeState.CurrentImage.gameObject.SetActive(true);
     }
     
     private void HideCharacter(string characterName)
@@ -218,7 +222,7 @@ public class DialoguePanel : UIFormBase
         if (activeCharacters.TryGetValue(characterName, out var runtimeState))
         {
             // 隐藏角色
-            runtimeState.CurrentRenderer.gameObject.SetActive(false);
+            runtimeState.CurrentImage.gameObject.SetActive(false);
             
             // 释放位置占用
             if (!string.IsNullOrEmpty(runtimeState.CurrentPos))
@@ -235,26 +239,86 @@ public class DialoguePanel : UIFormBase
     /// <summary>
     /// 设置角色图片差分
     /// </summary>
-    /// <param name="characterName"></param>
-    /// <param name="operation"></param>
+    /// <param name="characterName">角色名</param>
+    /// <param name="operation">diff + 数字</param>
     private void SetCharacterExpression(string characterName, string operation)
     {
-        
+        // 查找角色配置
+        var characterConfig = characterImages.Find(c => c.Name == characterName);
+        if (characterConfig == null)
+        {
+            Debug.LogWarning($"未找到角色配置: {characterName}，无法设置表情");
+            return;
+        }
+
+        // 验证操作格式并提取差分索引
+        if (!operation.StartsWith("diff"))
+        {
+            Debug.LogWarning($"无效的表情差分指令: {operation}，格式应为diff+数字（如diff1）");
+            return;
+        }
+
+        // 提取数字部分（支持多位数字）
+        string indexStr = operation.Substring(4);
+        if (!int.TryParse(indexStr, out int diffIndex))
+        {
+            Debug.LogWarning($"表情差分指令数字解析失败: {operation}");
+            return;
+        }
+
+        // 验证索引有效性
+        if (diffIndex < 0 || diffIndex >= characterConfig.Images.Count)
+        {
+            Debug.LogWarning($"角色{characterName}表情索引越界: {diffIndex}（有效范围1-{characterConfig.Images.Count}）");
+            return;
+        }
+
+        // 获取或创建运行时状态
+        if (!activeCharacters.TryGetValue(characterName, out var runtimeState))
+        {
+            // 如果角色未激活，创建默认渲染器
+            runtimeState = new CharacterRuntimeState
+            {
+                CharacterName = characterName,
+                CurrentImage = CreateCharacterImage(characterName, characterConfig.Images[diffIndex])
+            };
+            activeCharacters[characterName] = runtimeState;
+        }
+        else
+        {
+            // 更新现有角色的表情
+            runtimeState.CurrentImage.sprite = characterConfig.Images[diffIndex];
+        }
+
+        // 更新当前差分索引
+        runtimeState.CurrentDiffIndex = diffIndex;
     }
     
     /// <summary>
-    /// 创建角色渲染器
+    /// 创建角色Image组件
     /// </summary>
-    private SpriteRenderer CreateCharacterRenderer(string characterName, Sprite defaultSprite)
+    private Image CreateCharacterImage(string characterName, Sprite defaultSprite)
     {
+        // 校验父对象是否设置
+        if (characterImageParent == null)
+        {
+            Debug.LogError("未设置CharacterImageParent，请在Inspector中指定角色图片父对象");
+            return null;
+        }
+        
         var go = new GameObject($"Character_{characterName}");
-        go.transform.SetParent(transform); // 作为面板子对象
+        // 设置父对象为指定的characterImageParent
+        go.transform.SetParent(characterImageParent);
+        go.transform.localScale = Vector3.one;
+        go.transform.localPosition = Vector3.zero; // 初始位置相对于父对象归零
         
-        var renderer = go.AddComponent<SpriteRenderer>();
-        renderer.sprite = defaultSprite;
-        renderer.sortingOrder = characterImageSortingLayer; // 设置合适的渲染层级
+        // 添加Image组件
+        var image = go.AddComponent<Image>();
+        image.sprite = defaultSprite;
+        image.raycastTarget = false; // 不响应点击
         
-        return renderer;
+        // 层级由父对象所在Canvas统一管理，无需单独设置Canvas组件
+        return image;
     }
     
     #endregion
@@ -281,7 +345,7 @@ public class DialoguePanel : UIFormBase
     private class CharacterRuntimeState
     {
         public string CharacterName;
-        public SpriteRenderer CurrentRenderer;
+        public Image CurrentImage;
         public string CurrentPos = "center";
         public int CurrentDiffIndex = 0;
     }
@@ -295,9 +359,9 @@ public class DialoguePanel : UIFormBase
     {
         foreach (var runtimeState in activeCharacters.Values)
         {
-            if (runtimeState.CurrentRenderer != null)
+            if (runtimeState.CurrentImage != null)
             {
-                Destroy(runtimeState.CurrentRenderer.gameObject);
+                Destroy(runtimeState.CurrentImage.gameObject);
             }
         }
         

@@ -1,6 +1,5 @@
 local DialogueView = {}
 local stringUtil = require("StringUtil")
-local controller = require("DialogueController")
 local uiEventUtils = require("UIEventUtils")
 
 -- UI组件引用
@@ -11,9 +10,13 @@ local uiRefs = {
     contentText = nil,
 }
 
+local function getController()
+    return require("DialogueController")
+end
+
 local function InitUI()
     if uiRefs.panel then return end
-    uiRefs.panel = CS.UIManager.Instance:GetUIForm("DialoguePanel")
+    uiRefs.panel = CS.UIManager.Instance:GetForm("DialoguePanel")
 
     -- 绑定UI组件
     uiRefs.optionsParent = uiRefs.panel.optionsParent
@@ -22,10 +25,15 @@ local function InitUI()
 
     -- 绑定普通对话点击面板下一句回调
     if uiRefs.panel then
+        CS.UnityEngine.Debug.Log("开始绑定点击事件...")
+        
         uiEventUtils.BindClick(uiRefs.panel.gameObject, function(_, eventData)
             -- 点击对话面板时触发Next
-            controller.Next()
+            CS.UnityEngine.Debug.Log("对话面板被点击，触发Next")
+            getController().Next()
         end)
+
+        CS.UnityEngine.Debug.Log("点击事件绑定完成")
     end
     
     DialogueView.HideOptions()
@@ -65,7 +73,11 @@ function DialogueView.UpdateDialogue(dialogueData)
     uiRefs.contentText = content
     uiRefs.characterNameText = characterNames[1]
     
+    CS.UnityEngine.Debug.Log("已更新角色名和内容")
+    
     uiRefs.panel:UpdateCharacter(characterNames, posAndOps)
+    
+    CS.UnityEngine.Debug.Log("已更新角色位置和操作")
 end
 
 -- 显示选项
@@ -80,14 +92,14 @@ function DialogueView.ShowOptions(options, callback)
     
     -- 创建并显示选项
     -- C#端创建时会自动绑定传入的回调
-    CS.DialoguePanel.CreateOptions(optionTexts, callback)
+   uiRefs.panel:CreateOptions(optionTexts, callback)
 end
 
 -- 隐藏选项
 function DialogueView.HideOptions()
     if uiRefs.optionsParent then
         -- 清空并隐藏现有选项
-        CS.DialoguePanel.ClearOptions()
+        uiRefs.panel:ClearOptions()
     end   
 end
 

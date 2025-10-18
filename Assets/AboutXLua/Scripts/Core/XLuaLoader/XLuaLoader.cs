@@ -24,7 +24,6 @@ public static class XLuaLoader
         public List<string> editorRoots = new();// 编辑器根目录,默认Assets/ + 根目录
         public List<string> aaLabels = new();   // Addressables 标签
         public List<string> extensions = new() { ".lua", ".lua.txt", ".bytes" }; // 扩展名
-        public bool log = true; // 是否输出日志
     }
     
     #region 对外API
@@ -55,14 +54,14 @@ public static class XLuaLoader
                 TryReadFromAddressables(opt, key, ref bytes);
             }
             
-            if (bytes == null && opt.log) 
+            if (bytes == null) 
             {
                Debug.LogWarning($"Module not found: {key}");
             }
             return bytes;
         });
         
-        if (opt.log) Debug.Log($"Registered. Mode={opt.mode}");
+        Debug.Log($"Registered. Mode={opt.mode}");
     }
 
     #endregion
@@ -84,10 +83,7 @@ public static class XLuaLoader
                     if (File.Exists(path))
                     {
                         bytes = File.ReadAllBytes(path);
-                        if (opt.log)
-                        {
-                            Debug.Log($"Editor hit: {path}");
-                        }
+                        Debug.Log($"Editor hit: {path}");
                         return;
                     }
                 }
@@ -126,10 +122,7 @@ public static class XLuaLoader
                                 if (asset != null)
                                 {
                                     bytes = asset.bytes;
-                                    if (opt.log)
-                                    {
-                                        Debug.Log($"AA hit (label={label}): {loc.PrimaryKey}");
-                                    }
+                                    Debug.Log($"AA hit (label={label}): {loc.PrimaryKey}");
                                     Addressables.Release(assetHandle);
                                     Addressables.Release(locHandle);
                                     return;
@@ -142,10 +135,7 @@ public static class XLuaLoader
                 }
                 catch (Exception e)
                 {
-                    if (opt.log)
-                    {
-                        Debug.LogError($"AA label scan failed for '{label}': {e.Message}");
-                    }
+                    Debug.LogError($"AA label scan failed for '{label}': {e.Message}");
                 }
             }
         }

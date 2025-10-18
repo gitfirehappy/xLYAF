@@ -11,4 +11,15 @@ function StringUtil.SplitSemicolon(str)
     return result
 end
 
+-- &分隔字符串解析
+function StringUtil.SplitAmpersand(str)
+    if not str or str == "" then return {} end
+
+    local result = {}
+    for param in string.gmatch(str, "([^&]+)") do
+        table.insert(result, string.match(param, "^%s*(.-)%s*$"))
+    end
+    return result
+end
+
 return StringUtil
