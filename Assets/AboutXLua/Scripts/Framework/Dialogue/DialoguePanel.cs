@@ -49,7 +49,7 @@ public class DialoguePanel : UIFormBase
                 text.text = optionTexts[i];
                 
             int index = i; // 闭包捕获
-            button.onClick.AddListener(() => onOptionSelected?.Invoke(index));
+            button.onClick.AddListener(() => onOptionSelected?.Invoke(index + 1));// 注意：Lua下标从1开始
             
             currentOptions.Add(optionObj);
         }

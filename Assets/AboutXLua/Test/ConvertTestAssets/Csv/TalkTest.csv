@@ -7,7 +7,7 @@
 #,5,测试NPC,right,你选择了选项1，现在测试多角色显示,7,,
 #,6,测试NPC;助手,left;right,你选择了选项2，现在显示两个角色,8,,
 #,7,测试NPC;助手,left&diff2;hide,测试角色隐藏和差分图切换,9,>ShowSpecialEffect,effect1
-$,8,,,,,>CheckCondition,10;11
+$,8,,,,,>CheckCondition,10&11
 #,9,测试NPC,left,测试结束，感谢参与,END,,
 #,10,助手,right,条件判断结果：分支A,END,>PlaySound,soundA
 #,11,助手,right,条件判断结果：分支B,END,>PlaySound,soundB

@@ -18,58 +18,67 @@ MonoBehaviour:
   m_GUID: d57f61b8b1ad7b84393a4b87597df433
   m_SerializeEntries:
   - m_GUID: 16575e5e3d6204449b174cbdcfa347e7
-    m_Address: TalkTest.lua
+    m_Address: TalkTest
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaScripts
+    - Text
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cd652f5024aa10f4f88718aeaa624d54
-    m_Address: StringUtil.lua
+    m_Address: StringUtil
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaScripts
+    - Dialogue
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 72e988735b9e33346b1d8c38b84e76e0
-    m_Address: DialogueController.lua
+    m_Address: DialogueController
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaScripts
+    - Dialogue
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a2a90691845620f46ae364cbe783900c
-    m_Address: DialogueModel.lua
+    m_Address: DialogueModel
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaScripts
+    - Dialogue
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 59b843d4648fa5b41a49a3e2eb95db30
-    m_Address: DialogueDataManager.lua
+    m_Address: DialogueDataManager
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaScripts
+    - Dialogue
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5a0338e8feaa3104e8298a6d959f3a9a
-    m_Address: DialogueView.lua
+    m_Address: DialogueView
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaScripts
+    - Dialogue
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 56efd63a62588a9419442418875c9312
-    m_Address: ModuleRegistry.lua
+    m_Address: ModuleRegistry
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaScripts
+    - Core
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7573012e67161e3438620963fef93e74
     m_Address: EventCentre
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaScripts
+    - Utils
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cd02d9ac752b2cb4cb7730975fbc215f
-    m_Address: Assets/AboutXLua/LuaScripts/utils/UIEventUtils.lua
+    m_Address: UIEventUtils
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaScripts
+    - Utils
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 170f3ccdb3bee544095a2f2b92d47c18, type: 2}

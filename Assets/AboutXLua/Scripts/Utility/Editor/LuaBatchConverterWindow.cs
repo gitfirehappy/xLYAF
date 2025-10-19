@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,7 +8,8 @@ namespace AboutXLua.Utility
 {
     public class LuaBatchConverterWindow : EditorWindow
     {
-        private List<LuaScriptContainer> _containers = new List<LuaScriptContainer>();
+        private LuaDataBase _luaDatabase;
+        private List<LuaScriptContainer> _additionalContainers = new List<LuaScriptContainer>();
         private Vector2 _scrollPos;
         private Dictionary<LuaScriptContainer, bool> _containerFoldouts = new Dictionary<LuaScriptContainer, bool>();
         private Dictionary<LuaScriptContainer, Vector2> _containerScrolls = new Dictionary<LuaScriptContainer, Vector2>();
@@ -24,6 +26,23 @@ namespace AboutXLua.Utility
             GUILayout.Label(".lua <-> .lua.txt批量转换器", EditorStyles.boldLabel);
             GUILayout.Space(10);
 
+            // 数据库选择
+            EditorGUILayout.BeginHorizontal();
+            _luaDatabase = (LuaDataBase)EditorGUILayout.ObjectField(
+                "Lua数据库", 
+                _luaDatabase, 
+                typeof(LuaDataBase), 
+                false
+            );
+            
+            if (GUILayout.Button("创建新数据库", GUILayout.Width(120)))
+            {
+                CreateNewDatabase();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            GUILayout.Space(15);
+
             // 批量转换按钮
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("批量转换为.lua", GUILayout.Height(30)))
@@ -38,11 +57,9 @@ namespace AboutXLua.Utility
 
             GUILayout.Space(15);
 
-            // 添加容器的UI
-            GUILayout.Label("添加容器", EditorStyles.boldLabel);
+            // 添加额外容器
+            GUILayout.Label("额外容器", EditorStyles.boldLabel);
             EditorGUILayout.BeginHorizontal();
-            
-            // 使用ObjectField选择容器
             _newContainer = (LuaScriptContainer)EditorGUILayout.ObjectField(
                 _newContainer, 
                 typeof(LuaScriptContainer), 
@@ -51,42 +68,33 @@ namespace AboutXLua.Utility
             
             if (GUILayout.Button("添加", GUILayout.Width(60)))
             {
-                if (_newContainer != null && !_containers.Contains(_newContainer))
+                if (_newContainer != null && !_additionalContainers.Contains(_newContainer))
                 {
-                    _containers.Add(_newContainer);
-                    _newContainer = null; // 清空选择
+                    _additionalContainers.Add(_newContainer);
+                    _newContainer = null;
                 }
             }
             EditorGUILayout.EndHorizontal();
 
             GUILayout.Space(10);
 
-            // 容器列表操作
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("清空容器列表"))
+            // 获取所有容器
+            List<LuaScriptContainer> allContainers = GetAllContainers();
+            
+            if (allContainers.Count == 0)
             {
-                _containers.Clear();
-                _containerFoldouts.Clear();
-                _containerScrolls.Clear();
+                EditorGUILayout.HelpBox("没有找到任何Lua容器", MessageType.Info);
+                return;
             }
-            EditorGUILayout.EndHorizontal();
-
-            GUILayout.Space(10);
 
             // 容器列表
-            GUILayout.Label($"容器列表 ({_containers.Count}个)", EditorStyles.boldLabel);
+            GUILayout.Label($"容器列表 ({allContainers.Count}个)", EditorStyles.boldLabel);
             
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.Height(400));
             
-            for (int i = 0; i < _containers.Count; i++)
+            foreach (var container in allContainers)
             {
-                var container = _containers[i];
-                if (container == null)
-                {
-                    _containers.RemoveAt(i);
-                    i--;
-                    continue;
-                }
+                if (container == null) continue;
 
                 EditorGUILayout.BeginVertical("box");
                 
@@ -102,24 +110,19 @@ namespace AboutXLua.Utility
                 // 折叠箭头和容器名称
                 _containerFoldouts[container] = EditorGUILayout.Foldout(
                     _containerFoldouts[container], 
-                    $"{container.name} ({container.luaAssets.Count}个脚本)", 
+                    $"{container.groupName} ({container.luaAssets.Count}个脚本)", 
                     true
                 );
                 
                 GUILayout.FlexibleSpace();
                 
                 // 容器操作按钮
-                if (GUILayout.Button("移除", GUILayout.Width(60)))
+                if (GUILayout.Button("移除", GUILayout.Width(60)) && _additionalContainers.Contains(container))
                 {
-                    _containers.RemoveAt(i);
+                    _additionalContainers.Remove(container);
                     _containerFoldouts.Remove(container);
                     _containerScrolls.Remove(container);
-                    i--;
-                    EditorGUILayout.EndHorizontal();
-                    EditorGUILayout.EndVertical();
-                    continue;
                 }
-                
                 EditorGUILayout.EndHorizontal();
 
                 // 容器内容（折叠显示）
@@ -138,19 +141,19 @@ namespace AboutXLua.Utility
                         GUILayout.Height(200)
                     );
                     
-                    for (int j = 0; j < container.luaAssets.Count; j++)
+                    for (int i = 0; i < container.luaAssets.Count; i++)
                     {
                         EditorGUILayout.BeginHorizontal();
-                        container.luaAssets[j] = (TextAsset)EditorGUILayout.ObjectField(
-                            container.luaAssets[j], 
+                        container.luaAssets[i] = (TextAsset)EditorGUILayout.ObjectField(
+                            container.luaAssets[i], 
                             typeof(TextAsset), 
                             false
                         );
                         
                         if (GUILayout.Button("×", GUILayout.Width(25)))
                         {
-                            container.luaAssets.RemoveAt(j);
-                            j--;
+                            container.luaAssets.RemoveAt(i);
+                            i--;
                             EditorUtility.SetDirty(container);
                         }
                         EditorGUILayout.EndHorizontal();
@@ -181,29 +184,51 @@ namespace AboutXLua.Utility
             EditorGUILayout.EndScrollView();
 
             // 统计信息
-            if (_containers.Count > 0)
+            int totalScripts = allContainers.Sum(c => c.luaAssets.Count);
+            
+            EditorGUILayout.HelpBox(
+                $"总计: {allContainers.Count}个容器, {totalScripts}个脚本", 
+                MessageType.Info
+            );
+        }
+
+        private List<LuaScriptContainer> GetAllContainers()
+        {
+            List<LuaScriptContainer> allContainers = new List<LuaScriptContainer>();
+            
+            // 添加数据库中的容器
+            if (_luaDatabase != null)
             {
-                int totalScripts = 0;
-                foreach (var container in _containers)
-                {
-                    if (container != null)
-                        totalScripts += container.luaAssets.Count;
-                }
-                
-                EditorGUILayout.HelpBox(
-                    $"总计: {_containers.Count}个容器, {totalScripts}个脚本", 
-                    MessageType.Info
-                );
+                allContainers.AddRange(_luaDatabase.groups.Where(c => c != null));
             }
-            else
+            
+            // 添加额外容器
+            allContainers.AddRange(_additionalContainers.Where(c => c != null));
+            
+            return allContainers.Distinct().ToList();
+        }
+
+        private void CreateNewDatabase()
+        {
+            string path = EditorUtility.SaveFilePanelInProject(
+                "创建Lua数据库",
+                "LuaDatabase",
+                "asset",
+                "选择保存Lua数据库的位置"
+            );
+
+            if (!string.IsNullOrEmpty(path))
             {
-                EditorGUILayout.HelpBox("请添加至少一个Lua脚本容器", MessageType.Info);
+                LuaDataBase newDatabase = CreateInstance<LuaDataBase>();
+                AssetDatabase.CreateAsset(newDatabase, path);
+                AssetDatabase.SaveAssets();
+                _luaDatabase = newDatabase;
+                Selection.activeObject = newDatabase;
             }
         }
 
         private void AddScriptsToContainer(LuaScriptContainer container)
         {
-            // 使用你的原始方法，选择单个文件
             string selectedPath = EditorUtility.OpenFilePanel(
                 "选择Lua脚本", 
                 Application.dataPath, 
@@ -212,7 +237,6 @@ namespace AboutXLua.Utility
 
             if (string.IsNullOrEmpty(selectedPath)) return;
 
-            // 将单个路径转换为数组，以便统一处理
             string[] paths = new string[] { selectedPath };
 
             foreach (string path in paths)
@@ -233,9 +257,11 @@ namespace AboutXLua.Utility
 
         private void BatchConvertAll(string oldExt, string newExt)
         {
-            if (_containers.Count == 0)
+            List<LuaScriptContainer> allContainers = GetAllContainers();
+            
+            if (allContainers.Count == 0)
             {
-                EditorUtility.DisplayDialog("提示", "没有选择任何容器", "确定");
+                EditorUtility.DisplayDialog("提示", "没有找到任何容器", "确定");
                 return;
             }
 
@@ -244,7 +270,7 @@ namespace AboutXLua.Utility
 
             AssetDatabase.StartAssetEditing();
             
-            foreach (var container in _containers)
+            foreach (var container in allContainers)
             {
                 if (container == null || container.luaAssets.Count == 0) continue;
 

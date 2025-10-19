@@ -12,7 +12,7 @@ return {
     {["Sign"] = "#", ["ID"] = "5", ["Character"] = "测试NPC", ["PosAndOp"] = "right", ["Content"] = "你选择了选项1，现在测试多角色显示", ["NextID"] = "7", ["Func"] = "", ["Params"] = ""},
     {["Sign"] = "#", ["ID"] = "6", ["Character"] = "测试NPC;助手", ["PosAndOp"] = "left;right", ["Content"] = "你选择了选项2，现在显示两个角色", ["NextID"] = "8", ["Func"] = "", ["Params"] = ""},
     {["Sign"] = "#", ["ID"] = "7", ["Character"] = "测试NPC;助手", ["PosAndOp"] = "left&diff2;hide", ["Content"] = "测试角色隐藏和差分图切换", ["NextID"] = "9", ["Func"] = ">ShowSpecialEffect", ["Params"] = "effect1"},
-    {["Sign"] = "$", ["ID"] = "8", ["Character"] = "", ["PosAndOp"] = "", ["Content"] = "", ["NextID"] = "", ["Func"] = ">CheckCondition", ["Params"] = "10;11"},
+    {["Sign"] = "$", ["ID"] = "8", ["Character"] = "", ["PosAndOp"] = "", ["Content"] = "", ["NextID"] = "", ["Func"] = ">CheckCondition", ["Params"] = "10&11"},
     {["Sign"] = "#", ["ID"] = "9", ["Character"] = "测试NPC", ["PosAndOp"] = "left", ["Content"] = "测试结束，感谢参与", ["NextID"] = "END", ["Func"] = "", ["Params"] = ""},
     {["Sign"] = "#", ["ID"] = "10", ["Character"] = "助手", ["PosAndOp"] = "right", ["Content"] = "条件判断结果：分支A", ["NextID"] = "END", ["Func"] = ">PlaySound", ["Params"] = "soundA"},
     {["Sign"] = "#", ["ID"] = "11", ["Character"] = "助手", ["PosAndOp"] = "right", ["Content"] = "条件判断结果：分支B", ["NextID"] = "END", ["Func"] = ">PlaySound", ["Params"] = "soundB"}
