@@ -1,0 +1,34 @@
+﻿{
+    "Characters": {
+        "Item0": {
+            "ID": 1001,
+            "Name": "Warrior",
+            "Health": 150,
+            "Attack": 25,
+            "Defense": 10,
+            "Speed": 5.5,
+            "IsRanged": false,
+            "Skills": "Charge;Cleave"
+        },
+        "Item1": {
+            "ID": 1002,
+            "Name": "Archer",
+            "Health": 90,
+            "Attack": 18,
+            "Defense": 5,
+            "Speed": 7.2,
+            "IsRanged": true,
+            "Skills": "MultiShot;Stealth"
+        },
+        "Item2": {
+            "ID": 1003,
+            "Name": "Mage",
+            "Health": 80,
+            "Attack": 30,
+            "Defense": 3,
+            "Speed": 6,
+            "IsRanged": true,
+            "Skills": "Fireball;IceNova"
+        }
+    }
+}

@@ -1,0 +1,154 @@
+﻿{
+    "Root": [
+        {
+            "Sign": "#",
+            "ID": 0,
+            "Character": "小红",
+            "Position": "左",
+            "Content": "早上好，前辈",
+            "NextID": 1,
+            "Func": null,
+            "Parameter": null
+        },
+        {
+            "Sign": "#",
+            "ID": 1,
+            "Character": "小明",
+            "Position": "右",
+            "Content": "你好",
+            "NextID": 2,
+            "Func": null,
+            "Parameter": null
+        },
+        {
+            "Sign": "#",
+            "ID": 2,
+            "Character": "小红",
+            "Position": "左",
+            "Content": "您吃过早餐了吗？",
+            "NextID": "3;4;5",
+            "Func": null,
+            "Parameter": null
+        },
+        {
+            "Sign": "%",
+            "ID": 3,
+            "Character": null,
+            "Position": null,
+            "Content": "吃过了",
+            "NextID": 6,
+            "Func": null,
+            "Parameter": null
+        },
+        {
+            "Sign": "%",
+            "ID": 4,
+            "Character": null,
+            "Position": null,
+            "Content": "没吃过",
+            "NextID": 6,
+            "Func": null,
+            "Parameter": null
+        },
+        {
+            "Sign": "%",
+            "ID": 5,
+            "Character": null,
+            "Position": null,
+            "Content": "。。。。。。",
+            "NextID": 6,
+            "Func": null,
+            "Parameter": null
+        },
+        {
+            "Sign": "#",
+            "ID": 6,
+            "Character": "小红",
+            "Position": "左",
+            "Content": "不好意思，我没听清",
+            "NextID": 7,
+            "Func": null,
+            "Parameter": null
+        },
+        {
+            "Sign": "#",
+            "ID": 7,
+            "Character": "小红",
+            "Position": "左",
+            "Content": "您想到公园里走走吗",
+            "NextID": "8;9",
+            "Func": null,
+            "Parameter": null
+        },
+        {
+            "Sign": "%",
+            "ID": 8,
+            "Character": null,
+            "Position": null,
+            "Content": "好的，出去走走吧",
+            "NextID": 10,
+            "Func": "<ChangeLove",
+            "Parameter": "小红;5"
+        },
+        {
+            "Sign": "%",
+            "ID": 9,
+            "Character": null,
+            "Position": null,
+            "Content": "不了，我想去吃东西",
+            "NextID": 11,
+            "Func": "<CHangeHealth",
+            "Parameter": "小明;3"
+        },
+        {
+            "Sign": "#",
+            "ID": 10,
+            "Character": "小红",
+            "Position": "左",
+            "Content": "太好了，那我们一起去吧",
+            "NextID": 12,
+            "Func": null,
+            "Parameter": null
+        },
+        {
+            "Sign": "#",
+            "ID": 11,
+            "Character": "小红",
+            "Position": "左",
+            "Content": "那我们一起去食堂看看吧",
+            "NextID": 13,
+            "Func": ">ShowCanteen",
+            "Parameter": null
+        },
+        {
+            "Sign": "#",
+            "ID": 12,
+            "Character": "小明",
+            "Position": "右",
+            "Content": "等我带上头盔",
+            "NextID": "END",
+            "Func": null,
+            "Parameter": null
+        },
+        {
+            "Sign": "#",
+            "ID": 13,
+            "Character": "小明;小红",
+            "Position": "右;hide",
+            "Content": "最近比较喜欢吃苹果",
+            "NextID": 14,
+            "Func": null,
+            "Parameter": null
+        },
+        {
+            "Sign": "$",
+            "ID": 14,
+            "Character": null,
+            "Position": null,
+            "Content": null,
+            "NextID": null,
+            "Func": ">TurnTo",
+            "Parameter": "15;16;17"
+        }
+    ]
+}
