@@ -17,8 +17,20 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: dbf2c5c7a80d7d34695132ac3bdde14b
   m_SerializeEntries:
-  - m_GUID: ffd95a86239afba4f8b870b3e0147360
-    m_Address: Assets/AboutXLua/SO/LabelConfig
+  - m_GUID: 9270edc67bc19564ea89f136cf683452
+    m_Address: Assets/AboutXLua/SO/LabelConfig/Hotfix.asset
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - XLuaConfigs
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 276eef6c8e9f88545951af44f2803712
+    m_Address: Assets/AboutXLua/SO/LabelConfig/LuaCallCSharp.asset
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - XLuaConfigs
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a8688d7b8585b454cb58678508d8a564
+    m_Address: Assets/AboutXLua/SO/LabelConfig/CSharpCallLua.asset
     m_ReadOnly: 0
     m_SerializedLabels:
     - XLuaConfigs

@@ -41,6 +41,16 @@ public class DialogueFunctions : IDialogueFuncProvider
     [DialogueFunc("StartDialogue")]
     public static void StartDialogue(string fileName)
     {
+        Debug.Log($"启动新对话: {fileName}");
         
+        // 使用Lua环境启动新对话
+        var luaEnv = LuaEnvManager.Get();
+        if (luaEnv != null)
+        {
+            luaEnv.DoString($@"
+                local DialogueController = require('DialogueController')
+                DialogueController.Start('{fileName}')
+            ");
+        }
     }
 }

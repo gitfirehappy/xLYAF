@@ -1,0 +1,13 @@
+﻿Sign,ID,Character,PosAndOp,Content,NextID,Func,Params
+#,0,测试NPC,left,你好，这是一个测试对话，请点击继续,1,>TestImmediateFunc,param1
+#,1,测试NPC,left&diff1,现在测试选项功能，请选择一个选项,2;3;4,,
+%,2,,,选项1：继续剧情,5,<TestInteractiveFunc,option1
+%,3,,,选项2：跳转到条件分支,6,<TestInteractiveFunc,option2
+%,4,,,选项3：结束对话,END,<TestInteractiveFunc,option3
+#,5,测试NPC,right,你选择了选项1，现在测试多角色显示,7,,
+#,6,测试NPC;助手,left;right,你选择了选项2，现在显示两个角色,8,,
+#,7,测试NPC;助手,left&diff2;hide,测试角色隐藏和差分图切换,9,>ShowSpecialEffect,effect1
+$,8,,,,,>CheckCondition,10&11
+#,9,测试NPC,left,测试结束，感谢参与,END,>StartDialogue,TalkTest2
+#,10,助手,right,条件判断结果：分支A,END,>PlaySound,soundA
+#,11,助手,right,条件判断结果：分支B,END,>PlaySound,soundB

@@ -1,0 +1,8 @@
+﻿Sign,ID,Character,PosAndOp,Content,NextID,Func,Params
+#,0,助手,center,恭喜！你已成功进入TalkTest2对话,1,>PlaySound,success
+#,1,助手,center&diff1,这是连续对话测试，证明对话系统可以无缝衔接,2,,
+#,2,测试NPC;助手,left;right,现在测试多角色连续对话,3,,
+#,3,测试NPC,left&diff2,我的表情也变化了！,4,,
+#,4,助手,right&diff1,这证明对话系统运行正常,5,,
+#,5,测试NPC;助手,left;hide,现在隐藏助手角色,6,,
+#,6,测试NPC,center,连续对话测试完成！,END,>ShowSpecialEffect,complete

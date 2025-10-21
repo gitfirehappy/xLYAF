@@ -17,6 +17,9 @@ public static class XLuaConfig
         typeof(UnityEngine.Time),
         typeof(UnityEngine.Vector3),
         typeof(UnityEngine.Vector2),
+        typeof(UnityEngine.Collision2D),  
+        typeof(UnityEngine.Collider2D),   
+        typeof(UnityEngine.Rigidbody2D),  
         typeof(UnityEngine.Quaternion),
         typeof(UnityEngine.Debug),
         typeof(UnityEngine.Mathf),
@@ -25,6 +28,11 @@ public static class XLuaConfig
         typeof(System.Action<int>),
         typeof(System.Func<bool>),
 
+        // 常用框架方法
+        typeof(IBridge),
+        typeof(LuaBehaviour),
+        typeof(Physics2DBridge),
+        typeof(Collision2DBridge)
     };
 
     // C#调用Lua的静态基础类型

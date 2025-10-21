@@ -17,8 +17,8 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: d57f61b8b1ad7b84393a4b87597df433
   m_SerializeEntries:
-  - m_GUID: 16575e5e3d6204449b174cbdcfa347e7
-    m_Address: TalkTest
+  - m_GUID: ac15555336b76b04b9511c58a27e339e
+    m_Address: Assets/AboutXLua/Test/ConvertTestAssets/Lua/TalkTest1.lua
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaScripts
@@ -79,6 +79,13 @@ MonoBehaviour:
     m_SerializedLabels:
     - LuaScripts
     - Utils
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b040060e7bd838940b15dabe9d83a6e7
+    m_Address: Assets/AboutXLua/Test/ConvertTestAssets/Lua/TalkTest2.lua
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Text
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 170f3ccdb3bee544095a2f2b92d47c18, type: 2}
