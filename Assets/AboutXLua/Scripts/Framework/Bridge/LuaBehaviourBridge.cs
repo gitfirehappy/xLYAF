@@ -17,7 +17,7 @@ public class LuaBehaviour : MonoBehaviour
     {
         var env = LuaEnvManager.Get();
         var script = env.DoString($"return require('{luaScriptName}')")[0] as LuaTable;
-        luaInstance = script.Get<LuaFunction>("New").Call(this)[0] as LuaTable;
+        luaInstance = script.Get<LuaFunction>("New").Call(this.gameObject)[0] as LuaTable;
 
         // 获取所有生命周期函数
         onEnableFunc = luaInstance.Get<LuaFunction>("OnEnable");
@@ -30,6 +30,10 @@ public class LuaBehaviour : MonoBehaviour
 
         // 初始化桥接组件
         InitializeBridges();
+        
+        // 手动触发 Lua Awake
+        var awakeFunc = luaInstance.Get<LuaFunction>("Awake");
+        awakeFunc?.Call(luaInstance);
     }
 
     void Start()

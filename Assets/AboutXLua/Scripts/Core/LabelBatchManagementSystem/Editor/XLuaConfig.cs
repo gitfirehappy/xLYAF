@@ -6,10 +6,10 @@ using XLua;
 
 public static class XLuaConfig
 {
-    // Lua调用C#的静态基础类型
     [LuaCallCSharp]
-    public static List<Type> LuaCallCSharp = new List<Type>()
+    public static List<Type> LuaCallCSharp = new()
     {
+        // 常用基础静态类型
         typeof(UnityEngine.Object),
         typeof(UnityEngine.GameObject),
         typeof(UnityEngine.Transform),
@@ -23,6 +23,8 @@ public static class XLuaConfig
         typeof(UnityEngine.Quaternion),
         typeof(UnityEngine.Debug),
         typeof(UnityEngine.Mathf),
+        typeof(UnityEngine.LayerMask),
+        typeof(UnityEngine.Color),
         typeof(System.Collections.Generic.List<int>),
         typeof(System.Action),
         typeof(System.Action<int>),
@@ -32,13 +34,14 @@ public static class XLuaConfig
         typeof(IBridge),
         typeof(LuaBehaviour),
         typeof(Physics2DBridge),
-        typeof(Collision2DBridge)
+        typeof(Collision2DBridge),
+        typeof(InputBridge),
     };
-
-    // C#调用Lua的静态基础类型
+    
     [CSharpCallLua]
     public static List<Type> CSharpCallLua = new List<Type>()
     {
+        // 常用基础静态类型
         typeof(System.Action),
         typeof(System.Action<int>),
         typeof(System.Action<string>),

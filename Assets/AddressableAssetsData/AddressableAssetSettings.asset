@@ -95,6 +95,7 @@ MonoBehaviour:
     - Core
     - Utils
     - Text
+    - Player
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: b2541223116770447a3da6d418729a76, type: 2}

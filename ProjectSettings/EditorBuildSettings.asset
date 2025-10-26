@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 2cda990e2423bbf4892e6590ba056729
+    path: Assets/Scenes/Xlua/TestDialogue.unity
+    guid: a75a703a20f47b1408e0e62f4db3048a
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: b3140e9b8fe4aff42b336ede0cb0c9a5, type: 2}

@@ -18,7 +18,7 @@ MonoBehaviour:
   m_GUID: d57f61b8b1ad7b84393a4b87597df433
   m_SerializeEntries:
   - m_GUID: ac15555336b76b04b9511c58a27e339e
-    m_Address: Assets/AboutXLua/Test/ConvertTestAssets/Lua/TalkTest1.lua
+    m_Address: TalkTest1
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaScripts
@@ -81,11 +81,18 @@ MonoBehaviour:
     - Utils
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b040060e7bd838940b15dabe9d83a6e7
-    m_Address: Assets/AboutXLua/Test/ConvertTestAssets/Lua/TalkTest2.lua
+    m_Address: TalkTest2
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaScripts
     - Text
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8c0c927a6c9b8594db8c002031a6af06
+    m_Address: PlayerController
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Player
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 170f3ccdb3bee544095a2f2b92d47c18, type: 2}

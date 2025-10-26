@@ -3,30 +3,26 @@ using System.Collections.Generic;
 using UnityEngine;
 using XLua;
 
-
 public class Physics2DBridge : MonoBehaviour,IBridge
 {
     public Rigidbody2D rb;
-    public float groundCheckRadius = 0.2f;
-    public Vector2 groundCheckOffset = Vector2.zero;
-    public LayerMask groundLayerMask = 1; // 默认层
-    
-    [Header("Debug")]
-    public bool showGizmos = true;
-    public Color gizmoColor = Color.green;
     
     public void Initialize(LuaTable luaInstance)
     {
-        Initialize();
-    }
-    
-    public void Initialize()
-    {
         rb = GetComponent<Rigidbody2D>();
-        if (groundLayerMask == 0)
-            groundLayerMask = LayerMask.GetMask("Ground");
     }
 
+    #region 层设置
+
+    public void SetLayer(string[] layerName)
+    {
+        rb.gameObject.layer = LayerMask.NameToLayer(layerName[0]);
+    }
+
+    #endregion
+
+    #region 物理控制
+    
     public void ApplyVelocity(Vector2 velocity)
     {
         rb.velocity = new Vector2(velocity.x, rb.velocity.y);
@@ -102,6 +98,8 @@ public class Physics2DBridge : MonoBehaviour,IBridge
     {
         rb.mass = mass;
     }
+    
+    #endregion
 
     #region 检测
     
@@ -120,21 +118,6 @@ public class Physics2DBridge : MonoBehaviour,IBridge
     {
         Vector2 checkPosition = (Vector2)transform.position + offset;
         return Physics2D.OverlapBoxAll(checkPosition, size, angle, LayerMask.GetMask(layerMask));
-    }
-    
-    public bool IsGrounded()
-    {
-        Vector2 checkPosition = (Vector2)transform.position + groundCheckOffset;
-        return Physics2D.OverlapCircle(checkPosition, groundCheckRadius, groundLayerMask);
-    }
-    
-    void OnDrawGizmosSelected()
-    {
-        if (!showGizmos) return;
-
-        Gizmos.color = gizmoColor;
-        Vector2 checkPosition = (Vector2)transform.position + groundCheckOffset;
-        Gizmos.DrawWireSphere(checkPosition, groundCheckRadius);
     }
     
     #endregion

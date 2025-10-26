@@ -1,0 +1,98 @@
+PlayerController = {}
+
+function PlayerController.New(go)
+    local obj = {}
+    setmetatable(obj, { __index = PlayerController })
+    obj.gameObject = go
+    obj.transform = go.transform
+    
+    obj.physics = go:GetComponent("Physics2DBridge")
+    obj.collision = go:GetComponent("Collision2DBridge")
+    obj.input = go:GetComponent("InputBridge")
+    obj.gizmos = go:GetComponent("GizmosBridge")
+
+
+    -- 玩家属性
+    obj.moveSpeed = 5.0
+    obj.jumpForce = 16.0
+    obj.groundCheckOffset = CS.UnityEngine.Vector2(0, -1)
+    obj.groundCheckRadius = 0.2
+    obj.isGrounded = false
+    obj.facingRight = true
+
+    return obj
+end
+
+function PlayerController:Awake()
+    self.physics:SetGravityScale(4)
+    CS.UnityEngine.Debug.Log("PlayerController Awake")
+end 
+
+function PlayerController:Start()
+    -- 设置输入源
+    local playerInput = self.gameObject:GetComponent("PlayerInput")
+    self.input:SetInputSource(playerInput)
+
+    -- 绑定输入事件
+    self.input:BindAction("Player/Jump", "started", self.Jump)
+end
+
+function PlayerController:FixedUpdate()
+    self:Move()
+    self:GroundCheck()
+end
+
+function PlayerController:Move()
+    -- 读取移动输入
+    local moveInput = self.input:GetVector2("Player/Move")
+    local velocityX = moveInput.x * self.moveSpeed
+
+    -- 应用水平速度，保持垂直速度不变
+    self.physics:ApplyVelocity(CS.UnityEngine.Vector2(velocityX, self.physics:GetVelocity().y))
+
+    -- 转向处理
+    if moveInput.x > 0 and not self.facingRight then
+        self:Flip()
+    elseif moveInput.x < 0 and self.facingRight then
+        self:Flip()
+    end
+end
+
+function PlayerController:Flip()
+    self.facingRight = not self.facingRight
+    local scale = self.transform.localScale
+    self.transform.localScale = CS.UnityEngine.Vector3(-scale.x, scale.y, scale.z)
+end
+
+function PlayerController:Jump()
+    if self.isGrounded then
+        self.physics:ApplyImpulse(CS.UnityEngine.Vector2.up,self.jumpForce)
+        CS.UnityEngine.Debug.Log("Jump")
+    end
+end
+
+function PlayerController:GroundCheck()
+    local colliders = self.physics:OverlapCircleAll(
+            self.groundCheckOffset,  -- 检测位置偏移
+            self.groundCheckRadius,  -- 检测半径
+            "Ground"           -- 地面层
+    )
+    self.isGrounded = colliders.Length > 0
+end
+
+function PlayerController:OnDrawGizmos()
+    -- 计算地面检测的世界坐标
+    local checkPosition = self.transform.position + CS.UnityEngine.Vector3(self.groundCheckOffset.x, self.groundCheckOffset.y, 0)
+
+    -- 根据是否接地设置不同颜色（接地绿色，未接地红色）
+    local color = self.isGrounded and CS.UnityEngine.Color.green or CS.UnityEngine.Color.red
+
+    -- 绘制地面检测范围的线框球体
+    self.gizmos:DrawWireSphere(checkPosition, self.groundCheckRadius, color)
+end
+
+function PlayerController:OnDestroy()
+    CS.UnityEngine.Debug.Log("PlayerController OnDestroy")
+end
+
+return PlayerController

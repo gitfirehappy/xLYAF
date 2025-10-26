@@ -21,10 +21,10 @@ public class GameUIManager : SingletonMono<GameUIManager>
         UIManager.Instance.ShowUIForm<DialoguePanel>();
         
         // LuaEnvManager获取Env开启第一段对话
-        _luaEnv.DoString($@"
-            local DialogueController = require('DialogueController')
-            DialogueController.Start('{firstDialogueFileName}')
-        ");
+         _luaEnv.DoString($@"
+             local DialogueController = require('DialogueController')
+             DialogueController.Start('{firstDialogueFileName}')
+         ");
         
         Debug.Log("=== GameUIManager: Init ===");
     }
