@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using XLua;
@@ -11,9 +12,19 @@ public class InputBridge : MonoBehaviour, IBridge
     private Dictionary<string, InputAction> actionCache = new();
     private Dictionary<InputAction, Dictionary<string, LuaFunction>> luaCallbacks = new();
     
-    public void Initialize(LuaTable luaTable)
+    public async Task InitializeAsync(LuaTable luaTable)
     {
         luaInstance = luaTable;
+        var playerInput = GetComponent<PlayerInput>();
+        if (playerInput != null)
+        {
+            SetInputSource(playerInput);
+        }
+        else
+        {
+            Debug.LogWarning($"[InputBridge] No PlayerInput component found on {gameObject.name}. " +
+                             $"Input will not work unless SetInputSource is called manually.");
+        }
     }
     
     /// <summary>

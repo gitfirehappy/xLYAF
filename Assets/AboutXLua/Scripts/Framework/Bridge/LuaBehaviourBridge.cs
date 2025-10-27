@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using XLua;
 
@@ -12,8 +13,26 @@ public class LuaBehaviour : MonoBehaviour
     private LuaFunction onDestroyFunc;
 
     private List<IBridge> bridges = new List<IBridge>();
+    private bool isInitialized = false;
+    private bool areBridgesReady = false;
     
-    void Awake()
+    async void Awake()
+    {
+        await LaunchSignal.WaitForLaunch();
+        
+        try
+        {
+            await InitializeLuaInstance();
+            isInitialized = true;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"LuaBehaviour初始化失败: {e.Message}");
+            enabled = false; // 初始化失败则禁用组件
+        }
+    }
+
+    private async Task InitializeLuaInstance()
     {
         var env = LuaEnvManager.Get();
         var script = env.DoString($"return require('{luaScriptName}')")[0] as LuaTable;
@@ -27,59 +46,85 @@ public class LuaBehaviour : MonoBehaviour
         fixedUpdateFunc = luaInstance.Get<LuaFunction>("FixedUpdate");
         lateUpdateFunc = luaInstance.Get<LuaFunction>("LateUpdate");
         onDestroyFunc = luaInstance.Get<LuaFunction>("OnDestroy");
-
+        
         // 初始化桥接组件
-        InitializeBridges();
+        await InitializeBridges();
+        areBridgesReady = true;
         
         // 手动触发 Lua Awake
         var awakeFunc = luaInstance.Get<LuaFunction>("Awake");
         awakeFunc?.Call(luaInstance);
+        
+        // 手动触发 Lua Start
+        startFunc?.Call(luaInstance);
     }
 
     void Start()
     {
-        startFunc?.Call(luaInstance);
+        if (areBridgesReady)
+        {
+            startFunc?.Call(luaInstance);
+        }
     }
     
     void OnEnable()
     {
-        onEnableFunc?.Call(luaInstance);
+        if (areBridgesReady)
+        {
+            onEnableFunc?.Call(luaInstance);
+        }
     }
 
     void OnDisable()
     {
-        onDisableFunc?.Call(luaInstance);
+        if (areBridgesReady)
+        {
+            onDisableFunc?.Call(luaInstance);
+        }
     }
 
     void Update()
     {
-        updateFunc?.Call(luaInstance, Time.deltaTime);
+        if (isInitialized && areBridgesReady)
+        {
+            updateFunc?.Call(luaInstance, Time.deltaTime);
+        }
     }
     
     void FixedUpdate()
     {
-        fixedUpdateFunc?.Call(luaInstance, Time.fixedDeltaTime);
+        if (isInitialized && areBridgesReady)
+        {
+            fixedUpdateFunc?.Call(luaInstance, Time.fixedDeltaTime);
+        }
     }
     
     void LateUpdate()
     {
-        lateUpdateFunc?.Call(luaInstance);
+        if (isInitialized && areBridgesReady)
+        {
+            lateUpdateFunc?.Call(luaInstance);
+        }
     }
     
-    private void InitializeBridges()
+    private async Task InitializeBridges()
     {
         // 获取当前GameObject上所有桥接组件
         var bridgeComponents = GetComponents<IBridge>();
         foreach (var bridge in bridgeComponents)
         {
-            bridge.Initialize(luaInstance);
+            await bridge.InitializeAsync(luaInstance);
             bridges.Add(bridge);
+            Debug.Log($"Bridge initialized: {bridge.GetType().Name}");
         }
     }
     
     void OnDestroy()
     {
-        onDestroyFunc?.Call(luaInstance);
+        if (areBridgesReady)
+        {
+            onDestroyFunc?.Call(luaInstance);
+        }
         
         // 清理Lua引用
         onEnableFunc?.Dispose();

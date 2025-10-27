@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using UnityEngine;
 using XLua;
 
@@ -9,7 +10,7 @@ public class Collision2DBridge : MonoBehaviour,IBridge
     private LuaFunction onTriggerEnterFunc, onTriggerExitFunc;
     private LuaFunction onCollisionStayFunc, onTriggerStayFunc;
     
-    public void Initialize(LuaTable luaTable)
+    public async Task InitializeAsync(LuaTable luaTable)
     {
         luaInstance = luaTable;
         

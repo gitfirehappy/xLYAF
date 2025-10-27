@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class GameLauncher : MonoBehaviour
 {
+    public static bool IsReady { get; private set; }
+    
     [Header("XLua Configuration")]
     [Tooltip("Addressables标签名，用于加载XLua类型配置")]
     public string xluaConfigLabel = XluaTypeConfigLoader.DefaultConfigLabel;
@@ -22,29 +24,41 @@ public class GameLauncher : MonoBehaviour
     
     async void Awake()
     {
-        await BootPhase();
-        await InitPhase();
-        await StartPhase();
+        try
+        {
+            await BootPhase();
+            await InitPhase();
+            await StartPhase();
         
-        LaunchSignal.NotifyLaunched();
-        Debug.Log("=== GameLauncher: All System ready ===");
+            LaunchSignal.NotifyLaunched();
+            IsReady = true;
+            Debug.Log("=== GameLauncher: All System ready ===");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"GameLauncher failed: {e}");
+            
+        }
     }
 
     private async Task BootPhase()
     {
         Debug.Log("=== Boot Phase ===");
         
-        XluaTypeConfigLoader.Init(xluaConfigLabel);
+        // xlua标签管理初始化
+        await XluaTypeConfigLoader.InitAsync(xluaConfigLabel);
         
+        // 创建Lua环境
         LuaEnvManager.CreateNewEnv();
         
+        // Lua加载器加载lua脚本
         var loaderOptions = new XLuaLoader.Options
         {
             mode = loaderMode,
             editorRoots = editorRoots,
             aaLabels = aaLabels,
         };
-        XLuaLoader.SetupAndRegister(LuaEnvManager.Get(), loaderOptions);
+        await XLuaLoader.SetupAndRegister(LuaEnvManager.Get(), loaderOptions);
 
         await Task.CompletedTask;
     }
@@ -52,6 +66,8 @@ public class GameLauncher : MonoBehaviour
     private async Task InitPhase()
     {
         Debug.Log("=== Init Phase ===");
+        
+        // 常用模块初始化
         LuaModuleRegistry.Initialize();
 
         await Task.CompletedTask;
@@ -61,8 +77,10 @@ public class GameLauncher : MonoBehaviour
     {
         Debug.Log("=== Start Phase ===");
         
+        // 对话功能注册
         DialogueFuncRegistry.ScanAndRegister();
         
+        // UI初始化
         GameUIManager.Instance.Initialize();
         
         await Task.CompletedTask;

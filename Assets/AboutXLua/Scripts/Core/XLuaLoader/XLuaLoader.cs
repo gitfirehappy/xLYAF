@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceLocations;
@@ -24,17 +25,27 @@ public static class XLuaLoader
         public List<string> extensions = new() { ".lua", ".lua.txt", ".bytes" }; // 扩展名
     }
     
+    // 添加缓存，避免重复加载
+    private static readonly Dictionary<string, TextAsset> _luaCache = new();
+    private static bool _isPreloaded = false;
+    
     #region 对外API
 
     /// <summary>
     /// 初始化并注册到指定 LuaEnv 的 AddLoader
     /// </summary>
-    public static void SetupAndRegister(LuaEnv env, Options options = null)
+    public static async Task SetupAndRegister(LuaEnv env, Options options = null)
     {
         if (env == null) throw new ArgumentNullException(nameof(env));
         var opt = options ?? new Options();
         
-        // 创建精简的Loader函数
+        // 预加载所有Lua脚本到缓存
+        if (!_isPreloaded && opt.mode != Mode.EditorOnly)
+        {
+            await PreloadLuaScriptsAsync(opt);
+            _isPreloaded = true;
+        }
+        
         env.AddLoader((ref string filepath) => 
         {
             string key = NormalizeModuleKey(filepath);
@@ -46,10 +57,11 @@ public static class XLuaLoader
                 TryReadFromEditor(opt, key, ref bytes);
             }
             
-            // 2) 尝试Addressables
-            if (bytes == null && opt.mode != Mode.EditorOnly)
+            // 2) 尝试缓存
+            if (bytes == null && _luaCache.TryGetValue(key, out var textAsset))
             {
-                TryReadFromAddressables(opt, key, ref bytes);
+                bytes = textAsset.bytes;
+                Debug.Log($"Cache hit: {key}");
             }
             
             if (bytes == null) 
@@ -94,7 +106,43 @@ public static class XLuaLoader
     }
     
     /// <summary>
-    /// 读 Addressables（同步）-- 纯标签扫描方案
+    /// 异步预加载Lua脚本
+    /// </summary>
+    private static async Task PreloadLuaScriptsAsync(Options opt)
+    {
+        var tasks = new List<Task>();
+        
+        foreach (var label in opt.aaLabels)
+        {
+            try
+            {
+                Debug.Log($"Preloading Lua scripts for label: {label}");
+                var loadHandle = Addressables.LoadAssetsAsync<TextAsset>(label, null);
+                var assets = await loadHandle.Task;
+                
+                foreach (var asset in assets)
+                {
+                    if (asset != null)
+                    {
+                        string key = Path.GetFileNameWithoutExtension(asset.name);
+                        _luaCache[key] = asset;
+                        Debug.Log($"Preloaded: {key}");
+                    }
+                }
+                
+                Addressables.Release(loadHandle);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to preload label '{label}': {e}");
+            }
+        }
+        
+        await Task.WhenAll(tasks);
+    }
+    
+    /// <summary>
+    /// 读 Addressables（同步）-- 打包后可能出现问题
     /// </summary>
     private static void TryReadFromAddressables(Options opt, string key, ref byte[] bytes)
     {

@@ -29,12 +29,9 @@ function PlayerController:Awake()
 end 
 
 function PlayerController:Start()
-    -- 设置输入源
-    local playerInput = self.gameObject:GetComponent("PlayerInput")
-    self.input:SetInputSource(playerInput)
-
     -- 绑定输入事件
     self.input:BindAction("Player/Jump", "started", self.Jump)
+    CS.UnityEngine.Debug.Log("Jump has Bound")
 end
 
 function PlayerController:FixedUpdate()

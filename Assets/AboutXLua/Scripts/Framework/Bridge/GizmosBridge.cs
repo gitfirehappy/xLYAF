@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using UnityEngine;
 using XLua;
 
@@ -7,7 +8,7 @@ public class GizmosBridge : MonoBehaviour, IBridge
     private LuaFunction drawGizmosFunc;
     private LuaFunction drawGizmosSelectedFunc;
 
-    public void Initialize(LuaTable luaTable)
+    public async Task InitializeAsync(LuaTable luaTable)
     {
         luaInstance = luaTable;
         

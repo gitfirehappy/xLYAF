@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -28,7 +29,7 @@ public static class XluaTypeConfigLoader
     /// 初始化加载配置（核心层启动时调用）
     /// </summary>
     /// /// <param name="configLabel">Addressables标签名，默认为"XLuaConfigs"</param>
-    public static void Init(string configLabel = DefaultConfigLabel)
+    public static async Task InitAsync(string configLabel = DefaultConfigLabel)
     {
         Debug.Log("Initializing type lists...");
 
@@ -41,15 +42,13 @@ public static class XluaTypeConfigLoader
         CSharpCallLuaMembers = new List<MemberInfo>();
 
         // 2. 使用Addressables加载所有 TypeListSO
-        // 注意：这里使用 WaitForCompletion() 是为了在游戏启动初期进行同步加载
-        // 如果启动流程是异步的，或者Addressables初始化在更早阶段完成，
-        // 可以将其改为异步加载并等待直到完成。
+        // 注意：此处要改为异步
         AsyncOperationHandle<IList<TypeMemberListSO>> loadHandle = Addressables.LoadAssetsAsync<TypeMemberListSO>(configLabel, null);
         IList<TypeMemberListSO> allConfigs;
 
         try
         {
-            allConfigs = loadHandle.WaitForCompletion(); // 同步等待加载完成
+            allConfigs = await loadHandle.Task; 
         }
         catch (Exception ex)
         {

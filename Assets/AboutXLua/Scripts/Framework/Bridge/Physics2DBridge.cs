@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using XLua;
 
@@ -7,7 +8,7 @@ public class Physics2DBridge : MonoBehaviour,IBridge
 {
     public Rigidbody2D rb;
     
-    public void Initialize(LuaTable luaInstance)
+    public async Task InitializeAsync(LuaTable luaInstance)
     {
         rb = GetComponent<Rigidbody2D>();
     }

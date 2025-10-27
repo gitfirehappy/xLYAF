@@ -47,7 +47,7 @@ public class XLuaConfigTester : MonoBehaviour
         Debug.Log("=== 开始XLua配置测试 ===");
         
         // 初始化加载器
-        XluaTypeConfigLoader.Init(configLabel);
+        XluaTypeConfigLoader.InitAsync(configLabel);
         
         // 获取类型统计
         hotfixTypeCount = XluaTypeConfigLoader.HotfixTypes?.Count ?? 0;
