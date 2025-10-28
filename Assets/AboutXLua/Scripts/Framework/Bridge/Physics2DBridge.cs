@@ -11,6 +11,7 @@ public class Physics2DBridge : MonoBehaviour,IBridge
     public async Task InitializeAsync(LuaTable luaInstance)
     {
         rb = GetComponent<Rigidbody2D>();
+        await Task.CompletedTask;
     }
 
     #region 层设置

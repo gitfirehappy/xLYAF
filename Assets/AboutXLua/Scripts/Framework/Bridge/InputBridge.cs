@@ -22,9 +22,9 @@ public class InputBridge : MonoBehaviour, IBridge
         }
         else
         {
-            Debug.LogWarning($"[InputBridge] No PlayerInput component found on {gameObject.name}. " +
-                             $"Input will not work unless SetInputSource is called manually.");
+            Debug.LogWarning($"[InputBridge] 没有在 {gameObject.name} 找到 PlayerInput 或 InputActionAsset.");
         }
+        await Task.CompletedTask;
     }
     
     /// <summary>

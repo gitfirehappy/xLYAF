@@ -157,7 +157,7 @@ public class DialoguePanel : UIFormBase
         var characterConfig = characterImages.Find(c => c.Name == characterName);
         if (characterConfig == null)
         {
-            Debug.LogWarning($"未找到角色配置: {characterName}");
+            Debug.LogWarning($"[DialoguePanel] 未找到角色配置: {characterName}");
             return;
         }
         
@@ -165,7 +165,7 @@ public class DialoguePanel : UIFormBase
         var posConfig = characterPos.Find(p => p.pos.ToLower() == pos.ToLower());
         if (posConfig == null || posConfig.transform == null)
         {
-            Debug.LogWarning($"未找到位置配置: {pos}");
+            Debug.LogWarning($"[DialoguePanel] 未找到位置配置: {pos}");
             return;
         }
         
@@ -198,7 +198,7 @@ public class DialoguePanel : UIFormBase
         var characterConfig = characterImages.Find(c => c.Name == characterName);
         if (characterConfig == null)
         {
-            Debug.LogWarning($"未找到角色配置: {characterName}");
+            Debug.LogWarning($"[DialoguePanel] 未找到角色配置: {characterName}");
             return;
         }
         
@@ -302,7 +302,7 @@ public class DialoguePanel : UIFormBase
         // 校验父对象是否设置
         if (characterImageParent == null)
         {
-            Debug.LogError("未设置CharacterImageParent，请在Inspector中指定角色图片父对象");
+            Debug.LogError("[DialoguePanel] 未设置CharacterImageParent，请在Inspector中指定角色图片父对象");
             return null;
         }
         
@@ -369,5 +369,4 @@ public class DialoguePanel : UIFormBase
         positionOccupancy.Clear();
     }
     
-    // 普通语句点击面板跳转下一句IPointerClickHandler接口经LuaUIEventBridge转接后由lua端实现
 }

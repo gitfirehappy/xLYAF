@@ -10,20 +10,20 @@ public static class LuaEnvManager
     {
         Dispose(); // 清理现有环境
         _env = new LuaEnv();
-        Debug.Log("Created new Lua environment");
+        Debug.Log("[LuaEnvManager] 创建新的LuaEnv");
     }
 
     public static void Set(LuaEnv env)
     {
         Dispose(); // 清理现有环境
         _env = env;
-        Debug.Log("Set existing Lua environment");
+        Debug.Log("[LuaEnvManager] 设置LuaEnv");
     }
 
     public static LuaEnv Get()
     {
         if (_env == null)
-            throw new Exception("LuaEnv has not been initialized. Call CreateNewEnv() or Set() first.");
+            throw new Exception("[LuaEnvManager] LuaEnv未设置或未创建. Call CreateNewEnv() or Set() first.");
         return _env;
     }
 
@@ -35,7 +35,7 @@ public static class LuaEnvManager
         {
             _env.Dispose();
             _env = null;
-            Debug.Log("Disposed Lua environment");
+            Debug.Log("[LuaEnvManager] Disposed LuaEnv");
         }
     }
 }

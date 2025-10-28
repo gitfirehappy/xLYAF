@@ -1,6 +1,5 @@
 local DialogueView = {}
 local stringUtil = require("StringUtil")
-local uiEventUtils = require("UIEventUtils")
 
 -- UI组件引用
 local uiRefs = {
@@ -22,21 +21,13 @@ local function InitUI()
     uiRefs.optionsParent = uiRefs.panel.optionsParent
     uiRefs.contentText = uiRefs.panel.contentText
     uiRefs.characterNameText = uiRefs.panel.characterNameText
-
-    -- 绑定普通对话点击面板下一句回调
-    if uiRefs.panel then
-        CS.UnityEngine.Debug.Log("开始绑定点击事件...")
-        
-        uiEventUtils.BindClick(uiRefs.panel.gameObject, function(_, eventData)
-            -- 点击对话面板时触发Next
-            CS.UnityEngine.Debug.Log("对话面板被点击，触发Next")
-            getController().Next()
-        end)
-
-        CS.UnityEngine.Debug.Log("点击事件绑定完成")
-    end
     
     DialogueView.HideOptions()
+end
+
+function DialogueView:OnPointerClick(eventData)
+    CS.UnityEngine.Debug.Log("对话面板被点击，触发Next")
+    getController().Next()
 end
 
 -- 显示对话面板

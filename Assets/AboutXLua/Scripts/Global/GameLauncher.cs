@@ -32,18 +32,17 @@ public class GameLauncher : MonoBehaviour
         
             LaunchSignal.NotifyLaunched();
             IsReady = true;
-            Debug.Log("=== GameLauncher: All System ready ===");
+            Debug.Log("[GameLauncher] 所有系统启动完毕");
         }
         catch (Exception e)
         {
-            Debug.LogError($"GameLauncher failed: {e}");
-            
+            Debug.LogError($"[GameLauncher] failed: {e}");
         }
     }
 
     private async Task BootPhase()
     {
-        Debug.Log("=== Boot Phase ===");
+        Debug.Log("[GameLauncher] === Boot Phase ===");
         
         // xlua标签管理初始化
         await XluaTypeConfigLoader.InitAsync(xluaConfigLabel);
@@ -65,7 +64,7 @@ public class GameLauncher : MonoBehaviour
     
     private async Task InitPhase()
     {
-        Debug.Log("=== Init Phase ===");
+        Debug.Log("[GameLauncher] === Init Phase ===");
         
         // 常用模块初始化
         LuaModuleRegistry.Initialize();
@@ -75,7 +74,7 @@ public class GameLauncher : MonoBehaviour
     
     private async Task StartPhase()
     {
-        Debug.Log("=== Start Phase ===");
+        Debug.Log("[GameLauncher] === Start Phase ===");
         
         // 对话功能注册
         DialogueFuncRegistry.ScanAndRegister();

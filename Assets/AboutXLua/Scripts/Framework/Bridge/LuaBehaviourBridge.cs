@@ -4,9 +4,18 @@ using UnityEngine;
 using XLua;
 
 
-public class LuaBehaviour : MonoBehaviour
+public class LuaBehaviourBridge : MonoBehaviour
 {
+    public enum LuaScriptMode
+    {
+        Class,  // 需要 New() 函数
+        Module  // 脚本本身就是实例
+    }
+    
     public string luaScriptName;
+    public TextAsset luaScript;
+    public LuaScriptMode luaScriptMode = LuaScriptMode.Class;
+    
     private LuaTable luaInstance;
     private LuaFunction onEnableFunc, onDisableFunc;
     private LuaFunction startFunc, updateFunc, fixedUpdateFunc, lateUpdateFunc;
@@ -27,7 +36,7 @@ public class LuaBehaviour : MonoBehaviour
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"LuaBehaviour初始化失败: {e.Message}");
+            Debug.LogError($"[LuaBehaviourBridge] 初始化失败: {e.Message}");
             enabled = false; // 初始化失败则禁用组件
         }
     }
@@ -35,8 +44,36 @@ public class LuaBehaviour : MonoBehaviour
     private async Task InitializeLuaInstance()
     {
         var env = LuaEnvManager.Get();
-        var script = env.DoString($"return require('{luaScriptName}')")[0] as LuaTable;
-        luaInstance = script.Get<LuaFunction>("New").Call(this.gameObject)[0] as LuaTable;
+        string nameToLoad = !string.IsNullOrEmpty(luaScriptName) ? luaScriptName : luaScript?.name;
+        
+        if (string.IsNullOrEmpty(nameToLoad))
+        {
+            Debug.LogError("[LuaBehaviourBridge] 没有lua脚本名称!");
+            return;
+        }
+        
+        var script = env.DoString($"return require('{nameToLoad}')")[0] as LuaTable;
+
+        if (luaScriptMode == LuaScriptMode.Class)
+        {
+            var newFunc = script.Get<LuaFunction>("New");
+            if (newFunc != null)
+            {
+                // 1. 类模式 (Class Pattern): Lua 脚本有 "New" 函数
+                Debug.Log($"[LuaBehaviourBridge] 作为Class初始化 '{nameToLoad}'");
+                luaInstance = newFunc.Call(this.gameObject)[0] as LuaTable;
+                newFunc.Dispose();
+            }
+        }
+        else
+        {
+            // 2. 模块模式 (Module Pattern): Lua 脚本没有 "New" 函数，luaInstance 就是脚本本身
+            Debug.Log($"[LuaBehaviourBridge] 作为Module初始化 '{nameToLoad}'");
+            luaInstance = script;
+            // 为模块注入 GameObject 引用，以便在 Lua 中（如果需要）访问
+            luaInstance.Set("gameObject", this.gameObject);
+            luaInstance.Set("transform", this.transform);
+        }
 
         // 获取所有生命周期函数
         onEnableFunc = luaInstance.Get<LuaFunction>("OnEnable");
@@ -115,7 +152,7 @@ public class LuaBehaviour : MonoBehaviour
         {
             await bridge.InitializeAsync(luaInstance);
             bridges.Add(bridge);
-            Debug.Log($"Bridge initialized: {bridge.GetType().Name}");
+            Debug.Log($"[LuaBehaviourBridge] Bridge层初始化: {bridge.GetType().Name}");
         }
     }
     

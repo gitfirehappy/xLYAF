@@ -437,8 +437,8 @@ GameObject:
   - component: {fileID: 1620061543}
   - component: {fileID: 1620061540}
   - component: {fileID: 1620061546}
-  - component: {fileID: 1620061545}
   - component: {fileID: 1620061544}
+  - component: {fileID: 1620061548}
   - component: {fileID: 1620061547}
   m_Layer: 0
   m_Name: Player
@@ -527,6 +527,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   luaScriptName: PlayerController
+  luaScript: {fileID: 4900000, guid: 8c0c927a6c9b8594db8c002031a6af06, type: 3}
 --- !u!50 &1620061541
 Rigidbody2D:
   serializedVersion: 4
@@ -631,18 +632,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84851543c1182294995c351b448d5546, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1620061545
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1620061537}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84869ab9c9c816a4680106214a269cda, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1620061546
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -666,6 +655,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8fbe3206df7c45d4aace6e1222247592, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1620061548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1620061537}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84869ab9c9c816a4680106214a269cda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1730917222

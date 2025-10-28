@@ -1,9 +1,10 @@
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using XLua;
 
 [LuaCallCSharp]
-public class LuaUIEventBridge : MonoBehaviour,
+public class UIEventBridge : MonoBehaviour, IBridge,
     IPointerClickHandler,
     IPointerDownHandler,
     IPointerUpHandler,
@@ -14,15 +15,21 @@ public class LuaUIEventBridge : MonoBehaviour,
     IEndDragHandler,
     IScrollHandler
 {
-    public LuaTable luaTable; // Lua对象（需设置）
+    private LuaTable luaInstance; // 从IBridge初始化传入
 
+    public async Task InitializeAsync(LuaTable luaInstance)
+    {
+        this.luaInstance = luaInstance;
+        await Task.CompletedTask;
+    }
+    
     private void CallLua(string methodName, BaseEventData data)
     {
-        if (luaTable == null) return;
-        var func = luaTable.Get<LuaFunction>(methodName);
+        if (luaInstance == null) return;
+        var func = luaInstance.Get<LuaFunction>(methodName);
         if (func != null)
         {
-            func.Call(luaTable, data); // self + 参数
+            func.Call(luaInstance, data); // self + 参数
         }
     }
 

@@ -17,5 +17,4 @@ MonoBehaviour:
   - LuaScripts
   - Utils
   luaAssets:
-  - {fileID: 4900000, guid: cd02d9ac752b2cb4cb7730975fbc215f, type: 3}
   - {fileID: 4900000, guid: 7573012e67161e3438620963fef93e74, type: 3}

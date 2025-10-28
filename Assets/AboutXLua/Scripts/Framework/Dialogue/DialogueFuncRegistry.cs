@@ -35,18 +35,18 @@ public static class DialogueFuncRegistry
                         attr.DisplayName : method.Name;
                     if (string.IsNullOrEmpty(funcName))
                     {
-                        Debug.LogWarning($"对话函数名不能为空：{type.Name}.{method.Name}");
+                        Debug.LogWarning($"[DialogueFuncRegistry] 对话函数名不能为空：{type.Name}.{method.Name}");
                         continue;
                     }
 
                     if (_funcMap.ContainsKey(funcName))
                     {
-                        Debug.LogWarning($"对话函数名重复：{funcName}（{type.Name}.{method.Name}）");
+                        Debug.LogWarning($"[DialogueFuncRegistry] 对话函数名重复：{funcName}（{type.Name}.{method.Name}）");
                         continue;
                     }
 
                     _funcMap.Add(funcName, method);
-                    Debug.Log($"注册对话函数：{funcName} -> {type.Name}.{method.Name}");
+                    Debug.Log($"[DialogueFuncRegistry] 注册对话函数：{funcName} -> {type.Name}.{method.Name}");
                 }
             }
         }
@@ -68,7 +68,7 @@ public static class DialogueFuncRegistry
         var method = GetFunction(funcName);
         if (method == null)
         {
-            Debug.LogError($"未找到对话函数：{funcName}");
+            Debug.LogError($"[DialogueFuncRegistry] 未找到对话函数：{funcName}");
             return null;
         }
 
@@ -79,7 +79,7 @@ public static class DialogueFuncRegistry
         }
         catch (Exception e)
         {
-            Debug.LogError($"执行对话函数出错 {funcName}：{e.Message}");
+            Debug.LogError($"[DialogueFuncRegistry] 执行对话函数出错 {funcName}：{e.Message}");
             return null;
         }
     }

@@ -73,13 +73,6 @@ MonoBehaviour:
     - LuaScripts
     - Utils
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cd02d9ac752b2cb4cb7730975fbc215f
-    m_Address: UIEventUtils
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - LuaScripts
-    - Utils
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b040060e7bd838940b15dabe9d83a6e7
     m_Address: TalkTest2
     m_ReadOnly: 0

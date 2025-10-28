@@ -32,7 +32,7 @@ public static class XLuaConfig
 
         // 常用框架方法
         typeof(IBridge),
-        typeof(LuaBehaviour),
+        typeof(LuaBehaviourBridge),
         typeof(Physics2DBridge),
         typeof(Collision2DBridge),
         typeof(InputBridge),

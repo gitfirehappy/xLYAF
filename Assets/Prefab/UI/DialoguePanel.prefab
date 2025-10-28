@@ -495,6 +495,8 @@ GameObject:
   - component: {fileID: 6843412620827726641}
   - component: {fileID: 5908492064482078410}
   - component: {fileID: 1038251688711619081}
+  - component: {fileID: -7481924906276156231}
+  - component: {fileID: 8960072317828112662}
   m_Layer: 5
   m_Name: DialoguePanel
   m_TagString: Untagged
@@ -614,6 +616,33 @@ MonoBehaviour:
     transform: {fileID: 947841171574865844}
   - pos: right
     transform: {fileID: 2209651249492640269}
+--- !u!114 &-7481924906276156231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6897488250821953416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51661d7fe2c0bdd4fa590c955037e4f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  luaScriptName: DialogueView
+  luaScript: {fileID: 4900000, guid: 5a0338e8feaa3104e8298a6d959f3a9a, type: 3}
+  luaScriptMode: 1
+--- !u!114 &8960072317828112662
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6897488250821953416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59b43b21ce6e07940b45e98a3e5343fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7511548825408977986
 GameObject:
   m_ObjectHideFlags: 0

@@ -20,6 +20,8 @@ public class Collision2DBridge : MonoBehaviour,IBridge
         onTriggerEnterFunc = luaInstance.Get<LuaFunction>("OnTriggerEnter2D");
         onTriggerExitFunc = luaInstance.Get<LuaFunction>("OnTriggerExit2D");
         onTriggerStayFunc = luaInstance.Get<LuaFunction>("OnTriggerStay2D");
+        
+        await Task.CompletedTask;
     }
 
     void OnCollisionEnter2D(Collision2D collision)

@@ -14,6 +14,7 @@ public class GizmosBridge : MonoBehaviour, IBridge
         
         drawGizmosFunc = luaInstance.Get<LuaFunction>("OnDrawGizmos");
         drawGizmosSelectedFunc = luaInstance.Get<LuaFunction>("OnDrawGizmosSelected");
+        await Task.CompletedTask;
     }
 
     #region Gizmos绘制方法
