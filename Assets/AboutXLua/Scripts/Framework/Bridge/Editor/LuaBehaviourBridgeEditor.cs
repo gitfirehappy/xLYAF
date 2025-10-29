@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ public class LuaBehaviourBridgeEditor : Editor
 {
     private List<LuaBridgeType> selectedBridges = new List<LuaBridgeType>();
     private bool isInitialized = false;
-    private bool showBridges = true; // 折叠状态控制变量
+    private bool showBridges = true;
 
     private void OnEnable()
     {
@@ -25,14 +26,13 @@ public class LuaBehaviourBridgeEditor : Editor
         base.OnInspectorGUI();
         EditorGUILayout.Space();
 
-        // 桥接组件区域标题与折叠控制
         EditorGUILayout.LabelField("Bridge Components", EditorStyles.boldLabel);
         showBridges = EditorGUILayout.Foldout(showBridges, "已选桥接组件", true);
 
-        // 折叠状态下显示列表
         if (showBridges)
         {
             EditorGUI.indentLevel++;
+            // 自动遍历所有枚举值（无需手动添加）
             foreach (LuaBridgeType type in Enum.GetValues(typeof(LuaBridgeType)))
             {
                 bool isSelected = selectedBridges.Contains(type);
@@ -53,7 +53,7 @@ public class LuaBehaviourBridgeEditor : Editor
                     Repaint();
                 }
             }
-            EditorGUI.indentLevel--; 
+            EditorGUI.indentLevel--;
         }
         
         EditorGUILayout.Space();
@@ -101,45 +101,31 @@ public class LuaBehaviourBridgeEditor : Editor
         }
     }
 
+    /// <summary>
+    /// 反射获取枚举对应的桥接类型（自动生成映射，无需手动修改）
+    /// </summary>
     private Type GetComponentTypeForBridge(LuaBridgeType type)
     {
-        return type switch
-        {
-            LuaBridgeType.Collision2D => typeof(Collision2DBridge),
-            LuaBridgeType.Gizmos => typeof(GizmosBridge),
-            LuaBridgeType.Input => typeof(InputBridge),
-            LuaBridgeType.Physics2D => typeof(Physics2DBridge),
-            LuaBridgeType.UIEvent => typeof(UIEventBridge),
-            _ => null
-        };
+        var enumField = typeof(LuaBridgeType).GetField(type.ToString());
+        var attribute = enumField.GetCustomAttribute<LuaBridgeTypeMappingAttribute>();
+        return attribute?.BridgeType;
     }
 
+    /// <summary>
+    /// 反射反向查找桥接类型对应的枚举（自动生成映射，无需手动修改）
+    /// </summary>
     private bool TryGetBridgeType(Type componentType, out LuaBridgeType bridgeType)
     {
-        if (componentType == typeof(Collision2DBridge))
+        // 遍历所有枚举值的特性，查找匹配的类型
+        foreach (LuaBridgeType type in Enum.GetValues(typeof(LuaBridgeType)))
         {
-            bridgeType = LuaBridgeType.Collision2D;
-            return true;
-        }
-        if (componentType == typeof(GizmosBridge))
-        {
-            bridgeType = LuaBridgeType.Gizmos;
-            return true;
-        }
-        if (componentType == typeof(InputBridge))
-        {
-            bridgeType = LuaBridgeType.Input;
-            return true;
-        }
-        if (componentType == typeof(Physics2DBridge))
-        {
-            bridgeType = LuaBridgeType.Physics2D;
-            return true;
-        }
-        if (componentType == typeof(UIEventBridge))
-        {
-            bridgeType = LuaBridgeType.UIEvent;
-            return true;
+            var enumField = typeof(LuaBridgeType).GetField(type.ToString());
+            var attribute = enumField.GetCustomAttribute<LuaBridgeTypeMappingAttribute>();
+            if (attribute?.BridgeType == componentType)
+            {
+                bridgeType = type;
+                return true;
+            }
         }
         
         bridgeType = default;

@@ -440,6 +440,7 @@ GameObject:
   - component: {fileID: 1620061544}
   - component: {fileID: 1620061548}
   - component: {fileID: 1620061547}
+  - component: {fileID: 1620061549}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -528,6 +529,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   luaScriptName: PlayerController
   luaScript: {fileID: 4900000, guid: 8c0c927a6c9b8594db8c002031a6af06, type: 3}
+  luaScriptMode: 0
 --- !u!50 &1620061541
 Rigidbody2D:
   serializedVersion: 4
@@ -669,6 +671,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84869ab9c9c816a4680106214a269cda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1620061549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1620061537}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0e780fb757cee84aa233fc245b88004, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config: {fileID: 11400000, guid: bfc5684e4ff167745b69f6677e5dc52b, type: 2}
 --- !u!1 &1730917222
 GameObject:
   m_ObjectHideFlags: 0

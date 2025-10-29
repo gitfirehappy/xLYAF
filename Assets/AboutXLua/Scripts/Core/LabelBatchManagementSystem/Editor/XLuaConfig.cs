@@ -31,11 +31,8 @@ public static class XLuaConfig
         typeof(System.Func<bool>),
 
         // 常用框架方法
-        typeof(IBridge),
-        typeof(LuaBehaviourBridge),
-        typeof(Physics2DBridge),
-        typeof(Collision2DBridge),
-        typeof(InputBridge),
+        typeof(IBridge), // 所有Bridge继承的接口，继承此接口的类都可以通过Lua调用
+        
     };
     
     [CSharpCallLua]
