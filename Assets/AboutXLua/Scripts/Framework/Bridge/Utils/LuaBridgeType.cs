@@ -24,4 +24,7 @@ public enum LuaBridgeType
     
     [LuaBridgeTypeMapping(typeof(ScriptObjectBridge))]
     SO,
+    
+    [LuaBridgeTypeMapping(typeof(AnimBridge))]
+    Anim,
 }

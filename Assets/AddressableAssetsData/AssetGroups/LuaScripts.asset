@@ -87,6 +87,13 @@ MonoBehaviour:
     - LuaScripts
     - Player
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 31c99a058f929624db3d951aa33ddb02
+    m_Address: Assets/AboutXLua/LuaScripts/Game/StateMachine.lua
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Player
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 170f3ccdb3bee544095a2f2b92d47c18, type: 2}
   m_SchemaSet:

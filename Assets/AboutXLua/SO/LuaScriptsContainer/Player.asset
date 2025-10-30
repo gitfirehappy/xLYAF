@@ -18,3 +18,4 @@ MonoBehaviour:
   - Player
   luaAssets:
   - {fileID: 4900000, guid: 8c0c927a6c9b8594db8c002031a6af06, type: 3}
+  - {fileID: 4900000, guid: 31c99a058f929624db3d951aa33ddb02, type: 3}
