@@ -628,9 +628,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51661d7fe2c0bdd4fa590c955037e4f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  luaScriptName: DialogueView
-  luaScript: {fileID: 4900000, guid: 5a0338e8feaa3104e8298a6d959f3a9a, type: 3}
-  luaScriptMode: 1
+  multiScriptConfig: {fileID: 11400000, guid: 1e4e6ea9f2ed6d1489a2facb06e1d9da, type: 2}
 --- !u!114 &8960072317828112662
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -527,9 +527,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51661d7fe2c0bdd4fa590c955037e4f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  luaScriptName: PlayerController
-  luaScript: {fileID: 4900000, guid: 8c0c927a6c9b8594db8c002031a6af06, type: 3}
-  luaScriptMode: 0
+  multiScriptConfig: {fileID: 11400000, guid: e15c45ca94390e2459e9625f3d23304d, type: 2}
 --- !u!50 &1620061541
 Rigidbody2D:
   serializedVersion: 4
