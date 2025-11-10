@@ -1,4 +1,6 @@
-PlayerController = {}
+-- 挂载脚本类，需要桥接
+local PlayerController = {}
+local PlayerInputHandler = require "PlayerInputHandler"
 
 function PlayerController.New(go)
     local obj = {}
@@ -12,6 +14,7 @@ function PlayerController.New(go)
     obj.input = go:GetComponent("InputBridge")
     obj.gizmos = go:GetComponent("GizmosBridge")
     obj.so = go:GetComponent("ScriptObjectBridge")
+    obj.anim = go:GetComponent("AnimaBridge")
 
     -- 从SO加载玩家属性
     obj.playerData = obj.so:GetSO("PlayerControllerSO")
@@ -24,6 +27,11 @@ function PlayerController.New(go)
     obj.isGrounded = false
     obj.facingRight = true
 
+    obj.inputHandler = PlayerInputHandler.Create(obj.input)
+    
+    -- 初始化状态机
+    obj.stateMachine = nil
+
     return obj
 end
 
@@ -33,35 +41,63 @@ function PlayerController:Awake()
         self.physics:SetGravityScale(self.playerData.gravityScale)
     end
     
+    -- 初始化状态机
+    self:InitializeStateMachine()
+    
     CS.UnityEngine.Debug.Log("PlayerController Awake")
-end 
+end
+
+function PlayerController:InitializeStateMachine()
+    -- 引入状态机和所有状态
+    local PlayerStateMachine = require "PlayerStateMachine"
+    local GroundedState = require "GroundedState"
+    local AirborneState = require "AirborneState"
+
+    -- 创建顶层状态机实例
+    self.stateMachine = PlayerStateMachine.Create(self)
+
+    -- 创建HFSM状态实例
+    local groundedState = GroundedState.Create(self)
+    local airborneState = AirborneState.Create(self)
+
+    -- 将状态添加到状态机
+    self.stateMachine:AddState("Grounded", groundedState)
+    self.stateMachine:AddState("Airborne", airborneState)
+
+    -- 设置初始状态
+    local initialState = self.isGrounded and "Grounded" or "Airborne"
+    self.stateMachine:ChangeState(initialState)
+
+    CS.UnityEngine.Debug.Log("状态机初始化完成")
+end
 
 function PlayerController:Start()
-    -- 绑定输入事件
-    self.input:BindAction("Player/Jump", "started", self.Jump)
-    CS.UnityEngine.Debug.Log("Jump has Bound")
+    -- 输入事件会在PlayerInputHandler中统一处理
+end
+
+function PlayerController:Update()
+    if self.inputHandler then
+        self.inputHandler:ProcessUpdate()
+    end
+    
+    -- 驱动状态机Update
+    if self.stateMachine then
+        self.stateMachine:ProcessUpdate()
+    end
 end
 
 function PlayerController:FixedUpdate()
-    self:Move()
+    -- 1. 检查物理状态
     self:GroundCheck()
-end
 
-function PlayerController:Move()
-    if not self.playerData then return end
-    
-    -- 读取移动输入
-    local moveInput = self.input:GetVector2("Player/Move")
-    local velocityX = moveInput.x * self.playerData.moveSpeed
+    -- 2. 输入处理
+    if self.inputHandler then
+        self.inputHandler:ProcessUpdate()
+    end
 
-    -- 应用水平速度，保持垂直速度不变
-    self.physics:ApplyVelocity(CS.UnityEngine.Vector2(velocityX, self.physics:GetVelocity().y))
-
-    -- 转向处理
-    if moveInput.x > 0 and not self.facingRight then
-        self:Flip()
-    elseif moveInput.x < 0 and self.facingRight then
-        self:Flip()
+    -- 3. 驱动状态机FixedUpdate
+    if self.stateMachine then
+        self.stateMachine:ProcessFixedUpdate()
     end
 end
 
@@ -71,12 +107,7 @@ function PlayerController:Flip()
     self.transform.localScale = CS.UnityEngine.Vector3(-scale.x, scale.y, scale.z)
 end
 
-function PlayerController:Jump()
-    if self.isGrounded then
-        self.physics:ApplyImpulse(CS.UnityEngine.Vector2.up,self.playerData.jumpForce)
-        CS.UnityEngine.Debug.Log("Jump")
-    end
-end
+-- 辅助方法
 
 function PlayerController:GroundCheck()
     local colliders = self.physics:OverlapCircleAll(
@@ -104,6 +135,7 @@ end
 
 function PlayerController:OnDestroy()
     CS.UnityEngine.Debug.Log("PlayerController OnDestroy")
+    -- TODO: 销毁状态机或解绑输入
 end
 
 return PlayerController

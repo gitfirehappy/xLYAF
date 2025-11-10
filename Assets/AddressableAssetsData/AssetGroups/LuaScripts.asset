@@ -88,7 +88,84 @@ MonoBehaviour:
     - Player
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 31c99a058f929624db3d951aa33ddb02
-    m_Address: Assets/AboutXLua/LuaScripts/Game/StateMachine.lua
+    m_Address: PlayerHFSMState
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Player
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 03d67662ab66fc848b47da529a5e5be4
+    m_Address: PlayerIdleState
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Player
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e9bd584195f74b044b15b32464ec43eb
+    m_Address: PlayerAnimation
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Player
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ca7bcc84b721382418a91b3ab79cc87b
+    m_Address: BaseStateMachine
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Framework
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b8deb2c1354c2394aad1ffb9d5b8ac33
+    m_Address: BaseState
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Framework
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6cfd80738de344d4aa0c43485cbb2ca5
+    m_Address: PlayerStateMachine
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Player
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 13311c0d716a4664fbde58273ae9853b
+    m_Address: PlayerInputHandler
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Player
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2f03af01b000a8445a7738658a88f5ad
+    m_Address: Assets/AboutXLua/LuaScripts/Game/Player/State/GroundedState.lua
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Player
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f2a91bda687543b4285c4c75f24b420c
+    m_Address: Assets/AboutXLua/LuaScripts/Game/Player/State/AirborneState.lua
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Player
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e90266f36b3399244a1bf4f95e9d68a3
+    m_Address: Assets/AboutXLua/LuaScripts/Game/Player/State/PlayerRunState.lua
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Player
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a86a8a607a2cd374aa55d27e9ea236e9
+    m_Address: Assets/AboutXLua/LuaScripts/Game/Player/State/PlayerJumpState.lua
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - LuaScripts
+    - Player
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 38f9e5ab7dc55ff4c984e433914f0a8c
+    m_Address: Assets/AboutXLua/LuaScripts/Game/Player/State/PlayerFallState.lua
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaScripts

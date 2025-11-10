@@ -1,3 +1,4 @@
+-- 模块类，无需桥接
 local DialogueDataManager = {}
 local loadedDialogues = {} -- 缓存已加载的对话
 

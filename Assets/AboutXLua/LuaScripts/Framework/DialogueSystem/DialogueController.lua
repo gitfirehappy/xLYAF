@@ -1,3 +1,4 @@
+-- 模块类，无需桥接
 local DialogueController = {}
 
 local view = require("DialogueView")

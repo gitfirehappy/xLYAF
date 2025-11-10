@@ -1,3 +1,4 @@
+-- 模块类，需要桥接
 local DialogueView = {}
 local stringUtil = require("StringUtil")
 

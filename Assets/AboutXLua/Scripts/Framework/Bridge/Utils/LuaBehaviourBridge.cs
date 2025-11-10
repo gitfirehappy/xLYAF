@@ -200,8 +200,7 @@ public class LuaBehaviourBridge : MonoBehaviour
         }
     }
 
-    // --- Unity 生命周期转发 ---
-    // 所有 Unity 生命周期函数现在都会遍历 luaInstances 列表
+    #region Unity生命周期桥接
 
     void Start()
     {
@@ -298,4 +297,6 @@ public class LuaBehaviourBridge : MonoBehaviour
         
         bridges.Clear();
     }
+    
+    #endregion
 }

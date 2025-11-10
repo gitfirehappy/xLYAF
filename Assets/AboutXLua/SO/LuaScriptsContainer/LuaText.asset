@@ -17,5 +17,5 @@ MonoBehaviour:
   - LuaScripts
   - Text
   luaAssets:
-  - {fileID: 4900000, guid: ac15555336b76b04b9511c58a27e339e, type: 3}
-  - {fileID: 4900000, guid: b040060e7bd838940b15dabe9d83a6e7, type: 3}
+  - {fileID: 9027929339269108002, guid: ac15555336b76b04b9511c58a27e339e, type: 3}
+  - {fileID: 9027929339269108002, guid: b040060e7bd838940b15dabe9d83a6e7, type: 3}

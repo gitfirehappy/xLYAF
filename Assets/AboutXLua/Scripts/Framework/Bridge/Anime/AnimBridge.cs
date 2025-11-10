@@ -6,19 +6,93 @@ using XLua;
 
 public class AnimBridge : MonoBehaviour,IBridge
 {
-    public AnimatorDriver.ControlMode mode = AnimatorDriver.ControlMode.GraphDriven;
+    [Header("动画配置")] 
+    public StateAnimationConfigSO animationConfig;
+    
+    [Header("动画驱动模式")]
+    public AnimatorDriver.ControlMode mode = AnimatorDriver.ControlMode.CodeDriven;
     
     private IAnimationDriver driver;
+    private Dictionary<string, StateAnimationConfigSO.StateAnimationMapping> animationCache;
+    private string currentStatePath;
     
     public async Task InitializeAsync(LuaTable luaInstance)
     {
         driver = new AnimatorDriver(mode);
         driver.Initialize(gameObject);
         
+        // 初始化动画缓存
+        animationCache = new Dictionary<string, StateAnimationConfigSO.StateAnimationMapping>();
+        if (animationConfig != null)
+        {
+            foreach (var mapping in animationConfig.stateAnimations)
+            {
+                if (!string.IsNullOrEmpty(mapping.statePath))
+                {
+                    animationCache[mapping.statePath] = mapping;
+                }
+            }
+        }
+        else
+        {
+            Debug.LogError("[AnimBridge] AnimationConfig is missing!");
+        }
+        
         await Task.CompletedTask;
     }
     
-    public void Play(string name) => driver?.Play(name);
+    /// <summary>
+    /// 播放指定状态路径的动画
+    /// </summary>
+    public void PlayState(string statePath)
+    {
+        if (string.IsNullOrEmpty(statePath) || driver == null) return;
+        
+        currentStatePath = statePath;
+        
+        if (animationCache.TryGetValue(statePath, out var mapping))
+        {
+            if (mapping.animationClip != null)
+            {
+                if (mode == AnimatorDriver.ControlMode.CodeDriven)
+                {
+                    // CodeDriven 模式直接播放动画片段
+                    driver.Play(mapping.animationClip.name);
+                }
+                else
+                {
+                    // GraphDriven 模式使用状态名
+                    driver.Play(statePath);
+                }
+                
+                // 设置动画速度
+                driver.SetFloat("Speed", mapping.speed);
+            }
+        }
+        else
+        {
+            // 使用默认动画或状态名
+            driver.Play(statePath);
+            Debug.LogWarning($"[AnimBridge] 未找到状态 {statePath} 的动画配置，使用状态名播放");
+        }
+    }
+    
+    /// <summary>
+    /// 获取当前状态路径
+    /// </summary>
+    public string GetCurrentStatePath()
+    {
+        return currentStatePath;
+    }
+    
+    /// <summary>
+    /// 检查是否有指定状态路径的动画
+    /// </summary>
+    public bool HasStateAnimation(string statePath)
+    {
+        return animationCache.ContainsKey(statePath);
+    }
+    
     public void Stop() => driver?.Stop();
     public void SetFloat(string name, float value) => driver?.SetFloat(name, value);
     public void SetBool(string name, bool value) => driver?.SetBool(name, value);
