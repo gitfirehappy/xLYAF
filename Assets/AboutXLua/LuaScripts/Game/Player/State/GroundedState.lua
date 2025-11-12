@@ -24,16 +24,20 @@ function GroundedState:InitializeSubStateMachine()
 end
 
 function GroundedState:GetInitialSubState()
-    return "Idle"
+    if not self.inputHandler then
+        return "Idle"
+    end
+    
+    local moveInput = self.inputHandler:GetMoveInput()
+    return math.abs(moveInput.x) > 0.1 and "Run" or "Idle"
 end
 
 function GroundedState:OnEnter(prevState)
+    -- 父类方法会自动处理子状态机
     PlayerHFSMState.OnEnter(self)
 
-    -- 设置初始子状态
-    local initialState = self:GetInitialSubState()
-    if initialState and self.subStateMachine then
-        self.subStateMachine:ChangeState(initialState)
+    if self.inputHandler then
+        self.inputHandler:ClearJumpFlag()
     end
 end
 
@@ -46,6 +50,26 @@ function GroundedState:OnUpdate()
         self.stateMachine:ChangeState("Airborne")
         return
     end
+
+    if self.inputHandler:CheckJumpFlag() then
+        self.inputHandler:ClearJumpFlag()
+        self:ChangeTopState("Airborne",{isJump = true})
+        return
+    end
+    
+end
+
+function GroundedState:OnFixedUpdate()
+    -- 先处理子状态机
+    PlayerHFSMState.OnFixedUpdate(self)
+    
+    -- 处理运动通用转向,移动写到子状态机有问题
+    local moveInput = self.inputHandler:GetMoveInput()
+    local newVelocityX = moveInput.x * self.controller.playerData.moveSpeed
+    local currentVelocity = self.physics:GetVelocity()
+    self.physics:ApplyVelocity(CS.UnityEngine.Vector2(newVelocityX, currentVelocity.y))
+    
+    self.controller:CheckFlip(moveInput.x)
 end
 
 return GroundedState

@@ -19,15 +19,13 @@ function PlayerController.New(go)
     -- 从SO加载玩家属性
     obj.playerData = obj.so:GetSO("PlayerControllerSO")
     if not obj.playerData then
-        CS.UnityEngine.Debug.LogError("无法获取PlayerData配置！")
+        CS.UnityEngine.Debug.LogError("[PlayerController] 无法获取PlayerData配置！")
     else
-        CS.UnityEngine.Debug.Log("成功加载PlayerData配置")
+        CS.UnityEngine.Debug.Log("[PlayerController] 成功加载PlayerData配置")
     end
     
     obj.isGrounded = false
     obj.facingRight = true
-
-    obj.inputHandler = PlayerInputHandler.Create(obj.input)
     
     -- 初始化状态机
     obj.stateMachine = nil
@@ -40,11 +38,17 @@ function PlayerController:Awake()
     if self.playerData then
         self.physics:SetGravityScale(self.playerData.gravityScale)
     end
+
+    -- 创建输入处理
+    self.inputHandler = PlayerInputHandler.Create(self.input)
     
+    CS.UnityEngine.Debug.Log("[PlayerController] Awake")
+end
+
+
+function PlayerController:Start()
     -- 初始化状态机
     self:InitializeStateMachine()
-    
-    CS.UnityEngine.Debug.Log("PlayerController Awake")
 end
 
 function PlayerController:InitializeStateMachine()
@@ -71,10 +75,6 @@ function PlayerController:InitializeStateMachine()
     CS.UnityEngine.Debug.Log("状态机初始化完成")
 end
 
-function PlayerController:Start()
-    -- 输入事件会在PlayerInputHandler中统一处理
-end
-
 function PlayerController:Update()
     if self.inputHandler then
         self.inputHandler:ProcessUpdate()
@@ -87,13 +87,13 @@ function PlayerController:Update()
 end
 
 function PlayerController:FixedUpdate()
-    -- 1. 检查物理状态
-    self:GroundCheck()
-
-    -- 2. 输入处理
+    -- 1. 先处理输入（物理更新前）
     if self.inputHandler then
-        self.inputHandler:ProcessUpdate()
+        self.inputHandler:ProcessFixedUpdate()
     end
+    
+    -- 2. 检查物理状态
+    self:GroundCheck()
 
     -- 3. 驱动状态机FixedUpdate
     if self.stateMachine then
@@ -101,13 +101,22 @@ function PlayerController:FixedUpdate()
     end
 end
 
+-- 运动通用转向
+function PlayerController:CheckFlip(moveInputX)
+    if moveInputX > 0.1 and not self.facingRight then
+        self:Flip()
+    elseif moveInputX < -0.1 and self.facingRight then
+        self:Flip()
+    end
+end
+
+-- 辅助方法
+
 function PlayerController:Flip()
     self.facingRight = not self.facingRight
     local scale = self.transform.localScale
     self.transform.localScale = CS.UnityEngine.Vector3(-scale.x, scale.y, scale.z)
 end
-
--- 辅助方法
 
 function PlayerController:GroundCheck()
     local colliders = self.physics:OverlapCircleAll(
@@ -134,8 +143,19 @@ function PlayerController:OnDrawGizmos()
 end
 
 function PlayerController:OnDestroy()
-    CS.UnityEngine.Debug.Log("PlayerController OnDestroy")
-    -- TODO: 销毁状态机或解绑输入
+    CS.UnityEngine.Debug.Log("[PlayerController] OnDestroy")
+    
+    -- 清理输入
+    if self.inputHandler then
+        self.inputHandler:UnbindAll()
+        self.inputHandler = nil
+    end
+
+    -- 清理状态机
+    if self.stateMachine then
+        self.stateMachine:Cleanup()
+        self.stateMachine = nil
+    end
 end
 
 return PlayerController

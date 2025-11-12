@@ -9,7 +9,9 @@ function IdleState.Create(controller)
     return obj
 end
 
-function IdleState:OnEnter()
+function IdleState:OnEnter(prevState)
+    PlayerHFSMState.OnEnter(self, prevState)
+    
     if self.anim then
         self.anim:PlayState("Grounded/Idle")
     end
@@ -18,21 +20,20 @@ end
 function IdleState:OnUpdate()
     local moveInput = self.inputHandler:GetMoveInput()
     
-    -- 转换到跑
-    if math.abs(moveInput.x) > 0.1 then
-        self.stateMachine:ChangeState("Run")
+    -- 转换到Run
+    if math.abs(moveInput.x) > 0.01 then
+        self:ChangeSubState("Run")
         return
     end
 
-    -- 转换到跳跃（离地检测在父状态机）
-    if self.inputHandler:UseJumpInput() then
-        self.stateMachine.parentStateMachine:ChangeState("Airborne")
-        return
-    end
 end
 
 function IdleState:OnFixedUpdate()
-   
+    
+end
+
+function IdleState:OnExit()
+    
 end
 
 return IdleState

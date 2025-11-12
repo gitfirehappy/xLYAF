@@ -58,9 +58,9 @@ end
 
 -- 工具方法
 function PlayerHFSMState:ChangeTopState(stateName, params)
-    -- 切换到顶层状态
-    if self.stateMachine and self.stateMachine.ChangeState then
-        self.stateMachine:ChangeState(stateName, params)
+    -- 切换到顶层状态 - 通过控制器访问顶层状态机
+    if self.controller and self.controller.stateMachine then
+        self.controller.stateMachine:ChangeState(stateName, params)
     end
 end
 
@@ -69,6 +69,11 @@ function PlayerHFSMState:ChangeSubState(stateName, params)
     if self.subStateMachine then
         self.subStateMachine:ChangeState(stateName, params)
     end
+end
+
+-- 获取顶层状态机
+function PlayerHFSMState:GetTopStateMachine()
+    return self.controller and self.controller.stateMachine
 end
 
 return PlayerHFSMState

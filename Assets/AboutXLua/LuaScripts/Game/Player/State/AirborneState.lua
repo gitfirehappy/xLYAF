@@ -25,17 +25,18 @@ end
 
 function AirborneState:GetInitialSubState()
     local velocityY = self.physics:GetVelocity().y
-    return velocityY > 0 and "Jump" or "Fall"
+
+    local stateParams = self.stateMachine.stateParams or {}
+    if stateParams.isJump then
+        return "Jump"
+    end
+    
+    return velocityY > 0.01 and "Jump" or "Fall"
 end
 
 function AirborneState:OnEnter(prevState)
-    PlayerHFSMState.OnEnter(self, prevState) 
-
-    -- 设置初始子状态
-    local initialState = self:GetInitialSubState()
-    if initialState and self.subStateMachine then
-        self.subStateMachine:ChangeState(initialState)
-    end
+    -- 父类方法会自动处理子状态机
+    PlayerHFSMState.OnEnter(self, prevState)
 end
 
 function AirborneState:OnUpdate()
@@ -47,6 +48,21 @@ function AirborneState:OnUpdate()
         self.stateMachine:ChangeState("Grounded")
         return
     end
+end
+
+function AirborneState:OnFixedUpdate()
+    -- 先处理子状态机
+    PlayerHFSMState.OnFixedUpdate(self)
+
+    -- 统一空中移动控制 （可根据需要调整速度）
+    local moveInput = self.inputHandler:GetMoveInput()
+    local newVelocityX = moveInput.x * self.controller.playerData.moveSpeed
+    local currentVelocity = self.physics:GetVelocity()
+
+    self.physics:ApplyVelocity(CS.UnityEngine.Vector2(newVelocityX, currentVelocity.y))
+
+    -- 统一转向处理
+    self.controller:CheckFlip(moveInput.x)
 end
 
 return AirborneState

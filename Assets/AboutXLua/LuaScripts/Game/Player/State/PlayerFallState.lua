@@ -9,7 +9,9 @@ function FallState.Create(controller)
     return obj
 end
 
-function FallState:OnEnter()
+function FallState:OnEnter(prevState)
+    PlayerHFSMState.OnEnter(self, prevState)
+    
     if self.anim then
         self.anim:PlayState("Airborne/Fall")
     end
@@ -20,13 +22,11 @@ function FallState:OnUpdate()
 end
 
 function FallState:OnFixedUpdate()
-    -- TODO：空中移动可能可以统一放在父状态机（jump，fall）
-    -- 空中移动控制（可调整为比地面弱）
-    local moveInput = self.inputHandler:GetMoveInput()
-    local newVelocityX = moveInput.x * self.controller.playerData.moveSpeed
-    local currentVelocity = self.physics:GetVelocity()
+   
+end
 
-    self.physics:ApplyVelocity(CS.UnityEngine.Vector2(newVelocityX, currentVelocity.y))
+function FallState:OnExit()
+    
 end
 
 return FallState

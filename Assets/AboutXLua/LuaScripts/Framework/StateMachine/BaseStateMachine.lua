@@ -36,12 +36,12 @@ end
 function BaseStateMachine:ChangeState(newStateName, params)
     local newState = self.states[newStateName]
     
-    if self.currentState and self.currentState.name == newStateName then
+    if self.currentState and self.currentState.Name == newStateName then
         return -- 相同状态不切换
     end
 
     local prevState = self.currentState
-    self.previousState = prevState
+    self.prevState = prevState
     self.stateParams = params or {}
 
     -- 退出当前状态
@@ -56,12 +56,14 @@ function BaseStateMachine:ChangeState(newStateName, params)
         end
     end
     
-    -- 进入新状态
     self.currentState = newState
-    if newState.Enter then
-        newState:OnEnter(prevState)
-    end
     
+    -- 进入新状态
+    if newState then
+        if newState.OnEnter then
+            newState:OnEnter(prevState)
+        end
+    end
 end
 
 -- 返回之前状态
@@ -109,6 +111,28 @@ end
 -- 检查是否在某个状态
 function BaseStateMachine:IsInState(stateName)
     return self.currentState and self.currentState.Name == stateName
-end 
+end
+
+-- 清理
+function BaseStateMachine:Cleanup()
+    -- 退出当前状态（不带任何新状态）
+    self:ChangeState(nil)
+
+    -- 清理所有状态实例的引用
+    if self.states then
+        for stateName, state in pairs(self.states) do
+            -- 递归清理子状态机 (如果它们也有 Cleanup)
+            if state.subStateMachine and state.subStateMachine.Cleanup then
+                state.subStateMachine:Cleanup()
+            end
+            state.stateMachine = nil
+        end
+    end
+
+    self.states = {}
+    self.currentState = nil
+    self.prevState = nil
+    self.parentStateMachine = nil
+end
 
 return BaseStateMachine

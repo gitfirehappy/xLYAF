@@ -12,11 +12,12 @@ function PlayerInputHandler.Create(inputBridge)
     end
 
     obj.inputBridge = inputBridge
+    obj.boundActions = {}
 
     -- 输入状态的存储
     obj.MoveInput = CS.UnityEngine.Vector2.zero
-    obj.JumpPressed = false
-    -- (未来可扩展: obj.DashPressed = false, obj.InteractPressed = false)
+    -- 跨层标志变量
+    obj.wantJump = false
 
     -- 绑定事件
     obj:BindActions()
@@ -26,25 +27,38 @@ end
 
 -- 绑定所有“事件”类型的输入（如按下、松开）
 function PlayerInputHandler:BindActions()
-    -- 将 Player/Jump 动作的 "started" 阶段绑定到 self:OnJump 方法
-    self.inputBridge:BindAction("Player/Jump", "started", function(self) self:OnJump() end)
+    table.insert(self.boundActions, {"Player/Jump", "started"})
+    
+    self.inputBridge:BindAction("Player/Jump", "started", function() self:OnJump() end)
+end
+
+-- 解绑所有输入
+function PlayerInputHandler:UnbindAll()
+    if not self.inputBridge then return end
+
+    for _, actionInfo in ipairs(self.boundActions) do
+        local path, phase = actionInfo[1], actionInfo[2]
+        self.inputBridge:UnbindAction(path, phase)
+    end
+
+    self.boundActions = {}
+    CS.UnityEngine.Debug.Log("[PlayerInputHandler] 所有输入已解绑")
 end
 
 -- "Jump" 事件的回调
 function PlayerInputHandler:OnJump()
-    -- 只设置标志位，等待 Controller 或 State 在 Update/FixedUpdate 中消耗
-    self.JumpPressed = true
+    self.wantJump = true
     CS.UnityEngine.Debug.Log("[PlayerInputHandler] Jump Input Received")
 end
 
 -- 由 PlayerController 在 Update() 中调用
 function PlayerInputHandler:ProcessUpdate()
-    
+    self.MoveInput = self.inputBridge:GetVector2("Player/Move")
 end
 
 -- 由 PlayerController 在 FixedUpdate() 中调用
 function PlayerInputHandler:ProcessFixedUpdate()
-    self.MoveInput = self.inputBridge:GetVector2("Player/Move")
+
 end
 
 -- 由 PlayerController 在 LateUpdate() 中调用
@@ -61,14 +75,16 @@ function PlayerInputHandler:GetMoveInput()
     return self.MoveInput
 end
 
--- 检查并“消耗”跳跃输入
--- 状态机应该在 Update/FixedUpdate 中调用这个
-function PlayerInputHandler:UseJumpInput()
-    if self.JumpPressed then
-        self.JumpPressed = false -- 消耗掉
-        return true
-    end
-    return false
+-- 检查当前 Jump 标志变量
+function PlayerInputHandler:CheckJumpFlag()
+    -- CS.UnityEngine.Debug.Log("[PlayerInputHandler] CheckJumpFlag: " .. tostring(self.wantJump))
+    return self.wantJump
+end
+
+-- 清空 Jump 标志变量
+function PlayerInputHandler:ClearJumpFlag()
+    self.wantJump = false
+    -- CS.UnityEngine.Debug.Log("[PlayerInputHandler] ClearJumpFlag" .. tostring(self.wantJump))
 end
 
 return PlayerInputHandler
