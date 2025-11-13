@@ -42,19 +42,36 @@ function GroundedState:OnEnter(prevState)
 end
 
 function GroundedState:OnUpdate()
-    -- 先处理子状态机
+    -- 1.先处理子状态机
     PlayerHFSMState.OnUpdate(self)
 
-    -- 检查是否离开地面
+    -- 2.检查是否离开地面
     if not self.controller.isGrounded then
         self.stateMachine:ChangeState("Airborne")
         return
     end
 
+    -- 3.检查是否跳跃
     if self.inputHandler:CheckJumpFlag() then
         self.inputHandler:ClearJumpFlag()
         self:ChangeTopState("Airborne",{isJump = true})
         return
+    end
+
+    -- 4. 处理子状态之间的切换
+    local moveInput = self.inputHandler:GetMoveInput()
+    local currentStateName = self.subStateMachine:GetCurrentStateName()
+
+    if currentStateName == "Idle" then
+        if math.abs(moveInput.x) > 0.01 then
+            self:ChangeSubState("Run")
+            return
+        end
+    elseif currentStateName == "Run" then
+        if math.abs(moveInput.x) < 0.01 then
+            self:ChangeSubState("Idle")
+            return
+        end
     end
     
 end

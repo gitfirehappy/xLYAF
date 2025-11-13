@@ -16,17 +16,13 @@ MonoBehaviour:
   - statePath: Grounded/Idle
     animationClip: {fileID: 7400000, guid: 7c88497f94887a94880257b5e342cb27, type: 2}
     transitionDuration: 0
-    speed: 1
   - statePath: Grounded/Run
     animationClip: {fileID: 7400000, guid: f0d9b51309121ee40b2727a4036297bb, type: 2}
     transitionDuration: 0
-    speed: 1
   - statePath: Airborne/Jump
     animationClip: {fileID: 7400000, guid: f9c77fbdf0692bd489ac8e6a843ecd02, type: 2}
     transitionDuration: 0
-    speed: 1
   - statePath: Airborne/Fall
     animationClip: {fileID: 7400000, guid: 445fb6bd7a734b64ab5aae0c89a4ae6f, type: 2}
     transitionDuration: 0
-    speed: 1
-  defaultAnimation: {fileID: 0}
+  defaultAnimation: {fileID: 7400000, guid: 7c88497f94887a94880257b5e342cb27, type: 2}

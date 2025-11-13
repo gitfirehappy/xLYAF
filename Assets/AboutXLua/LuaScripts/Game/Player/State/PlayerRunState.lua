@@ -18,14 +18,7 @@ function RunState:OnEnter(prevState)
 end
 
 function RunState:OnUpdate()
-    local moveInput = self.inputHandler:GetMoveInput()
-    
-    -- 转换到Idle
-    if math.abs(moveInput.x) < 0.01 then
-        self:ChangeSubState("Idle")
-        return
-    end
-    
+
 end
 
 function RunState:OnFixedUpdate()

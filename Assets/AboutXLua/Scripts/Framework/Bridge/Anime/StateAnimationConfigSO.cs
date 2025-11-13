@@ -16,9 +16,6 @@ public class StateAnimationConfigSO : ScriptableObject
         
         [Tooltip("动画过渡时间")]
         public float transitionDuration = 0.1f;
-        
-        [Tooltip("动画播放速度")]
-        public float speed = 1.0f;
     }
 
     [Header("状态动画映射")]

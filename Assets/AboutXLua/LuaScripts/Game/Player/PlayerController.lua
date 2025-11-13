@@ -14,7 +14,7 @@ function PlayerController.New(go)
     obj.input = go:GetComponent("InputBridge")
     obj.gizmos = go:GetComponent("GizmosBridge")
     obj.so = go:GetComponent("ScriptObjectBridge")
-    obj.anim = go:GetComponent("AnimaBridge")
+    obj.anim = go:GetComponent("AnimBridge")
 
     -- 从SO加载玩家属性
     obj.playerData = obj.so:GetSO("PlayerControllerSO")

@@ -64,9 +64,6 @@ public class AnimBridge : MonoBehaviour,IBridge
                     // GraphDriven 模式使用状态名
                     driver.Play(statePath);
                 }
-                
-                // 设置动画速度
-                driver.SetFloat("Speed", mapping.speed);
             }
         }
         else
