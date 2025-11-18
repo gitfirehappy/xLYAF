@@ -8,8 +8,8 @@ namespace AboutXLua.Utility
     {
         public string groupName = "LuaScripts";
         [Tooltip("多个标签可用于细分加载逻辑")]
-        public List<string> addressableLabels = new List<string> { "LuaScripts" };
-        public List<TextAsset> luaAssets = new List<TextAsset>();
+        public List<string> addressableLabels = new() {"TextAsset" , "LuaScripts" };
+        public List<TextAsset> luaAssets = new();
 
         [ContextMenu("清空列表")]
         public void ClearList()

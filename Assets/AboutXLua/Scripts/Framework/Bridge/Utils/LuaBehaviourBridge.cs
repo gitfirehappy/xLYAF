@@ -21,8 +21,7 @@ public class LuaBehaviourBridge : MonoBehaviour
     
     [Header("Lua 脚本配置")]
     [Tooltip("分配一个 SO，其中包含要在此 GameObject 上加载的所有 Lua 脚本列表")]
-    public LuaBehaviourConfigSO multiScriptConfig;
-    
+    public LuaBehaviourConfigSO multiScriptConfig;  // TODO: 此处需要替换为AAPackageManager的获取
 
     /// <summary>
     /// 内部类，用于保存每个 Lua 脚本的运行时实例和缓存的函数

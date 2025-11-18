@@ -18,12 +18,12 @@ MonoBehaviour:
   m_GUID: 84c6f8f18d731f44bb0414e37353ec3d
   m_SerializeEntries:
   - m_GUID: 56924de6c8e4f0f4a8cc17a7c3ffe98b
-    m_Address: Assets/AboutXLua/SO/BasicUI/Dialogue.asset
+    m_Address: Dialogue
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2ef6ac3513a06b64f9ef2d2b4f255390
-    m_Address: Assets/AboutXLua/SO/BasicUI/UIResourceConfig.asset
+    m_Address: UIResourceConfig
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

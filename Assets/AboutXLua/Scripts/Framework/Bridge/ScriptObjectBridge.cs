@@ -7,7 +7,7 @@ using XLua;
 
 public class ScriptObjectBridge : MonoBehaviour,IBridge
 {
-    public ScriptObjectBridgeConfig config;
+    public ScriptObjectBridgeConfig config;  // TODO: 此处需要替换为AAPackageManager的获取
 
     public ScriptableObject GetSO(string key)
     {

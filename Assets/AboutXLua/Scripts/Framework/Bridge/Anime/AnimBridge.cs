@@ -7,7 +7,7 @@ using XLua;
 public class AnimBridge : MonoBehaviour,IBridge
 {
     [Header("动画配置")] 
-    public StateAnimationConfigSO animationConfig;
+    public StateAnimationConfigSO animationConfig; // TODO: 此处需要替换为AAPackageManager的获取
     
     [Header("动画驱动模式")]
     public AnimatorDriver.ControlMode mode = AnimatorDriver.ControlMode.CodeDriven;

@@ -117,7 +117,7 @@ public static class XLuaLoader
             try
             {
                 Debug.Log($"Preloading Lua scripts for label: {label}");
-                var loadHandle = Addressables.LoadAssetsAsync<TextAsset>(label, null);
+                var loadHandle = Addressables.LoadAssetsAsync<TextAsset>(label, null); // TODO: 此处需要替换为AAPackageManager的获取
                 var assets = await loadHandle.Task;
                 
                 foreach (var asset in assets)
@@ -139,52 +139,6 @@ public static class XLuaLoader
         }
         
         await Task.WhenAll(tasks);
-    }
-    
-    /// <summary>
-    /// 读 Addressables（同步）-- 打包后可能出现问题
-    /// </summary>
-    private static void TryReadFromAddressables(Options opt, string key, ref byte[] bytes)
-    {
-        // 标签扫描
-        if (opt.aaLabels.Count > 0)
-        {
-            foreach (var label in opt.aaLabels)
-            {
-                try
-                {
-                    var locHandle = Addressables.LoadResourceLocationsAsync(label, typeof(TextAsset));
-                    var locs = locHandle.WaitForCompletion();
-                    
-                    if (locs != null)
-                    {
-                        foreach (var loc in locs)
-                        {
-                            if (LocationMatches(loc, key, opt.extensions))
-                            {
-                                var assetHandle = Addressables.LoadAssetAsync<TextAsset>(loc);
-                                var asset = assetHandle.WaitForCompletion();
-                                
-                                if (asset != null)
-                                {
-                                    bytes = asset.bytes;
-                                    Debug.Log($"AA hit (label={label}): {loc.PrimaryKey}");
-                                    Addressables.Release(assetHandle);
-                                    Addressables.Release(locHandle);
-                                    return;
-                                }
-                                Addressables.Release(assetHandle);
-                            }
-                        }
-                    }
-                    Addressables.Release(locHandle);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"AA label scan failed for '{label}': {e.Message}");
-                }
-            }
-        }
     }
 
     #region 小工具

@@ -21,6 +21,7 @@ MonoBehaviour:
     m_Address: TalkTest1
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Text
     FlaggedDuringContentUpdateRestriction: 0
@@ -28,6 +29,7 @@ MonoBehaviour:
     m_Address: StringUtil
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Dialogue
     FlaggedDuringContentUpdateRestriction: 0
@@ -35,6 +37,7 @@ MonoBehaviour:
     m_Address: DialogueController
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Dialogue
     FlaggedDuringContentUpdateRestriction: 0
@@ -42,6 +45,7 @@ MonoBehaviour:
     m_Address: DialogueModel
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Dialogue
     FlaggedDuringContentUpdateRestriction: 0
@@ -49,6 +53,7 @@ MonoBehaviour:
     m_Address: DialogueDataManager
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Dialogue
     FlaggedDuringContentUpdateRestriction: 0
@@ -56,6 +61,7 @@ MonoBehaviour:
     m_Address: DialogueView
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Dialogue
     FlaggedDuringContentUpdateRestriction: 0
@@ -63,6 +69,7 @@ MonoBehaviour:
     m_Address: ModuleRegistry
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Core
     FlaggedDuringContentUpdateRestriction: 0
@@ -70,6 +77,7 @@ MonoBehaviour:
     m_Address: EventCentre
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Framework
     FlaggedDuringContentUpdateRestriction: 0
@@ -77,6 +85,7 @@ MonoBehaviour:
     m_Address: TalkTest2
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Text
     FlaggedDuringContentUpdateRestriction: 0
@@ -84,6 +93,7 @@ MonoBehaviour:
     m_Address: PlayerController
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Player
     FlaggedDuringContentUpdateRestriction: 0
@@ -91,6 +101,7 @@ MonoBehaviour:
     m_Address: PlayerHFSMState
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Player
     FlaggedDuringContentUpdateRestriction: 0
@@ -98,6 +109,7 @@ MonoBehaviour:
     m_Address: PlayerIdleState
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Player
     FlaggedDuringContentUpdateRestriction: 0
@@ -105,6 +117,7 @@ MonoBehaviour:
     m_Address: PlayerAnimation
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Player
     FlaggedDuringContentUpdateRestriction: 0
@@ -112,6 +125,7 @@ MonoBehaviour:
     m_Address: BaseStateMachine
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Framework
     FlaggedDuringContentUpdateRestriction: 0
@@ -119,6 +133,7 @@ MonoBehaviour:
     m_Address: BaseState
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Framework
     FlaggedDuringContentUpdateRestriction: 0
@@ -126,6 +141,7 @@ MonoBehaviour:
     m_Address: PlayerStateMachine
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Player
     FlaggedDuringContentUpdateRestriction: 0
@@ -133,41 +149,47 @@ MonoBehaviour:
     m_Address: PlayerInputHandler
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Player
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2f03af01b000a8445a7738658a88f5ad
-    m_Address: Assets/AboutXLua/LuaScripts/Game/Player/State/GroundedState.lua
+    m_Address: GroundedState
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Player
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f2a91bda687543b4285c4c75f24b420c
-    m_Address: Assets/AboutXLua/LuaScripts/Game/Player/State/AirborneState.lua
+    m_Address: AirborneState
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Player
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e90266f36b3399244a1bf4f95e9d68a3
-    m_Address: Assets/AboutXLua/LuaScripts/Game/Player/State/PlayerRunState.lua
+    m_Address: PlayerRunState
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Player
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a86a8a607a2cd374aa55d27e9ea236e9
-    m_Address: Assets/AboutXLua/LuaScripts/Game/Player/State/PlayerJumpState.lua
+    m_Address: PlayerJumpState
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Player
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 38f9e5ab7dc55ff4c984e433914f0a8c
-    m_Address: Assets/AboutXLua/LuaScripts/Game/Player/State/PlayerFallState.lua
+    m_Address: PlayerFallState
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TextAsset
     - LuaScripts
     - Player
     FlaggedDuringContentUpdateRestriction: 0

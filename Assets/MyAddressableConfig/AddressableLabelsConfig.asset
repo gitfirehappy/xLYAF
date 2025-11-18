@@ -1,0 +1,171 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bae57245bf494784a813ce5d0d062219, type: 3}
+  m_Name: AddressableLabelsConfig
+  m_EditorClassIdentifier: 
+  allEntries:
+  - key: Resources
+    Type: Untyped
+    Labels: []
+  - key: EditorSceneList
+    Type: Untyped
+    Labels: []
+  - key: Hotfix
+    Type: XLuaConfigs
+    Labels:
+    - XLuaConfigs
+  - key: LuaCallCSharp
+    Type: XLuaConfigs
+    Labels:
+    - XLuaConfigs
+  - key: CSharpCallLua
+    Type: XLuaConfigs
+    Labels:
+    - XLuaConfigs
+  - key: TalkTest1
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Text
+  - key: StringUtil
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Dialogue
+  - key: DialogueController
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Dialogue
+  - key: DialogueModel
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Dialogue
+  - key: DialogueDataManager
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Dialogue
+  - key: DialogueView
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Dialogue
+  - key: ModuleRegistry
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Core
+  - key: EventCentre
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Framework
+  - key: TalkTest2
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Text
+  - key: PlayerController
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Player
+  - key: PlayerHFSMState
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Player
+  - key: PlayerIdleState
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Player
+  - key: PlayerAnimation
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Player
+  - key: BaseStateMachine
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Framework
+  - key: BaseState
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Framework
+  - key: PlayerStateMachine
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Player
+  - key: PlayerInputHandler
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Player
+  - key: GroundedState
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Player
+  - key: AirborneState
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Player
+  - key: PlayerRunState
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Player
+  - key: PlayerJumpState
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Player
+  - key: PlayerFallState
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts
+    - Player
+  - key: Dialogue
+    Type: Untyped
+    Labels: []
+  - key: UIResourceConfig
+    Type: Untyped
+    Labels: []

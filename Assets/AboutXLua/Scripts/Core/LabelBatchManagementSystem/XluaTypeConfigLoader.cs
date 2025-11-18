@@ -31,7 +31,7 @@ public static class XluaTypeConfigLoader
     /// /// <param name="configLabel">Addressables标签名，默认为"XLuaConfigs"</param>
     public static async Task InitAsync(string configLabel = DefaultConfigLabel)
     {
-        Debug.Log("Initializing type lists...");
+        Debug.Log("[XluaTypeConfigLoader] 初始化配置中...");
 
         // 1. 初始化列表
         HotfixTypes = new List<Type>();
@@ -42,8 +42,7 @@ public static class XluaTypeConfigLoader
         CSharpCallLuaMembers = new List<MemberInfo>();
 
         // 2. 使用Addressables加载所有 TypeListSO
-        // 注意：此处要改为异步
-        AsyncOperationHandle<IList<TypeMemberListSO>> loadHandle = Addressables.LoadAssetsAsync<TypeMemberListSO>(configLabel, null);
+        AsyncOperationHandle<IList<TypeMemberListSO>> loadHandle = Addressables.LoadAssetsAsync<TypeMemberListSO>(configLabel, null); // TODO: 此处需要替换为AAPackageManager的获取
         IList<TypeMemberListSO> allConfigs;
 
         try
@@ -52,8 +51,8 @@ public static class XluaTypeConfigLoader
         }
         catch (Exception ex)
         {
-            Debug.LogError($"Failed to load XLua configs from Addressables label '{configLabel}'. Error: {ex.Message}");
-            return; // 加载失败，直接返回
+            Debug.LogError($"没有找到来自 Addressables 的标签 '{configLabel}'. Error: {ex.Message}");
+            return;
         }
         finally
         {
@@ -62,7 +61,7 @@ public static class XluaTypeConfigLoader
 
         if (allConfigs == null || allConfigs.Count == 0)
         {
-            Debug.LogWarning($"No TypeListSO assets found with label '{configLabel}'. Please ensure they are addressable and tagged correctly.");
+            Debug.LogWarning($"没有找到带有 '{configLabel} 标签的 TypeListSO 资源'. 请确保它们是可寻址的，并且标记正确");
             return;
         }
 
@@ -71,7 +70,7 @@ public static class XluaTypeConfigLoader
         {
             if (config == null)
             {
-                Debug.LogWarning("Found a null TypeListSO asset during loading.");
+                Debug.LogWarning("加载过程中发现 TypeListSO 资源为空。");
                 continue;
             }
 
@@ -125,7 +124,7 @@ public static class XluaTypeConfigLoader
         }
 
         Debug.Log(
-            $"Initialization complete. " +
+            $"[XluaTypeConfigLoader] 初始化配置完成. " +
             $"Hotfix: {HotfixTypes.Count} types, {HotfixMembers.Count} members; " +
             $"LuaCallCSharp: {LuaCallCSharpTypes.Count} types, {LuaCallCSharpMembers.Count} members; " +
             $"CSharpCallLua: {CSharpCallLuaTypes.Count} types, {CSharpCallLuaMembers.Count} members.");

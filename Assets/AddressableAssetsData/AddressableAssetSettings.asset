@@ -48,6 +48,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8de0f9d75ac1aef4ab0f33bd1a97affe, type: 2}
   - {fileID: 11400000, guid: 4fc5c8c9250bea1438cce940a855c631, type: 2}
   - {fileID: 11400000, guid: 83055885901cdf843855595898ba6b1d, type: 2}
+  - {fileID: 11400000, guid: 6daef6fd84a9f5a4ea0ec40a06a173ef, type: 2}
   m_BuildSettings:
     m_CompileScriptsInVirtualMode: 0
     m_CleanupStreamingAssetsAfterBuilds: 1
@@ -98,6 +99,7 @@ MonoBehaviour:
     - Text
     - Player
     - Framework
+    - TextAsset
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: b2541223116770447a3da6d418729a76, type: 2}
