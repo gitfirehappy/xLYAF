@@ -9,8 +9,8 @@ using UnityEditor.Build.Reporting;
 public class AddressableLabelExporter : IPreprocessBuildWithReport
 {
     // 这是 ExportEntries() 的 "输出" 这个文件在项目中的 "物理" 保存路径
-    private const string AssetPath = "Assets/MyAddressableConfig/AddressableLabelsConfig.asset"; 
-    private const string GROUP_TO_IGNORE = "BuiltInData"; // AAPackageManager 构建时忽略的 Group
+    private const string AssetPath = "Assets/HelperBuildData/AddressableLabelsConfig.asset"; 
+    private const string GROUP_TO_IGNORE = "HelperBuildData"; // AAPackageManager 构建时忽略的 Group
     
     // IPreprocessBuildWithReport 的接口实现
     public int callbackOrder => 0; // 排序，0表示最早执行

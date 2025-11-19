@@ -9,10 +9,9 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 public class AAPackageManager : Singleton<AAPackageManager>
 {
     // AddressablePackagesEntries SO配置的 Addressable Key，确保一致
-    private const string CONFIG_ASSET_KEY = "BuiltInData/AddressablePackagesEntries";
+    private const string CONFIG_ASSET_KEY = "AddressablePackagesEntries";
     
     private Dictionary<string, PackageEntry> _dataDomain = new();
-    private RemoteIndex _remoteIndex;
     private bool _hasUpdateCatalog = false;
     public bool SetHasUpdateCatalog() => _hasUpdateCatalog = true;
     
@@ -20,10 +19,8 @@ public class AAPackageManager : Singleton<AAPackageManager>
     private Dictionary<string, List<PackageEntry>> _packagesByType = new();
     private Dictionary<string, List<PackageEntry>> _packagesByLabel = new();
 
-    public async Task Initialize(RemoteIndex remoteIndex)
+    public async Task Initialize()
     {
-        _remoteIndex = remoteIndex;
-
         // 1. 异步加载配置SO
         AsyncOperationHandle<AddressablePackagesEntries> loadHandle = 
             Addressables.LoadAssetAsync<AddressablePackagesEntries>(CONFIG_ASSET_KEY);
@@ -96,7 +93,6 @@ public class AAPackageManager : Singleton<AAPackageManager>
         }
         
         // 路径由 Addressables & merged catalog 决定
-        // TODO: 获取前需要 RemoteIndex 检查
         return _dataDomain[key]; // 包信息（key/label/type）
     }
 

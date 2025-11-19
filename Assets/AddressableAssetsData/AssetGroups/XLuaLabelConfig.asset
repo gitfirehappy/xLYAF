@@ -21,18 +21,21 @@ MonoBehaviour:
     m_Address: Hotfix
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TypeMemberListSO
     - XLuaConfigs
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 276eef6c8e9f88545951af44f2803712
     m_Address: LuaCallCSharp
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TypeMemberListSO
     - XLuaConfigs
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a8688d7b8585b454cb58678508d8a564
     m_Address: CSharpCallLua
     m_ReadOnly: 0
     m_SerializedLabels:
+    - TypeMemberListSO
     - XLuaConfigs
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0

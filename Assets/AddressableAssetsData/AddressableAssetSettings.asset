@@ -100,6 +100,9 @@ MonoBehaviour:
     - Player
     - Framework
     - TextAsset
+    - TypeMemberListSO
+    - UIFormConfigSO
+    - UIResourceConfigSO
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: b2541223116770447a3da6d418729a76, type: 2}

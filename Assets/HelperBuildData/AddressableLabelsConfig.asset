@@ -20,16 +20,19 @@ MonoBehaviour:
     Type: Untyped
     Labels: []
   - key: Hotfix
-    Type: XLuaConfigs
+    Type: TypeMemberListSO
     Labels:
+    - TypeMemberListSO
     - XLuaConfigs
   - key: LuaCallCSharp
-    Type: XLuaConfigs
+    Type: TypeMemberListSO
     Labels:
+    - TypeMemberListSO
     - XLuaConfigs
   - key: CSharpCallLua
-    Type: XLuaConfigs
+    Type: TypeMemberListSO
     Labels:
+    - TypeMemberListSO
     - XLuaConfigs
   - key: TalkTest1
     Type: TextAsset
@@ -164,8 +167,10 @@ MonoBehaviour:
     - LuaScripts
     - Player
   - key: Dialogue
-    Type: Untyped
-    Labels: []
+    Type: UIFormConfigSO
+    Labels:
+    - UIFormConfigSO
   - key: UIResourceConfig
-    Type: Untyped
-    Labels: []
+    Type: UIResourceConfigSO
+    Labels:
+    - UIResourceConfigSO

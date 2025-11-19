@@ -22,24 +22,19 @@ public static class HotfixManager
         }
         Debug.Log("[HotfixManager] 1. Addressables 本地包初始化成功");
         
-        // 2. AAPackageManager 基于本地索引扫描构建
-        RemoteIndex initialLocalIndex = new RemoteIndex();
-        await AAPackageManager.Instance.Initialize(initialLocalIndex);
-        Debug.Log("[HotfixManager] 2. AAPackageManager 本地构建成功");
+        // 2. 下载远端更新包（HelperBuildData，catalog，bundles）
         
-        // 3. 下载远端更新包
-        
-        // 4. 版本比对
+        // 3. 版本比对
         
         // 若旧版本包有更新
         if (1 != 0)
         {
-            // 5. 合并catalog
+            // 4. 合并catalog（Remote > Local）
             
-            // 6. 删除旧版本包
-            
-            // 7. 构建RemoteIndex （只存非常小的key映射）
+            // 5. 删除旧版本包
         }
+        
+        // 6. AAPackageManager 基于本地索引扫描构建 （依赖更新后的HelperBuildData）
         
         // 此时正式开放AAPackageManager 的获取资源功能API
         AAPackageManager.Instance.SetHasUpdateCatalog();

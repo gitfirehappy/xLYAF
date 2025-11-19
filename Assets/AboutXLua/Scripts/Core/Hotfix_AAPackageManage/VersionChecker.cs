@@ -5,8 +5,18 @@ using UnityEngine;
 
 public class VersionChecker
 {
-    public async Task<bool> CheckRemoteHash()
+    public async Task<bool> CheckUpdate()
     {
-        return false;
+        
+    }
+    
+    public async Task<VersionState> UpdateVersion()
+    {
+        
+    }
+
+    public async Task SaveLocal()
+    {
+        
     }
 }
