@@ -6,13 +6,22 @@ using UnityEngine;
 public static class PathManager
 {
     public static readonly string Root =
-        Path.Combine(Application.persistentDataPath, "MyProudWork");
+        Path.Combine(Application.persistentDataPath, "CFY_FrameWork");
 
     public static readonly string HotfixRoot =
         Path.Combine(Root, "Hotfix");
 
-    public static readonly string BundleRoot =
-        Path.Combine(HotfixRoot, "bundles");
+    public static readonly string LocalRoot =
+        Path.Combine(HotfixRoot, "Local");
+    
+    public static readonly string RemoteRoot =
+        Path.Combine(HotfixRoot, "Remote");
+    
+    public static readonly string LocalBundleRoot =
+        Path.Combine(LocalRoot, "bundles");
+    
+    public static readonly string RemoteBundleRoot =
+        Path.Combine(RemoteRoot, "bundles");
 
     public static readonly string CacheRoot =
         Path.Combine(Root, "Cache");
@@ -27,7 +36,10 @@ public static class PathManager
     {
         Directory.CreateDirectory(Root);
         Directory.CreateDirectory(HotfixRoot);
-        Directory.CreateDirectory(BundleRoot);
+        Directory.CreateDirectory(LocalRoot);
+        Directory.CreateDirectory(RemoteRoot);
+        Directory.CreateDirectory(LocalBundleRoot);
+        Directory.CreateDirectory(RemoteBundleRoot);
         Directory.CreateDirectory(CacheRoot);
         Directory.CreateDirectory(SaveRoot);
         Directory.CreateDirectory(LogRoot);

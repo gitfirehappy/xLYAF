@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 
+// TODO: 将功能调用拆分，只留下方法调用，统一由 BuildProjectManager 调度
 public class AddressableLabelExporter : IPreprocessBuildWithReport
 {
     // 这是 ExportEntries() 的 "输出" 这个文件在项目中的 "物理" 保存路径
