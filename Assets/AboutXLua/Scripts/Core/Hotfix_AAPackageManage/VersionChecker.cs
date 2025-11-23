@@ -2,54 +2,89 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
 public class VersionChecker
 {
-    // TODO: 需要导出bundle差异列表
-    // TODO: 区分Local和Remote路径,读Local，暂存到Remote，清理时再移动到Local
-    
-    private static string VersionStatePath =>
-        Path.Combine(PathManager.HotfixRoot, "version_state.json");
-    
     /// <summary>
-    /// 从本地加载版本状态（热更新包已下载后调用）
+    /// 计算版本差异
     /// </summary>
-    public async Task<VersionState> LoadLocal()
+    /// <param name="local">本地版本信息 (可能为 null)</param>
+    /// <param name="remote">远端版本信息</param>
+    public VersionDiffResult CalculateDiff(VersionState local, VersionState remote)
     {
-        if (!File.Exists(VersionStatePath)) 
-            return null;
+        var result = new VersionDiffResult();
         
-        string json = File.ReadAllText(VersionStatePath);
-        return JsonUtility.FromJson<VersionState>(json);
-    }
+        // 1. 如果没有本地版本，相当于全部全新下载
+        if (local == null || local.bundles == null)
+        {
+            result.HasUpdate = true;
+            result.DownloadList = remote.bundles;
+            result.TotalDownloadSize = remote.bundles.Sum(b => b.size);
+            return result;
+        }
 
-    /// <summary>
-    /// 从已下载的远程JSON字符串解析版本状态
-    /// （HotfixManager 下载好远程版本文件传入string）
-    /// </summary>
-    public async Task<VersionState> LoadRemote(string json)
-    {
-        return JsonUtility.FromJson<VersionState>(json);
+        // 2. 如果总 Hash 一致，无需更新
+        if (string.Equals(local.hash, remote.hash, StringComparison.OrdinalIgnoreCase))
+        {
+            result.HasUpdate = false;
+            return result;
+        }
+
+        result.HasUpdate = true;
+
+        // 转换为字典方便快速查找 [BundleName -> Hash]
+        var localDict = local.bundles.ToDictionary(b => b.bundleName, b => b.hash);
+        var remoteDict = remote.bundles.ToDictionary(b => b.bundleName, b => b.hash);
+
+        // 3. 计算需要删除的文件：在本地存在，但在远端不存在的文件
+        foreach (var localBundle in local.bundles)
+        {
+            if (!remoteDict.ContainsKey(localBundle.bundleName))
+            {
+                result.DeleteList.Add(localBundle.bundleName);
+            }
+        }
+
+        // 4. 计算需要下载的文件：远端新增的 OR 远端存在但Hash与本地不一致的
+        foreach (var remoteBundle in remote.bundles)
+        {
+            // 如果本地没有，或者 Hash 不匹配，则加入下载队列
+            if (!localDict.TryGetValue(remoteBundle.bundleName, out string localHash) || 
+                !string.Equals(localHash, remoteBundle.hash, StringComparison.OrdinalIgnoreCase))
+            {
+                result.DownloadList.Add(remoteBundle);
+                result.TotalDownloadSize += remoteBundle.size;
+            }
+        }
+
+        return result;
     }
     
-    /// <summary>
-    /// 比较本地版本和远程版本
-    /// </summary>
-    public async Task<bool> IsDifferent(VersionState local, VersionState remote)
+    public VersionState ParseJson(string json)
     {
-        if (local == null) return true;
-
-        return !string.Equals(local.hash, remote.hash, StringComparison.OrdinalIgnoreCase);
+        if (string.IsNullOrEmpty(json)) return null;
+        try
+        {
+            return JsonUtility.FromJson<VersionState>(json);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[VersionChecker] JSON 解析失败: {e.Message}");
+            return null;
+        }
     }
+}
 
-    /// <summary>
-    /// 保存版本状态到本地
-    /// </summary>
-    public async Task SaveLocal(VersionState state)
-    {
-        string json = JsonUtility.ToJson(state, prettyPrint: true);
-        File.WriteAllText(VersionStatePath, json);
-    }
+/// <summary>
+/// 差异比对结果
+/// </summary>
+public class VersionDiffResult
+{
+    public bool HasUpdate;
+    public long TotalDownloadSize;
+    public List<string> DeleteList = new(); // 需要删除的本地旧文件(相对路径)
+    public List<BundleInfo> DownloadList = new(); // 需要下载的新文件
 }

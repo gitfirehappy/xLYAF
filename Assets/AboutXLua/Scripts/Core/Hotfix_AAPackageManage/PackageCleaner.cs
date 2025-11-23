@@ -3,75 +3,76 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-/// <summary>
-/// 负责清理自定义热更目录中的历史文件，只保留当前版本所需文件
-/// </summary>
 public class PackageCleaner : Singleton<PackageCleaner>
 {
-    // TODO: 需要根据VersionChecker生成的差异bundle列表删除Local里的文件
-    
     /// <summary>
-    /// 删除热更目录中所有不在 validFiles 列表中的文件
-    /// validFiles 全部由 HotfixManager -> VersionChecker -> CatalogUpdater 提供
+    /// 应用更新：删除旧文件，移动新文件
     /// </summary>
-    public void CleanByManifest(IReadOnlyList<string> validFiles)
+    public void ApplyUpdate(List<string> filesToDelete, string tempDownloadRoot, string finalRoot)
     {
-        string root = PathManager.LocalBundleRoot;
-        if (!Directory.Exists(root))
+        // 1. 删除 Local 中不再需要的旧 Bundle
+        string localBundleRoot = Path.Combine(finalRoot, "bundles");
+        if (Directory.Exists(localBundleRoot) && filesToDelete != null)
         {
-            Debug.LogWarning($"[PackageCleaner] 路径不存在: {root}");
-            return;
-        }
-
-        Debug.Log($"[PackageCleaner] 开始清理旧文件... Root: {root}");
-
-        // 把当前版本所有文件放入 Set，方便判断
-        HashSet<string> validSet = new HashSet<string>(validFiles);
-
-        // 遍历目录全部文件
-        var allFiles = Directory.GetFiles(root, "*", SearchOption.AllDirectories);
-
-        int deleteCount = 0;
-
-        foreach (string filePath in allFiles)
-        {
-            string relative = Path.GetRelativePath(root, filePath);
-
-            // version_state.json、catalog.json 如果没有在 validFiles 内，也会被删
-            // 旧版本的 metadata 不应该留着
-            if (!validSet.Contains(relative))
+            foreach (string fileName in filesToDelete)
             {
-                try
+                string fullPath = Path.Combine(localBundleRoot, fileName);
+                if (File.Exists(fullPath))
                 {
-                    File.Delete(filePath);
-                    deleteCount++;
-                    Debug.Log($"[PackageCleaner] 删除旧文件: {relative}");
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning($"[PackageCleaner] 删除失败: {relative} \n{e}");
+                    try
+                    {
+                        File.Delete(fullPath);
+                        Debug.Log($"[PackageCleaner] 删除过期 Bundle: {fileName}");
+                    }
+                    catch (Exception e) { Debug.LogWarning($"删除失败: {fullPath}\n{e}"); }
                 }
             }
         }
 
-        CleanupEmptyDirectories(root);
-
-        Debug.Log($"[PackageCleaner] 清理完毕，删除 {deleteCount} 个文件。");
+        // 2. 将 Remote (Temp) 中的文件移动到 Local
+        // 包括 bundles 文件夹和 catalog/version 文件
+        MoveDirectory(tempDownloadRoot, finalRoot);
+        
+        Debug.Log("[PackageCleaner] 热更文件覆盖完成。");
     }
 
-
     /// <summary>
-    /// 清理空目录
+    /// 递归移动文件夹内容
     /// </summary>
-    private void CleanupEmptyDirectories(string root)
+    private void MoveDirectory(string sourceDir, string destDir)
     {
-        foreach (string dir in Directory.GetDirectories(root, "*", SearchOption.AllDirectories))
+        if (!Directory.Exists(sourceDir)) return;
+        if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir);
+
+        // 移动文件
+        foreach (string file in Directory.GetFiles(sourceDir))
         {
-            if (Directory.GetFiles(dir).Length == 0 &&
-                Directory.GetDirectories(dir).Length == 0)
-            {
-                Directory.Delete(dir);
-            }
+            string fileName = Path.GetFileName(file);
+            string destFile = Path.Combine(destDir, fileName);
+            
+            if (File.Exists(destFile)) File.Delete(destFile); // 覆盖旧的
+            File.Move(file, destFile);
         }
+
+        // 递归移动子目录 (主要是 bundles)
+        foreach (string dir in Directory.GetDirectories(sourceDir))
+        {
+            string dirName = Path.GetFileName(dir);
+            string destSubDir = Path.Combine(destDir, dirName);
+            MoveDirectory(dir, destSubDir);
+        }
+
+        // 移完后删除空的源目录
+        Directory.Delete(sourceDir, true);
+    }
+    
+    /// <summary>
+    /// 紧急清理：清空所有热更内容
+    /// </summary>
+    public void ClearAllHotfix()
+    {
+        if (Directory.Exists(PathManager.HotfixRoot))
+            Directory.Delete(PathManager.HotfixRoot, true);
+        PathManager.EnsureDirectories();
     }
 }
