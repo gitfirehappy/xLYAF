@@ -15,17 +15,17 @@ MonoBehaviour:
   m_GroupName: XLuaLabelConfig
   m_Data:
     m_SerializedData: []
-  m_GUID: dbf2c5c7a80d7d34695132ac3bdde14b
+  m_GUID: 117053c0646955443a5d081729716b07
   m_SerializeEntries:
-  - m_GUID: 9270edc67bc19564ea89f136cf683452
-    m_Address: Hotfix
+  - m_GUID: 276eef6c8e9f88545951af44f2803712
+    m_Address: LuaCallCSharp
     m_ReadOnly: 0
     m_SerializedLabels:
     - TypeMemberListSO
     - XLuaConfigs
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 276eef6c8e9f88545951af44f2803712
-    m_Address: LuaCallCSharp
+  - m_GUID: 9270edc67bc19564ea89f136cf683452
+    m_Address: Hotfix
     m_ReadOnly: 0
     m_SerializedLabels:
     - TypeMemberListSO
@@ -42,5 +42,5 @@ MonoBehaviour:
   m_Settings: {fileID: 11400000, guid: 170f3ccdb3bee544095a2f2b92d47c18, type: 2}
   m_SchemaSet:
     m_Schemas:
-    - {fileID: 11400000, guid: 6e4d9ea61bd7078489cdf61cd66c94f9, type: 2}
-    - {fileID: 11400000, guid: 055ac99c927ec904d885c9000efaffb8, type: 2}
+    - {fileID: 11400000, guid: 51ce986fa0720604b9af8579481788e9, type: 2}
+    - {fileID: 11400000, guid: dbe90d10ea61f08418ca61218c550ebb, type: 2}

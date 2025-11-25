@@ -22,10 +22,10 @@ public class AAPackageManager : Singleton<AAPackageManager>
     public async Task Initialize()
     {
         // 1. 异步加载配置SO
-        AsyncOperationHandle<AddressablePackagesEntries> loadHandle = 
-            Addressables.LoadAssetAsync<AddressablePackagesEntries>(CONFIG_ASSET_KEY);
+        AsyncOperationHandle<AddressableLabelsConfig> loadHandle = 
+            Addressables.LoadAssetAsync<AddressableLabelsConfig>(CONFIG_ASSET_KEY);
         
-        AddressablePackagesEntries localConfig = await loadHandle.Task;
+        AddressableLabelsConfig localConfig = await loadHandle.Task;
 
         if (loadHandle.Status != AsyncOperationStatus.Succeeded || localConfig == null)
         {
@@ -43,7 +43,7 @@ public class AAPackageManager : Singleton<AAPackageManager>
     /// <summary>
     /// 使用从 SO 加载的数据构建运行时索引
     /// </summary>
-    private void ScanLocalPackages(AddressablePackagesEntries localConfig)
+    private void ScanLocalPackages(AddressableLabelsConfig localConfig)
     { 
         // 清空现有数据
         _dataDomain.Clear();
