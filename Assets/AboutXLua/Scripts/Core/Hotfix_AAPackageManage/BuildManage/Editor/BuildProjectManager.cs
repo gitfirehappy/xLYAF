@@ -11,13 +11,19 @@ using UnityEngine;
 
 public static class BuildProjectManager
 {
+    // 名称
+    private static string ProjectName => "ProjectName";
+    
     // 输出根目录
     private static string OutputRoot => Path.Combine(Directory.GetParent(Application.dataPath).FullName, "HotfixOutput");
+    
+    // 热更包体大小限制
+    private static long MaxHotfixSizeBytes = 1L * 1024 * 1024 * 1024;
     
     [MenuItem("Tools/Build/Build Hotfix Package (Current Version)")]
     public static void BuildHotfix()
     {
-        string version = "1.0.0"; // TODO: 每次点击构建时增加版本号
+        string version = "1.0.0"; // TODO: 每次点击构建时增加版本号（可手动修改），显示也要改
 
         version = EditorUtility.DisplayDialog("确认构建", "即将开始构建热更包，请确认版本号", "OK") ? "1.0.0" : "1.0.0";
         
@@ -39,23 +45,27 @@ public static class BuildProjectManager
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         
-        // 3. 构建Remote包
+        // 3. 构建前清理ServerData
+        BuildPathCustomizer.CleanServerData();
+        
+        // 4. 构建Remote包
         Debug.Log("[BuildProjectManager] 开始执行 Addressables BuildPlayerContent...");
         AddressableAssetSettings.BuildPlayerContent(out AddressablesPlayerBuildResult result);
         if (!string.IsNullOrEmpty(result.Error))
         {
-            Debug.LogError($"[BuildManager] 构建失败: {result.Error}");
+            Debug.LogError($"[BuildProjectManager] 构建失败: {result.Error}");
             return;
         }
         
-        // 4. BuildPathCustomizer 整理Remote包目录, 删除不必要的文件
+        // 5. BuildPathCustomizer 整理Remote包目录, 删除不必要的文件
         // 获取 Addressables 默认的 RemoteBuildPath (通常在 ServerData/[Platform])
         string serverDataPath = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "ServerData", EditorUserBuildSettings.activeBuildTarget.ToString());
-        string hotfixOutputDir = Path.Combine(OutputRoot, version);
+        string currentVerPackageName = ProjectName + "_" + version;
+        string hotfixOutputDir = Path.Combine(OutputRoot, currentVerPackageName);
         
         BuildPathCustomizer.OrganizeBuildOutput(serverDataPath, hotfixOutputDir);
         
-        // 5. 生成 version_state.json 到指定目录
+        // 6. 生成 version_state.json 到指定目录
         GenerateVersionStateFile(hotfixOutputDir, version);
         
         Debug.Log($"[BuildProjectManager] 热更包构建完毕: {hotfixOutputDir}");
@@ -76,8 +86,20 @@ public static class BuildProjectManager
         // 2. 遍历 Group 强制设置 BundleMode
         foreach (var group in settings.groups)
         {
-            // 跳过只读 Group （可选）
+            // 跳过部分 Group
             if (group == null) continue;
+            
+            if (group.Name == "Built In Data" || group.HasSchema<PlayerDataGroupSchema>())
+            {
+                if (group.HasSchema<BundledAssetGroupSchema>())
+                {
+                    Debug.LogWarning($"[BuildProjectManager] 修复冲突：移除 {group.Name} 中错误的 BundledAssetGroupSchema");
+                    group.RemoveSchema<BundledAssetGroupSchema>();
+                    EditorUtility.SetDirty(group);
+                }
+                continue; 
+            }
+            
             if (group.Name == AddressableLabelExporter.GROUP_NAME) continue; // HelperBuildData 可根据需要设置
 
             var schema = group.GetSchema<BundledAssetGroupSchema>();
@@ -105,7 +127,7 @@ public static class BuildProjectManager
             // 2. Local 组保持默认Local路径
             if (currentBuildPathName == AddressableAssetSettings.kLocalBuildPath)
             {
-                Debug.Log($"[BuildManager] 保留本地组配置: {group.Name} (LocalBuildPath)");
+                Debug.Log($"[BuildProjectManager] 保留本地组配置: {group.Name} (LocalBuildPath)");
                 continue; 
             }
 
@@ -117,7 +139,9 @@ public static class BuildProjectManager
         AssetDatabase.SaveAssets();
     }
     
-    // 辅助方法：将 Schema 设置为 Remote 路径
+    /// <summary>
+    /// 辅助方法：将 Schema 设置为 Remote 路径
+    /// </summary>
     private static void SetSchemaPathToRemote(AddressableAssetSettings settings, BundledAssetGroupSchema schema)
     {
         bool changed = false;
@@ -138,7 +162,7 @@ public static class BuildProjectManager
 
         if (changed)
         {
-            Debug.Log($"[BuildManager] 已将 Schema 路径修正为 Remote: {schema.Group.Name}");
+            Debug.Log($"[BuildProjectManager] 已将 Schema 路径修正为 Remote: {schema.Group.Name}");
         }
     }
 
@@ -176,19 +200,28 @@ public static class BuildProjectManager
                     size = fileInfo.Length
                 };
                 versionState.bundles.Add(bundleInfo);
+                versionState.totalSize += bundleInfo.size;
             }
         }
+        
+        // 2. 包体大小预警
+        if (versionState.totalSize >= MaxHotfixSizeBytes)
+        {
+            Debug.LogError($"[BuildProjectManager] 热更包大小过大，需缩减大小: {versionState.totalSize} >= {MaxHotfixSizeBytes}");
+            EditorUtility.DisplayDialog("热更包过大", $"热更包大小 ({versionState.totalSize / (1024 * 1024)} MB) 已超过阈值 ({MaxHotfixSizeBytes / (1024 * 1024)} MB)。请缩减资源大小。", "OK");
+            return;
+        }
 
-        // 2. 计算整个包的 Hash
+        // 3. 计算整个包的 Hash
         // GeneratePackageHash 会遍历目录下所有文件（除了 version_state.json）
         versionState.hash = HashGenerator.GeneratePackageHash(outputDir);
 
-        // 3. 序列化并写入
+        // 4. 序列化并写入
         string json = JsonUtility.ToJson(versionState, true);
         string savePath = Path.Combine(outputDir, "version_state.json");
         File.WriteAllText(savePath, json);
         
-        Debug.Log($"[BuildManager] version_state.json 生成完毕。Hash: {versionState.hash}");
+        Debug.Log($"[BuildProjectManager] version_state.json 生成完毕。Hash: {versionState.hash} BundleSize: {versionState.totalSize}");
     }
 }
 #endif

@@ -19,12 +19,12 @@ MonoBehaviour:
   - key: EditorSceneList
     Type: Untyped
     Labels: []
-  - key: Hotfix
+  - key: LuaCallCSharp
     Type: TypeMemberListSO
     Labels:
     - TypeMemberListSO
     - XLuaConfigs
-  - key: LuaCallCSharp
+  - key: Hotfix
     Type: TypeMemberListSO
     Labels:
     - TypeMemberListSO
@@ -174,3 +174,8 @@ MonoBehaviour:
     Type: UIResourceConfigSO
     Labels:
     - UIResourceConfigSO
+  - key: HelloWorld
+    Type: TextAsset
+    Labels:
+    - TextAsset
+    - LuaScripts

@@ -9,8 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8804d7e5753b2164ba51f8a66736d5f5, type: 3}
-  m_Name: Test
+  m_Script: {fileID: 11500000, guid: d9722f324030fd146b77bba51912b692, type: 3}
+  m_Name: TestRemote
   m_EditorClassIdentifier: 
-  addressableLabels: []
-  soAssets: []
+  groupName: Remote
+  addressableLabels:
+  - TextAsset
+  - LuaScripts
+  luaAssets:
+  - {fileID: 9027929339269108002, guid: 67d9884d8b289bc44b06eaa42104c094, type: 3}

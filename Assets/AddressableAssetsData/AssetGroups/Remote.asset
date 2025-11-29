@@ -17,15 +17,12 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 6410bf08a2786c94693d404180eb9a47
   m_SerializeEntries:
-  - m_GUID: 331d70fc3cac432448f6e08a77836fdd
-    m_Address: Test
+  - m_GUID: 67d9884d8b289bc44b06eaa42104c094
+    m_Address: HelloWorld
     m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 28d81f4c92fbf9748bb4a1fce30e8d80
-    m_Address: Test 1
-    m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - TextAsset
+    - LuaScripts
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 170f3ccdb3bee544095a2f2b92d47c18, type: 2}

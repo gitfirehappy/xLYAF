@@ -10,7 +10,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 public static class HotfixManager
 {
     // TODO: 确定服务器配置，此处是示例， 需要确认所有URL正确
-    private static readonly string _remoteUrlRoot = "https://cfy-frame-work.oss-cn-hangzhou.aliyuncs.com/";
+    private static readonly string _remoteUrlRoot = "https://your-site-name.netlify.app/ProjectName_1.0.0/";
     
     public async static Task InitializeAsync()
     {
@@ -52,6 +52,21 @@ public static class HotfixManager
         
         VersionState remoteVersionState = versionChecker.ParseJson(remoteVersionJson);
         
+        // 如果是大版本更新，则强制清理所有热更目录
+        if (localVersionState != null)
+        {
+            if (versionChecker.IsMajorUpdate(localVersionState.version, remoteVersionState.version))
+            {
+                Debug.LogWarning($"[HotfixManager] 检测到大版本更新 (Local:{localVersionState.version} -> Remote:{remoteVersionState.version})。执行全量清理。");
+                
+                // 强制清理所有热更目录 (Local, Remote, Temp)
+                PackageCleaner.Instance.ClearAllHotfix();
+                
+                // 重置本地状态对象为 null，迫使后续逻辑进行全量下载
+                localVersionState = null; 
+            }
+        }
+        
         // 4. 比较版本差异
         VersionDiffResult diff = versionChecker.CalculateDiff(localVersionState, remoteVersionState);
         
@@ -65,7 +80,7 @@ public static class HotfixManager
         Debug.Log($"[HotfixManager] 发现更新！需下载Bundle数: {diff.DownloadList.Count}, 总大小: {diff.TotalDownloadSize}");
         
         // 5. 下载差异 bundle 到 RemoteRoot （暂存远端文件）
-        // AddressablePackagesEntries（辅助AA包构建的数据） 会在这一步下载
+        // HelperBuildData的bundle组都会在这一步下载
         string remoteBundleRoot = PathManager.RemoteBundleRoot;
         if (!Directory.Exists(remoteBundleRoot)) Directory.CreateDirectory(remoteBundleRoot);
         
@@ -112,7 +127,7 @@ public static class HotfixManager
     
     public static async Task FinishHotfix()
     {
-        // 7. AAPackageManager 基于本地索引扫描构建 （依赖更新后的HelperBuildData）
+        // AAPackageManager 基于本地索引扫描构建 （依赖更新后的HelperBuildData）
         await AAPackageManager.Instance.Initialize();
         
         // 此时正式开放AAPackageManager 的获取资源功能API

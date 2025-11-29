@@ -6,8 +6,9 @@ using UnityEngine;
 [Serializable]
 public class VersionState
 {
-    public string version;   // 版本号,可用于UI显示
+    public string version;  // 版本号,可用于UI显示
     public string hash;     // 唯一比对标识
+    public long totalSize;  // 所有bundle的总大小
     public List<BundleInfo> bundles = new List<BundleInfo>(); // 所有需要的bundle列表
 }
 

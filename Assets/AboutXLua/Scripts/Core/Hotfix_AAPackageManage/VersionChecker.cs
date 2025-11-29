@@ -9,6 +9,29 @@ using UnityEngine;
 public class VersionChecker
 {
     /// <summary>
+    /// 检查是否是大版本更新 (e.g., 1.x.x -> 2.x.x)
+    /// </summary>
+    public bool IsMajorUpdate(string localVerStr, string remoteVerStr)
+    {
+        if (string.IsNullOrEmpty(localVerStr) || string.IsNullOrEmpty(remoteVerStr)) 
+            return false;
+
+        try 
+        {
+            string[] localParts = localVerStr.Split('.');
+            string[] remoteParts = remoteVerStr.Split('.');
+            
+            // 比较主版本号
+            return int.Parse(remoteParts[0]) > int.Parse(localParts[0]);
+        }
+        catch (Exception)
+        {
+            Debug.LogWarning($"[VersionChecker] 检查版本差异时出错: Local:{localVerStr} Remote:{remoteVerStr}");
+            return false;
+        }
+    }
+    
+    /// <summary>
     /// 计算版本差异
     /// </summary>
     /// <param name="local">本地版本信息 (可能为 null)</param>

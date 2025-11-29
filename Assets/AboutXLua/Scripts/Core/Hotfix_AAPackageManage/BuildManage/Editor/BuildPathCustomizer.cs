@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 /// <summary>
@@ -65,6 +66,34 @@ public static class BuildPathCustomizer
         }
         
         Debug.Log($"[PathCustomizer] 构建产物整理完毕: {finalOutputDir}");
+    }
+    
+    /// <summary>
+    /// 清理 Addressables 的默认输出目录 (ServerData/[Platform])
+    /// </summary>
+    public static void CleanServerData()
+    {
+        string platformSubDir = EditorUserBuildSettings.activeBuildTarget.ToString();
+        string serverDataPath = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "ServerData", platformSubDir);
+        
+        if (Directory.Exists(serverDataPath))
+        {
+            try 
+            {
+                Directory.Delete(serverDataPath, true);
+                Debug.Log($"[BuildPathCustomizer] 已清空旧构建数据: {serverDataPath}");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[BuildPathCustomizer] 清空 ServerData 失败 (可能是文件占用)，请手动检查: {e.Message}");
+            }
+        }
+        
+        // 重新创建空目录（虽然 BuildPlayerContent 也会自动创建，但为了保险起见）
+        if (!Directory.Exists(serverDataPath))
+        {
+            Directory.CreateDirectory(serverDataPath);
+        }
     }
 }
 #endif
