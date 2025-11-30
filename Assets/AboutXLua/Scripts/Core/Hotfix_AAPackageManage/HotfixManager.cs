@@ -14,8 +14,6 @@ public static class HotfixManager
     
     public async static Task InitializeAsync()
     {
-        PathManager.EnsureDirectories();
-        
         // 1. 初始化 Addressable 本地包
         // 初始化 Addressables 系统，加载本地 Catalog
         var initHandle = Addressables.InitializeAsync();
@@ -28,7 +26,20 @@ public static class HotfixManager
         }
         Debug.Log("[HotfixManager] Addressables 本地包初始化成功");
         
-        // 2. 加载本地 version_state.json
+        // 2. 加载 BuildIndex，并初始化路径 (从 Local AA 包中)
+        var indexHandle = Addressables.LoadAssetAsync<BuildIndex>(BuildIndex.ASSET_ADDRESS);
+        BuildIndex buildIndex = await indexHandle.Task;
+
+        if (indexHandle.Status != AsyncOperationStatus.Succeeded || buildIndex == null)
+        {
+            Debug.LogError("[HotfixManager] 致命错误：无法加载 BuildIndex！无法确定版本路径。");
+            return;
+        }
+        
+        PathManager.Initialize(buildIndex);
+        PathManager.EnsureDirectories();
+        
+        // 3. 加载本地 version_state.json
         VersionChecker versionChecker = new VersionChecker();
         string localVersionStatePath = Path.Combine(PathManager.LocalRoot, "version_state.json");
         VersionState localVersionState = null;
@@ -39,7 +50,7 @@ public static class HotfixManager
             Debug.Log($"[HotfixManager] 本地版本: {localVersionState?.version}, Hash: {localVersionState?.hash}");
         }
         
-        // 3. 下载远端 version_state.json
+        // 4. 下载远端 version_state.json
         string remoteVersionUrl = _remoteUrlRoot + "version_state.json";
         string remoteVersionJson = await NetworkDownloader.Instance.DownloadText(remoteVersionUrl);
         
@@ -67,7 +78,7 @@ public static class HotfixManager
             }
         }
         
-        // 4. 比较版本差异
+        // 5. 比较版本差异
         VersionDiffResult diff = versionChecker.CalculateDiff(localVersionState, remoteVersionState);
         
         if (!diff.HasUpdate)
@@ -79,7 +90,7 @@ public static class HotfixManager
         
         Debug.Log($"[HotfixManager] 发现更新！需下载Bundle数: {diff.DownloadList.Count}, 总大小: {diff.TotalDownloadSize}");
         
-        // 5. 下载差异 bundle 到 RemoteRoot （暂存远端文件）
+        // 6. 下载差异 bundle 到 RemoteRoot （暂存远端文件）
         // HelperBuildData的bundle组都会在这一步下载
         string remoteBundleRoot = PathManager.RemoteBundleRoot;
         if (!Directory.Exists(remoteBundleRoot)) Directory.CreateDirectory(remoteBundleRoot);
@@ -98,7 +109,7 @@ public static class HotfixManager
             }
         }
         
-        // 6. 下载 catalog.json
+        // 7. 下载 catalog.json
         string catalogUrl = _remoteUrlRoot + "catalog.json";
         await NetworkDownloader.Instance.DownloadFile(catalogUrl, Path.Combine(PathManager.RemoteRoot, "catalog.json"));
         
@@ -107,10 +118,10 @@ public static class HotfixManager
         
         Debug.Log("[HotfixManager] 热更资源下载完成，开始应用热更...");
         
-        // 7. 应用更新
+        // 8. 应用更新
         PackageCleaner.Instance.ApplyUpdate(diff.DeleteList, PathManager.RemoteRoot, PathManager.LocalRoot);
         
-        // 8. 加载新的 catalog
+        // 9. 加载新的 catalog
         Debug.Log("[HotfixManager] 加载新 Catalog...");
         string localCatalogPath = Path.Combine(PathManager.LocalRoot, "catalog.json");
         

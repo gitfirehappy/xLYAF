@@ -67,10 +67,11 @@ public class PackageCleaner : Singleton<PackageCleaner>
     }
     
     /// <summary>
-    /// 紧急清理：清空所有热更内容
+    /// 大版本清理：清空所有热更内容
     /// </summary>
     public void ClearAllHotfix()
     {
+        // TODO: 路径需匹配PathManager的 BuildIndex，最好传路径
         if (Directory.Exists(PathManager.HotfixRoot))
             Directory.Delete(PathManager.HotfixRoot, true);
         PathManager.EnsureDirectories();

@@ -11,19 +11,23 @@ using UnityEngine;
 
 public static class BuildProjectManager
 {
-    // 名称
+    // 项目名称
     private static string ProjectName => "ProjectName";
     
-    // 输出根目录
+    // 热更包输出根目录
     private static string OutputRoot => Path.Combine(Directory.GetParent(Application.dataPath).FullName, "HotfixOutput");
     
     // 热更包体大小限制
     private static long MaxHotfixSizeBytes = 1L * 1024 * 1024 * 1024;
     
-    [MenuItem("Tools/Build/Build Hotfix Package (Current Version)")]
+    /// <summary>
+    /// 构建热更包
+    /// TODO: 构建热更包和大版本Local包要区分
+    /// </summary>
+    [MenuItem("Tools/Build/Build Hotfix Package")]
     public static void BuildHotfix()
     {
-        string version = "1.0.0"; // TODO: 每次点击构建时增加版本号（可手动修改），显示也要改
+        string version = "1.0.0"; // TODO: 更智能的版本号管理
 
         version = EditorUtility.DisplayDialog("确认构建", "即将开始构建热更包，请确认版本号", "OK") ? "1.0.0" : "1.0.0";
         
@@ -100,7 +104,7 @@ public static class BuildProjectManager
                 continue; 
             }
             
-            if (group.Name == AddressableLabelExporter.GROUP_NAME) continue; // HelperBuildData 可根据需要设置
+            if (group.Name == AddressableLabelExporter.GROUP_NAME) continue; // HelperBuildData Group 暂定Together
 
             var schema = group.GetSchema<BundledAssetGroupSchema>();
             if (schema == null)
@@ -169,8 +173,6 @@ public static class BuildProjectManager
     /// <summary>
     /// 生成 version_state.json
     /// </summary>
-    /// <param name="outputDir"></param>
-    /// <param name="version"></param>
     private static void GenerateVersionStateFile(string outputDir, string version)
     {
         Debug.Log("[BuildProjectManager] 正在生成 version_state.json...");
