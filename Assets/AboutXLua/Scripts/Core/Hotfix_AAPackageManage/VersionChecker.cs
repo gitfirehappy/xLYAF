@@ -11,18 +11,15 @@ public class VersionChecker
     /// <summary>
     /// 检查是否是大版本更新 (e.g., 1.x.x -> 2.x.x)
     /// </summary>
-    public bool IsMajorUpdate(string localVerStr, string remoteVerStr)
+    public bool IsMajorUpdate(VersionNumber localVerStr, VersionNumber remoteVerStr)
     {
-        if (string.IsNullOrEmpty(localVerStr) || string.IsNullOrEmpty(remoteVerStr)) 
+        if (localVerStr == null || remoteVerStr == null) 
             return false;
 
         try 
         {
-            string[] localParts = localVerStr.Split('.');
-            string[] remoteParts = remoteVerStr.Split('.');
-            
             // 比较主版本号
-            return int.Parse(remoteParts[0]) > int.Parse(localParts[0]);
+            return localVerStr.Major != remoteVerStr.Major;
         }
         catch (Exception)
         {

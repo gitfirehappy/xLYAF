@@ -6,12 +6,31 @@ using UnityEngine;
 /// <summary>
 /// 版本号存储，仅编辑器和构建时使用
 /// </summary>
+[CreateAssetMenu(fileName = "VersionDataBase", menuName = "Build/VersionDataBase", order = 1)]
 public class VersionDataBase : ScriptableObject
 {
-    public VersionNumber CurrentVersion;
+    public VersionNumber CurrentVersion = new() { Major = 1, Minor = 0, Patch = 0 };
     
-    public string GetVersionString() =>
-        $"{CurrentVersion.Major}.{CurrentVersion.Minor}.{CurrentVersion.Patch}";
+    public void IncrementVersion(bool isMajor = false, bool isMinor = false)
+    {
+        if (isMajor)
+        {
+            CurrentVersion.Major++;
+            CurrentVersion.Minor = 0;
+            CurrentVersion.Patch = 0;
+        }
+        else if (isMinor)
+        {
+            CurrentVersion.Minor++;
+            CurrentVersion.Patch = 0;
+        }
+        else
+        {
+            CurrentVersion.Patch++;
+        }
+    }
+    
+    // TODO: 可添加保护机制
 }
 
 /// <summary>
@@ -23,4 +42,6 @@ public class VersionNumber
     public int Major;
     public int Minor;
     public int Patch;
+    
+    public string GetVersionString() => $"{Major}.{Minor}.{Patch}";
 }

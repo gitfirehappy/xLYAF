@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: dbf2c5c7a80d7d34695132ac3bdde14b
   m_currentHash:
     serializedVersion: 2
-    Hash: 293161be3f82d88eba1b2f7f802c91fd
+    Hash: bf2b4747246017b10e2a7007e71de547
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 1
   m_BundleLocalCatalog: 1
@@ -107,6 +107,7 @@ MonoBehaviour:
     - UIFormConfigSO
     - UIResourceConfigSO
     - AddressableLabelsConfig
+    - BuildIndex
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: b2541223116770447a3da6d418729a76, type: 2}

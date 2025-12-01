@@ -2,16 +2,19 @@
 using System.Linq;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
-using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
 
-public class AddressableLabelExporter
+/// <summary>
+/// 辅助构建数据导出, 每次热更时变动
+/// </summary>
+public class HelperBuildDataExporter
 {
-    public const string AssetPath = "Assets/HelperBuildData/AddressableLabelsConfig.asset";
     public const string GROUP_NAME = "HelperBuildData";
+    public const string AALabelsConfigAssetPath = "Assets/Build/HelperBuildData/AddressableLabelsConfig.asset";
 
+    #region AddressableLabelsConfig
     /// <summary>
-    /// 核心逻辑：扫描并生成 SO 数据
+    /// 扫描并生成 SO 数据
     /// </summary>
     public static void ExportEntries()
     {
@@ -23,16 +26,16 @@ public class AddressableLabelExporter
         }
 
         // 1. 获取或创建 Config SO
-        var config = AssetDatabase.LoadAssetAtPath<AddressableLabelsConfig>(AssetPath);
+        var config = AssetDatabase.LoadAssetAtPath<AddressableLabelsConfig>(AALabelsConfigAssetPath);
         if (config == null)
         {
             config = ScriptableObject.CreateInstance<AddressableLabelsConfig>();
-            var directory = System.IO.Path.GetDirectoryName(AssetPath);
+            var directory = System.IO.Path.GetDirectoryName(AALabelsConfigAssetPath);
             if (!System.IO.Directory.Exists(directory))
             {
                 System.IO.Directory.CreateDirectory(directory);
             }
-            AssetDatabase.CreateAsset(config, AssetPath);
+            AssetDatabase.CreateAsset(config, AALabelsConfigAssetPath);
         }
 
         // 2. 清空旧数据
@@ -77,7 +80,7 @@ public class AddressableLabelExporter
             group = settings.CreateGroup(GROUP_NAME, false, false, true, null);
         }
 
-        var guid = AssetDatabase.AssetPathToGUID(AssetPath);
+        var guid = AssetDatabase.AssetPathToGUID(AALabelsConfigAssetPath);
         var entry = settings.CreateOrMoveEntry(guid, group);
         
         // 确保地址简洁，方便加载
@@ -88,5 +91,6 @@ public class AddressableLabelExporter
 
         Debug.Log("[LabelExporter] 已确保 Config SO 进入 HelperBuildData Group。");
     }
+    #endregion
 }
 #endif

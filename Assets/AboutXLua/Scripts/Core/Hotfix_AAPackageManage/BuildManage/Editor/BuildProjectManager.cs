@@ -20,21 +20,49 @@ public static class BuildProjectManager
     // 热更包体大小限制
     private static long MaxHotfixSizeBytes = 1L * 1024 * 1024 * 1024;
     
+    private static string versionDataBasePath => "Assets/Build/VersionDataBase.asset";
+
+    private enum BuildType
+    {
+        Full,
+        Hotfix
+    }
+    
     /// <summary>
-    /// 构建热更包
-    /// TODO: 构建热更包和大版本Local包要区分
+    /// 构建完整包，用于大版本更新
+    /// </summary>
+    [MenuItem("Tools/Build/Build Full Package")]
+    public static void BuildFullPackage()
+    {
+        VersionDataBase versionData = LoadVersionDataBase();
+        if (versionData == null) return;
+        
+        // 大版本更新，增加Major版本
+        versionData.IncrementVersion(true);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        
+        ExecuteBuildFlow(versionData.CurrentVersion, BuildType.Full);
+    }
+    
+    /// <summary>
+    /// 构建热更包，用于小版本更新
     /// </summary>
     [MenuItem("Tools/Build/Build Hotfix Package")]
     public static void BuildHotfix()
     {
-        string version = "1.0.0"; // TODO: 更智能的版本号管理
-
-        version = EditorUtility.DisplayDialog("确认构建", "即将开始构建热更包，请确认版本号", "OK") ? "1.0.0" : "1.0.0";
+        VersionDataBase versionData = LoadVersionDataBase();
+        if (versionData == null) return;
         
-        ExecuteBuildFlow(version);
+        // 小版本更新，增加Patch版本
+        versionData.IncrementVersion();
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        
+        ExecuteBuildFlow(versionData.CurrentVersion, BuildType.Hotfix);
     }
     
-    private static void ExecuteBuildFlow(string version)
+    private static void ExecuteBuildFlow(VersionNumber version, BuildType buildType)
     { 
         Debug.Log($"[BuildProjectManager] 开始构建热更包 Version: {version}");
         
@@ -44,9 +72,9 @@ public static class BuildProjectManager
         ConfigureAddressableSettings(settings);
         
         // 2. 生成AddressablePackagesEntries，打包进指定Group(HelperBuildData)
-        AddressableLabelExporter.ExportEntries();
-        AddressableLabelExporter.EnsureConfigInGroup();
-        AssetDatabase.SaveAssets();
+        HelperBuildDataExporter.ExportEntries();
+        HelperBuildDataExporter.EnsureConfigInGroup();
+        AssetDatabase.SaveAssets(); 
         AssetDatabase.Refresh();
         
         // 3. 构建前清理ServerData
@@ -55,6 +83,7 @@ public static class BuildProjectManager
         // 4. 构建Remote包
         Debug.Log("[BuildProjectManager] 开始执行 Addressables BuildPlayerContent...");
         AddressableAssetSettings.BuildPlayerContent(out AddressablesPlayerBuildResult result);
+        
         if (!string.IsNullOrEmpty(result.Error))
         {
             Debug.LogError($"[BuildProjectManager] 构建失败: {result.Error}");
@@ -64,13 +93,20 @@ public static class BuildProjectManager
         // 5. BuildPathCustomizer 整理Remote包目录, 删除不必要的文件
         // 获取 Addressables 默认的 RemoteBuildPath (通常在 ServerData/[Platform])
         string serverDataPath = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "ServerData", EditorUserBuildSettings.activeBuildTarget.ToString());
-        string currentVerPackageName = ProjectName + "_" + version;
+        string currentVerPackageName = ProjectName + "_" + version.GetVersionString();
         string hotfixOutputDir = Path.Combine(OutputRoot, currentVerPackageName);
         
         BuildPathCustomizer.OrganizeBuildOutput(serverDataPath, hotfixOutputDir);
         
         // 6. 生成 version_state.json 到指定目录
         GenerateVersionStateFile(hotfixOutputDir, version);
+        
+        // 7. 如果是整包构建，需要导出BuildIndex
+        if (buildType == BuildType.Full)
+        {
+            LocalStatusExporter.ExportBuildIndex();
+            LocalStatusExporter.EnsureBuildIndexInGroup();
+        }
         
         Debug.Log($"[BuildProjectManager] 热更包构建完毕: {hotfixOutputDir}");
         EditorUtility.RevealInFinder(hotfixOutputDir);
@@ -104,7 +140,7 @@ public static class BuildProjectManager
                 continue; 
             }
             
-            if (group.Name == AddressableLabelExporter.GROUP_NAME) continue; // HelperBuildData Group 暂定Together
+            if (group.Name == HelperBuildDataExporter.GROUP_NAME) continue; // HelperBuildData Group 暂定Together
 
             var schema = group.GetSchema<BundledAssetGroupSchema>();
             if (schema == null)
@@ -122,7 +158,7 @@ public static class BuildProjectManager
             string currentBuildPathName = schema.BuildPath.GetName(settings);
             
             // 1. HelperBuildData (必要的辅助数据)，必须强制为 Remote，否则无法热更配置
-            if (group.Name == AddressableLabelExporter.GROUP_NAME)
+            if (group.Name == HelperBuildDataExporter.GROUP_NAME)
             {
                 SetSchemaPathToRemote(settings, schema);
                 continue;
@@ -173,7 +209,7 @@ public static class BuildProjectManager
     /// <summary>
     /// 生成 version_state.json
     /// </summary>
-    private static void GenerateVersionStateFile(string outputDir, string version)
+    private static void GenerateVersionStateFile(string outputDir, VersionNumber version)
     {
         Debug.Log("[BuildProjectManager] 正在生成 version_state.json...");
         
@@ -224,6 +260,17 @@ public static class BuildProjectManager
         File.WriteAllText(savePath, json);
         
         Debug.Log($"[BuildProjectManager] version_state.json 生成完毕。Hash: {versionState.hash} BundleSize: {versionState.totalSize}");
+    }
+    
+    private static VersionDataBase LoadVersionDataBase()
+    {
+        VersionDataBase versionData = AssetDatabase.LoadAssetAtPath<VersionDataBase>(versionDataBasePath);
+        if (versionData == null)
+        {
+            Debug.LogError($"[BuildProjectManager] 未找到版本数据库: {versionDataBasePath}");
+            return null;
+        }
+        return versionData;
     }
 }
 #endif

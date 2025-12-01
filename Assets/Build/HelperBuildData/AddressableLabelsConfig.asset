@@ -19,6 +19,10 @@ MonoBehaviour:
   - key: EditorSceneList
     Type: Untyped
     Labels: []
+  - key: BuildIndex
+    Type: BuildIndex
+    Labels:
+    - BuildIndex
   - key: LuaCallCSharp
     Type: TypeMemberListSO
     Labels:

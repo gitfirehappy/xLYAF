@@ -10,6 +10,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 public static class HotfixManager
 {
     // TODO: 确定服务器配置，此处是示例， 需要确认所有URL正确
+    // TODO: 注意：资源名称会根据 version 不同有变动，所以不能写死
     private static readonly string _remoteUrlRoot = "https://your-site-name.netlify.app/ProjectName_1.0.0/";
     
     public async static Task InitializeAsync()
