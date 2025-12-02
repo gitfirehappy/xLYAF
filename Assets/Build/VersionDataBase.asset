@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: VersionDataBase
   m_EditorClassIdentifier: 
   CurrentVersion:
-    Major: 3
+    Major: 1
     Minor: 0
     Patch: 0

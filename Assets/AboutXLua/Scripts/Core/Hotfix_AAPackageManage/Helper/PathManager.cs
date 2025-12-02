@@ -14,6 +14,7 @@ public static class PathManager
    
     public static string LocalRoot { get; private set; }
     public static string RemoteRoot { get; private set; }
+    
     public static string LocalBundleRoot { get; private set; }
     public static string RemoteBundleRoot { get; private set; }
     
@@ -26,9 +27,6 @@ public static class PathManager
     /// </summary>
     public static void Initialize(BuildIndex buildIndex)
     {
-        // 加载构建索引
-        //_buildIndex = BuildIndex.Load(); // TODO: AA包加载
-        
         string platform = buildIndex.Platform;
         if(string.IsNullOrEmpty(platform)) platform = "Unknown";
 

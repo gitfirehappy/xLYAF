@@ -9,9 +9,12 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 public static class HotfixManager
 {
-    // TODO: 确定服务器配置，此处是示例， 需要确认所有URL正确
-    // TODO: 注意：资源名称会根据 version 不同有变动，所以不能写死
-    private static readonly string _remoteUrlRoot = "https://your-site-name.netlify.app/ProjectName_1.0.0/";
+    private static readonly string _hotfixUrl = "https://your-site-name.netlify.app/HotfixOutput";
+    
+    // 固定下载 manifest 动态获取路径
+    private static readonly string _manifestUrl = Path.Combine(_hotfixUrl, "manifest.json");
+    
+    private static string _remoteUrlRoot;
     
     public async static Task InitializeAsync()
     {
@@ -40,7 +43,30 @@ public static class HotfixManager
         PathManager.Initialize(buildIndex);
         PathManager.EnsureDirectories();
         
-        // 3. 加载本地 version_state.json
+        // 3. 获取 manifest.json，确定下载路径
+        string manifestJson = await NetworkDownloader.Instance.DownloadText(_manifestUrl);
+        if (string.IsNullOrEmpty(manifestJson))
+        {
+            Debug.LogError("[HotfixManager] 无法获取manifest.json，使用本地资源运行。");
+            await FinishHotfix();
+            return;
+        }
+        
+        Manifest manifest = JsonUtility.FromJson<Manifest>(manifestJson);
+        if (string.IsNullOrEmpty(manifest.latestPackage))
+        {
+            Debug.LogError("[HotfixManager] manifest.json 无效，使用本地资源运行。");
+            await FinishHotfix();
+            return;
+        }
+        
+        string packagePath = manifest.latestPackage;
+        _remoteUrlRoot = Path.Combine(_hotfixUrl,"Packages", packagePath,"/");
+    
+        Debug.Log($"[HotfixManager] 获取最新包体: {packagePath}，URL已更新: {_remoteUrlRoot}");
+
+        
+        // 4. 加载本地 version_state.json
         VersionChecker versionChecker = new VersionChecker();
         string localVersionStatePath = Path.Combine(PathManager.LocalRoot, "version_state.json");
         VersionState localVersionState = null;
@@ -51,7 +77,7 @@ public static class HotfixManager
             Debug.Log($"[HotfixManager] 本地版本: {localVersionState?.version}, Hash: {localVersionState?.hash}");
         }
         
-        // 4. 下载远端 version_state.json
+        // 5. 下载远端 version_state.json
         string remoteVersionUrl = _remoteUrlRoot + "version_state.json";
         string remoteVersionJson = await NetworkDownloader.Instance.DownloadText(remoteVersionUrl);
         
@@ -79,7 +105,7 @@ public static class HotfixManager
             }
         }
         
-        // 5. 比较版本差异
+        // 6. 比较版本差异
         VersionDiffResult diff = versionChecker.CalculateDiff(localVersionState, remoteVersionState);
         
         if (!diff.HasUpdate)
@@ -91,7 +117,7 @@ public static class HotfixManager
         
         Debug.Log($"[HotfixManager] 发现更新！需下载Bundle数: {diff.DownloadList.Count}, 总大小: {diff.TotalDownloadSize}");
         
-        // 6. 下载差异 bundle 到 RemoteRoot （暂存远端文件）
+        // 7. 下载差异 bundle 到 RemoteRoot （暂存远端文件）
         // HelperBuildData的bundle组都会在这一步下载
         string remoteBundleRoot = PathManager.RemoteBundleRoot;
         if (!Directory.Exists(remoteBundleRoot)) Directory.CreateDirectory(remoteBundleRoot);
@@ -110,7 +136,7 @@ public static class HotfixManager
             }
         }
         
-        // 7. 下载 catalog.json
+        // 8. 下载 catalog.json
         string catalogUrl = _remoteUrlRoot + "catalog.json";
         await NetworkDownloader.Instance.DownloadFile(catalogUrl, Path.Combine(PathManager.RemoteRoot, "catalog.json"));
         
@@ -119,10 +145,10 @@ public static class HotfixManager
         
         Debug.Log("[HotfixManager] 热更资源下载完成，开始应用热更...");
         
-        // 8. 应用更新
+        // 9. 应用更新
         PackageCleaner.Instance.ApplyUpdate(diff.DeleteList, PathManager.RemoteRoot, PathManager.LocalRoot);
         
-        // 9. 加载新的 catalog
+        // 10. 加载新的 catalog
         Debug.Log("[HotfixManager] 加载新 Catalog...");
         string localCatalogPath = Path.Combine(PathManager.LocalRoot, "catalog.json");
         

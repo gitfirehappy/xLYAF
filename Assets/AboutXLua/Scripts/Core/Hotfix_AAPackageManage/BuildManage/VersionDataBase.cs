@@ -9,6 +9,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "VersionDataBase", menuName = "Build/VersionDataBase", order = 1)]
 public class VersionDataBase : ScriptableObject
 {
+    [Header("当前版本号")]
     public VersionNumber CurrentVersion = new() { Major = 1, Minor = 0, Patch = 0 };
     
     public void IncrementVersion(bool isMajor = false, bool isMinor = false)
@@ -28,8 +29,11 @@ public class VersionDataBase : ScriptableObject
         {
             CurrentVersion.Patch++;
         }
+        // TODO: 当前日期构建此时增加
     }
     
+    // TODO: 添加日期显示
+    // TODO: 添加当前日期构建次数
     // TODO: 可添加保护机制
 }
 

@@ -1,7 +1,9 @@
 #if UNITY_EDITOR
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using Codice.Client.Common.EventTracking;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Build;
@@ -34,6 +36,7 @@ public static class BuildProjectManager
     [MenuItem("Tools/Build/Build Full Package")]
     public static void BuildFullPackage()
     {
+        // TODO: 明确引用（污染还是浅引用）下面一致，应该是重写保存
         VersionDataBase versionData = LoadVersionDataBase();
         if (versionData == null) return;
         
@@ -92,16 +95,27 @@ public static class BuildProjectManager
         
         // 5. BuildPathCustomizer 整理Remote包目录, 删除不必要的文件
         // 获取 Addressables 默认的 RemoteBuildPath (通常在 ServerData/[Platform])
-        string serverDataPath = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "ServerData", EditorUserBuildSettings.activeBuildTarget.ToString());
-        string currentVerPackageName = ProjectName + "_" + version.GetVersionString();
-        string hotfixOutputDir = Path.Combine(OutputRoot, currentVerPackageName);
+        string serverDataPath = Path.Combine(
+            Directory.GetParent(Application.dataPath).FullName,
+            "ServerData", 
+            EditorUserBuildSettings.activeBuildTarget.ToString()
+            );
+        
+        string currentPackageName = $"Build_{DateTime.Now:yyyyMMdd}_{version.GetVersionString()}";
+        
+        string packagesDir = Path.Combine(OutputRoot, "Packages");
+        Directory.CreateDirectory(packagesDir);
+        string hotfixOutputDir = Path.Combine(packagesDir, currentPackageName);
         
         BuildPathCustomizer.OrganizeBuildOutput(serverDataPath, hotfixOutputDir);
         
         // 6. 生成 version_state.json 到指定目录
         GenerateVersionStateFile(hotfixOutputDir, version);
         
-        // 7. 如果是整包构建，需要导出BuildIndex
+        // 7. 更新 Manifest 文件
+        UpdateManifestFile(currentPackageName, version);
+        
+        // 8. 如果是整包构建，需要导出BuildIndex
         if (buildType == BuildType.Full)
         {
             LocalStatusExporter.ExportBuildIndex();
@@ -271,6 +285,26 @@ public static class BuildProjectManager
             return null;
         }
         return versionData;
+    }
+    
+    /// <summary>
+    /// 更新 manifest.json
+    /// </summary>
+    private static void UpdateManifestFile(string packageName, VersionNumber version)
+    {
+        string manifestPath = Path.Combine(OutputRoot, "manifest.json");
+
+        var data = new Manifest
+        {
+            latestPackage = packageName,
+            latestversion = version
+        };
+        
+        // 生成 manifest内容（包含最新包体名）
+        string manifestJson = JsonUtility.ToJson(data, true);
+    
+        File.WriteAllText(manifestPath, manifestJson);
+        Debug.Log($"[BuildProjectManager] 更新 manifest.json 包体名: {packageName}，版本: {version.GetVersionString()}");
     }
 }
 #endif

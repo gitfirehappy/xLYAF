@@ -19,7 +19,7 @@ public static class BuildPathCustomizer
     /// 整理构建产物
     /// </summary>
     /// <param name="buildSourceDir">Addressables 默认输出目录 (ServerData/Platform)</param>
-    /// <param name="finalOutputDir">最终打包输出目录 (Project/HotfixOutput/Version)</param>
+    /// <param name="finalOutputDir">最终打包输出目录 (Project/HotfixOutput/Packages/ProjectName_...)</param>
     public static void OrganizeBuildOutput(string buildSourceDir, string finalOutputDir)
     {
         if (Directory.Exists(finalOutputDir))
