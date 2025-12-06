@@ -29,7 +29,7 @@ public class VersionChecker
     }
     
     /// <summary>
-    /// 计算版本差异
+    /// 计算版本差异 TODO: 改逻辑
     /// </summary>
     /// <param name="local">本地版本信息 (可能为 null)</param>
     /// <param name="remote">远端版本信息</param>
@@ -37,7 +37,7 @@ public class VersionChecker
     {
         var result = new VersionDiffResult();
         
-        // 1. 如果没有本地版本，相当于全部全新下载
+        // 如果没有本地版本，相当于全部全新下载
         if (local == null || local.bundles == null)
         {
             result.HasUpdate = true;
@@ -46,7 +46,7 @@ public class VersionChecker
             return result;
         }
 
-        // 2. 如果总 Hash 一致，无需更新
+        // 如果总 Hash 一致，无需更新
         if (string.Equals(local.hash, remote.hash, StringComparison.OrdinalIgnoreCase))
         {
             result.HasUpdate = false;
@@ -59,7 +59,7 @@ public class VersionChecker
         var localDict = local.bundles.ToDictionary(b => b.bundleName, b => b.hash);
         var remoteDict = remote.bundles.ToDictionary(b => b.bundleName, b => b.hash);
 
-        // 3. 计算需要删除的文件：在本地存在，但在远端不存在的文件
+        // 计算需要删除的文件：在本地存在，但在远端不存在的文件
         foreach (var localBundle in local.bundles)
         {
             if (!remoteDict.ContainsKey(localBundle.bundleName))
@@ -68,7 +68,7 @@ public class VersionChecker
             }
         }
 
-        // 4. 计算需要下载的文件：远端新增的 OR 远端存在但Hash与本地不一致的
+        // 计算需要下载的文件：远端新增的 OR 远端存在但Hash与本地不一致的
         foreach (var remoteBundle in remote.bundles)
         {
             // 如果本地没有，或者 Hash 不匹配，则加入下载队列

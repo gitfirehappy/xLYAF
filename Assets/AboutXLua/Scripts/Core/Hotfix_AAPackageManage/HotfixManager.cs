@@ -165,10 +165,7 @@ public static class HotfixManager
     
     public static async Task FinishHotfix()
     {
-        // AAPackageManager 基于本地索引扫描构建 （依赖更新后的HelperBuildData）
+        // AAPackageManager 基于索引扫描构建 （依赖更新后的HelperBuildData）
         await AAPackageManager.Instance.Initialize();
-        
-        // 此时正式开放AAPackageManager 的获取资源功能API
-        AAPackageManager.Instance.SetHasUpdateCatalog();
     }
 }

@@ -31,7 +31,7 @@ public class CatalogUpdater
                 string fileName = Path.GetFileName(id);
                 string localPath = Path.Combine(PathManager.RemoteBundleRoot, fileName);
 
-                // 如果本地已有下载的包 → 强制使用本地路径
+                // 如果本地已有下载的包，则强制使用本地路径
                 if (File.Exists(localPath))
                 {
                     return localPath;
