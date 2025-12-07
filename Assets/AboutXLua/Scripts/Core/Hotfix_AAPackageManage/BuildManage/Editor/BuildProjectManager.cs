@@ -233,7 +233,9 @@ public static class BuildProjectManager
             bundles = new List<BundleInfo>()
         };
         
-        // 1. 扫描 bundles 目录下的所有文件
+        // TODO: 编辑器模式下加载AddressableLabelsConfig的logicalKey
+        
+        // 扫描 bundles 目录下的所有文件
         string bundlesDir = Path.Combine(outputDir, "bundles");
         if (Directory.Exists(bundlesDir))
         {
@@ -243,7 +245,7 @@ public static class BuildProjectManager
                 var fileInfo = new FileInfo(file);
                 
                 // 跳过非 bundle 文件（如果有）
-                if(file.EndsWith(".manifest")) continue; 
+                if(!file.EndsWith(".bundle")) continue; 
 
                 var bundleInfo = new BundleInfo
                 {
@@ -256,7 +258,7 @@ public static class BuildProjectManager
             }
         }
         
-        // 2. 包体大小预警
+        // 包体大小预警
         if (versionState.totalSize >= MaxHotfixSizeBytes)
         {
             Debug.LogError($"[BuildProjectManager] 热更包大小过大，需缩减大小: {versionState.totalSize} >= {MaxHotfixSizeBytes}");
@@ -264,11 +266,11 @@ public static class BuildProjectManager
             return;
         }
 
-        // 3. 计算整个包的 Hash
+        // 计算整个包的 Hash
         // GeneratePackageHash 会遍历目录下所有文件（除了 version_state.json）
         versionState.hash = HashGenerator.GeneratePackageHash(outputDir);
 
-        // 4. 序列化并写入
+        // 序列化并写入
         string json = JsonUtility.ToJson(versionState, true);
         string savePath = Path.Combine(outputDir, "version_state.json");
         File.WriteAllText(savePath, json);

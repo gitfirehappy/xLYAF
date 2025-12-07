@@ -165,7 +165,7 @@ public static class HotfixManager
     
     public static async Task FinishHotfix()
     {
-        // AAPackageManager 基于索引扫描构建 （依赖更新后的HelperBuildData）
+        // 加载 AddressableLabelsConfig（依赖更新后的HelperBuildData）
         await AAPackageManager.Instance.Initialize();
     }
 }

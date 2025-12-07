@@ -10,7 +10,7 @@ public class BuildIndex : ScriptableObject
 {
     public const string ASSET_ADDRESS = "BuildIndex"; // AA中的地址
     
-    [Header("构建唯一标识 (每次打包时更新)")]
+    [Header("构建唯一标识 (每次构建整包时更新)")]
     public string BuildGUID;
 
     [Header("构建时间")]

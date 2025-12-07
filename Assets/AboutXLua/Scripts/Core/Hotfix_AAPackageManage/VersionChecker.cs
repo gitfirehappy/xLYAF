@@ -55,32 +55,65 @@ public class VersionChecker
 
         result.HasUpdate = true;
 
-        // 转换为字典方便快速查找 [BundleName -> Hash]
-        var localDict = local.bundles.ToDictionary(b => b.bundleName, b => b.hash);
-        var remoteDict = remote.bundles.ToDictionary(b => b.bundleName, b => b.hash);
+        var localMap = CreateBundleMap(local.bundles);
+        var remoteMap = CreateBundleMap(remote.bundles);
 
         // 计算需要删除的文件：在本地存在，但在远端不存在的文件
-        foreach (var localBundle in local.bundles)
+        foreach (var kvp in localMap)
         {
-            if (!remoteDict.ContainsKey(localBundle.bundleName))
+            if (!remoteMap.ContainsKey(kvp.Key))
             {
-                result.DeleteList.Add(localBundle.bundleName);
+                // 将物理文件名添加到删除列表
+                result.DeleteList.Add(kvp.Value.bundleName);
             }
         }
 
-        // 计算需要下载的文件：远端新增的 OR 远端存在但Hash与本地不一致的
-        foreach (var remoteBundle in remote.bundles)
+        // 找出需要下载的 (Remote 新增 OR Remote 存在但 logicalKey 不同)
+        foreach (var kvp in remoteMap)
         {
-            // 如果本地没有，或者 Hash 不匹配，则加入下载队列
-            if (!localDict.TryGetValue(remoteBundle.bundleName, out string localHash) || 
-                !string.Equals(localHash, remoteBundle.hash, StringComparison.OrdinalIgnoreCase))
+            string logicalId = kvp.Key;
+            BundleInfo remoteBundle = kvp.Value;
+
+            if (localMap.TryGetValue(logicalId, out BundleInfo localBundle))
             {
+                if (localBundle.hash != remoteBundle.hash)
+                {
+                    // logicalKey 变了 -> 需要更新
+                    // 旧的物理文件 (localBundle.bundleName) 需要被标记删除
+                    if (localBundle.bundleName != remoteBundle.bundleName)
+                    {
+                        if (!result.DeleteList.Contains(localBundle.bundleName))
+                            result.DeleteList.Add(localBundle.bundleName);
+                    }
+                    
+                    result.DownloadList.Add(remoteBundle);
+                    result.TotalDownloadSize += remoteBundle.size;
+                }
+            }
+            else
+            {
+                // 本地没有这个逻辑包 -> 新增
                 result.DownloadList.Add(remoteBundle);
                 result.TotalDownloadSize += remoteBundle.size;
             }
         }
 
         return result;
+    }
+    
+    private Dictionary<string, BundleInfo> CreateBundleMap(List<BundleInfo> bundles)
+    {
+        var dict = new Dictionary<string, BundleInfo>();
+        foreach (var b in bundles)
+        {
+            // 优先使用 logicalKey，如果无效则使用 bundleName
+            string key = (!string.IsNullOrEmpty(b.logicalKey) && b.logicalKey != "Unknown") 
+                ? b.logicalKey 
+                : b.bundleName;
+            
+            if(!dict.ContainsKey(key)) dict.Add(key, b);
+        }
+        return dict;
     }
     
     public VersionState ParseJson(string json)

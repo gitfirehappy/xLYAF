@@ -1,5 +1,8 @@
 #if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEngine;
@@ -25,7 +28,7 @@ public class HelperBuildDataExporter
             return;
         }
 
-        // 1. 获取或创建 Config SO
+        // 获取或创建 Config SO
         var config = AssetDatabase.LoadAssetAtPath<AddressableLabelsConfig>(AALabelsConfigAssetPath);
         if (config == null)
         {
@@ -37,11 +40,17 @@ public class HelperBuildDataExporter
             }
             AssetDatabase.CreateAsset(config, AALabelsConfigAssetPath);
         }
-
-        // 2. 清空旧数据
+        
         config.allEntries.Clear();
-
-        // 3. 遍历采集
+        config.keysByType.Clear();
+        config.keysByLabel.Clear();
+        config.labelLogicalHashes.Clear();
+        
+        // 临时字典用于分类
+        var tempTypeDict = new Dictionary<string, List<string>>();
+        var tempLabelDict = new Dictionary<string, List<string>>();
+        var bundleStructure = new Dictionary<(string Group, string Label), List<string>>();
+        
         foreach (var group in settings.groups)
         {
             if (group == null || group.Name == GROUP_NAME) continue;
@@ -51,7 +60,8 @@ public class HelperBuildDataExporter
                 if (entry.IsFolder || string.IsNullOrEmpty(entry.address)) continue;
 
                 string entryType = entry.labels.Count > 0 ? entry.labels.First() : "Untyped";
-
+                string key = entry.address;
+                
                 var entryData = new PackageEntry
                 {
                     key = entry.address,
@@ -59,13 +69,47 @@ public class HelperBuildDataExporter
                     Labels = entry.labels.ToList()
                 };
                 config.allEntries.Add(entryData);
+                
+                // By Type
+                if (!tempTypeDict.ContainsKey(entryType)) tempTypeDict[entryType] = new List<string>();
+                tempTypeDict[entryType].Add(key);
+                
+                // By Label
+                if (entry.labels.Count == 0)
+                {
+                    AddToLabelDict(tempLabelDict, "Untyped", key);
+                }
+                else
+                {
+                    foreach (var label in entry.labels)
+                    {
+                        AddToLabelDict(tempLabelDict, label, key);
+                    }
+                }
             }
         }
+        
+        // 加入分类列表
+        foreach (var kvp in tempTypeDict)
+        {
+            config.keysByType.Add(new TypeToKeys { Type = kvp.Key, Keys = kvp.Value });
+        }
+        foreach (var kvp in tempLabelDict)
+        {
+            config.keysByLabel.Add(new LabelToKeys { Label = kvp.Key, Keys = kvp.Value });
+        }
+        
+        // TODO: 根据 同Group 同Label 的资源的key 生成logicalKey
 
         EditorUtility.SetDirty(config);
         AssetDatabase.SaveAssets();
-        // AssetDatabase.Refresh(); // 暂时不刷新，交给Manager统一处理
         Debug.Log($"[LabelExporter] 导出了 {config.allEntries.Count} 个资源 Entries");
+    }
+    
+    private static void AddToLabelDict(Dictionary<string, List<string>> dict, string label, string key)
+    {
+        if (!dict.ContainsKey(label)) dict[label] = new List<string>();
+        dict[label].Add(key);
     }
 
     /// <summary>

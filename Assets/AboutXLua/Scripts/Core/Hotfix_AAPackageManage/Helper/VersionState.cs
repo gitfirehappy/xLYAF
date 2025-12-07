@@ -15,7 +15,8 @@ public class VersionState
 [Serializable]
 public class BundleInfo
 {
-    public string bundleName;   // bundle 文件名
-    public string hash;         // bundle 文件的hash
+    public string bundleName;   // bundle 文件名（e.g group_assets_label_hash.bundle）
+    public string hash;         // bundle 文件的 hash
+    public string logicalKey;     // 用于差异对比，基于bundle内的key生成
     public long size;           // bundle 文件大小
 }

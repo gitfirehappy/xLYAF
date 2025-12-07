@@ -14,14 +14,7 @@ public class AAPackageManager : Singleton<AAPackageManager>
     // AddressablePackagesEntries SO配置的 Addressable Key，确保一致
     private const string CONFIG_ASSET_KEY = "AddressableLabelsConfig";
     
-    // 核心数据：Key -> Entry
-    private Dictionary<string, PackageEntry> _entryLookup = new();
-    
-    // 核心索引：Type -> Keys (只存Key，省内存)
-    private Dictionary<string, List<string>> _keysByType = new();
-    
-    // 核心索引：Label -> Keys
-    private Dictionary<string, List<string>> _keysByLabel = new();
+    private AddressableLabelsConfig _config;
 
     private bool _isInitialized = false;
 
@@ -31,47 +24,16 @@ public class AAPackageManager : Singleton<AAPackageManager>
         AsyncOperationHandle<AddressableLabelsConfig> handle = 
             Addressables.LoadAssetAsync<AddressableLabelsConfig>(CONFIG_ASSET_KEY);
         
-        var config = await handle.Task;
+        _config = await handle.Task;
 
-        if (handle.Status != AsyncOperationStatus.Succeeded || config == null)
+        if (handle.Status != AsyncOperationStatus.Succeeded || _config == null)
         {
             Debug.LogError($"[AAPackageManager] 关键配置加载失败: {CONFIG_ASSET_KEY}。管理器无法初始化。");
             return;
         }
-
-        // 构建索引
-        BuildAAIndex(config.allEntries);
         
-        // 释放句柄（已经拿到了数据）
-        Addressables.Release(handle);
         _isInitialized = true;
-    }
-    
-    private void BuildAAIndex(List<PackageEntry> entries)
-    {
-        _entryLookup.Clear();
-        _keysByType.Clear();
-        _keysByLabel.Clear();
-
-        foreach (var entry in entries)
-        {
-            // Lookup
-            if (!_entryLookup.TryAdd(entry.key, entry)) continue; // 避免重复
-
-            // By Type
-            if (!_keysByType.ContainsKey(entry.Type)) 
-                _keysByType[entry.Type] = new List<string>();
-            _keysByType[entry.Type].Add(entry.key);
-
-            // By Label
-            foreach (var label in entry.Labels)
-            {
-                if (!_keysByLabel.ContainsKey(label)) 
-                    _keysByLabel[label] = new List<string>();
-                _keysByLabel[label].Add(entry.key);
-            }
-        }
-        Debug.Log($"[AAPackageManager] 索引构建完成。Entries: {entries.Count}");
+        Debug.Log($"[AAPackageManager] 初始化完成。Entries: {_config.allEntries.Count}");
     }
 
     #region 查询接口：核心
@@ -81,7 +43,7 @@ public class AAPackageManager : Singleton<AAPackageManager>
     /// </summary>
     public List<string> GetKeysByType(string type)
     {
-        return _keysByType.TryGetValue(type, out var list) ? list : new List<string>();
+        return _isInitialized ? _config.GetKeysByType(type) : new List<string>();
     }
 
     /// <summary>
@@ -89,7 +51,7 @@ public class AAPackageManager : Singleton<AAPackageManager>
     /// </summary>
     public List<string> GetKeysByLabel(string label)
     {
-        return _keysByLabel.TryGetValue(label, out var list) ? list : new List<string>();
+        return _isInitialized ? _config.GetKeysByLabel(label) : new List<string>();
     }
 
     /// <summary>
@@ -97,19 +59,23 @@ public class AAPackageManager : Singleton<AAPackageManager>
     /// </summary>
     public List<string> GetKeysByTypeAndLabel(string type, string label)
     {
-        if (!_keysByType.TryGetValue(type, out var typeKeys)) return new List<string>();
+        if (!_isInitialized) return new List<string>();
         
-        return typeKeys.Where(key => 
-        {
-            var entry = _entryLookup[key];
-            return entry.Labels.Contains(label);
-        }).ToList();
+        // 获取Type的所有Key
+        var typeKeys = _config.GetKeysByType(type);
+        // 获取Label的所有Key (利用HashSet优化交集查找)
+        var labelKeys = new HashSet<string>(_config.GetKeysByLabel(label));
+        
+        return typeKeys.Where(k => labelKeys.Contains(k)).ToList();
     }
-    
+
     /// <summary>
     /// 检查资源是否存在
     /// </summary>
-    public bool ContainsKey(string key) => _entryLookup.ContainsKey(key);
+    public bool ContainsKey(string key)
+    {
+        return _isInitialized && _config.allEntries.Any(e => e.key == key);
+    }
 
     #endregion
 

@@ -9,6 +9,18 @@ using System.Text;
 public static class HashGenerator
 {
     /// <summary>
+    /// 生成字符串的MD5哈希
+    /// </summary>
+    public static string GenerateStringHash(string content)
+    {
+        using (var md5 = System.Security.Cryptography.MD5.Create())
+        {
+            byte[] hash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(content));
+            return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+        }
+    }
+    
+    /// <summary>
     /// 生成单个文件的MD5哈希
     /// </summary>
     public static string GenerateFileHash(string filePath)
