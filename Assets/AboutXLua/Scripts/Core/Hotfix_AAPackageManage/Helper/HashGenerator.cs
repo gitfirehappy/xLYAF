@@ -39,7 +39,6 @@ public static class HashGenerator
     /// 生成热更新包的MD5
     /// </summary>
     /// <param name="hotfixDir">热更包的路径</param>
-    /// <returns></returns>
     public static string GeneratePackageHash(string hotfixDir)
     {
         var hashList = new StringBuilder();

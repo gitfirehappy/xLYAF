@@ -8,6 +8,6 @@ using System.Collections.Generic;
 public class PackageEntry
 {
     public string key;
-    public string Type; // Type通过第一个Label推导
+    public string Type;         // 默认第一个 Label 作为 Type
     public List<string> Labels;
 }

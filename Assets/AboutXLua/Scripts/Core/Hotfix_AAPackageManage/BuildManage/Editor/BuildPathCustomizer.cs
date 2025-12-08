@@ -38,26 +38,26 @@ public static class BuildPathCustomizer
             string fileName = Path.GetFileName(file);
             string extension = Path.GetExtension(file).ToLower();
 
-            // 1. 处理 Catalog (通常是 catalog_hash.json，需重命名为 catalog.json)
+            // 处理 Catalog (通常是 catalog_hash.json，需重命名为 catalog.json)
             if (fileName.StartsWith("catalog") && extension == ".json")
             {
                 string targetPath = Path.Combine(finalOutputDir, "catalog.json");
                 File.Copy(file, targetPath, true);
                 Debug.Log($"[PathCustomizer] Catalog 已复制并重命名: {targetPath}");
             }
-            // 2. 架构使用 version_state.json 进行版本比对，不需要 AA 自带的 hash 校验
+            // 架构使用 version_state.json 进行版本比对，不需要 AA 自带的 hash 校验
             else if (fileName.StartsWith("catalog") && extension == ".hash")
             {
                // 直接跳过，不复制到 finalOutputDir
                 continue;
             }
-            // 3. 处理 Bundles (.bundle)
+            // 处理 Bundles (.bundle)
             else if (extension == ".bundle")
             {
                 string targetPath = Path.Combine(bundleTargetDir, fileName);
                 File.Copy(file, targetPath, true);
             }
-            // 4. 其他文件 (如 bin 等，Addressable 默认 .bundle 扩展名，如果是 .bin 需自行适配)
+            // 其他文件 (如 bin 等，Addressable 默认 .bundle 扩展名，如果是 .bin 需自行适配)
             else if (extension == ".bin") 
             {
                 string targetPath = Path.Combine(bundleTargetDir, fileName);
@@ -89,7 +89,7 @@ public static class BuildPathCustomizer
             }
         }
         
-        // 重新创建空目录（虽然 BuildPlayerContent 也会自动创建，但为了保险起见）
+        // 重新创建空目录（BuildPlayerContent 也会自动创建，为了保险起见）
         if (!Directory.Exists(serverDataPath))
         {
             Directory.CreateDirectory(serverDataPath);

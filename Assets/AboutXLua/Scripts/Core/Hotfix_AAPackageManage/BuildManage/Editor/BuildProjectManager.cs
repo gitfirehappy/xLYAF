@@ -36,7 +36,6 @@ public static class BuildProjectManager
     [MenuItem("Tools/Build/Build Full Package")]
     public static void BuildFullPackage()
     {
-        // TODO: 明确引用（污染还是浅引用）下面一致，应该是重写保存
         VersionDataBase versionData = LoadVersionDataBase();
         if (versionData == null) return;
         
@@ -171,21 +170,21 @@ public static class BuildProjectManager
             
             string currentBuildPathName = schema.BuildPath.GetName(settings);
             
-            // 1. HelperBuildData (必要的辅助数据)，必须强制为 Remote，否则无法热更配置
+            // HelperBuildData (必要的辅助数据)，必须强制为 Remote，否则无法热更配置
             if (group.Name == HelperBuildDataExporter.GROUP_NAME)
             {
                 SetSchemaPathToRemote(settings, schema);
                 continue;
             }
 
-            // 2. Local 组保持默认Local路径
+            // Local 组保持默认Local路径
             if (currentBuildPathName == AddressableAssetSettings.kLocalBuildPath)
             {
                 Debug.Log($"[BuildProjectManager] 保留本地组配置: {group.Name} (LocalBuildPath)");
                 continue; 
             }
 
-            // 3. 对Remote组设置 Remote 路径
+            // 对Remote组设置 Remote 路径
             // (确保非本地组都被构建到 ServerData 目录下，方便 BuildPathCustomizer 整理)
             SetSchemaPathToRemote(settings, schema);
         }
@@ -227,13 +226,17 @@ public static class BuildProjectManager
     {
         Debug.Log("[BuildProjectManager] 正在生成 version_state.json...");
         
+        var config = AssetDatabase.LoadAssetAtPath<AddressableLabelsConfig>(HelperBuildDataExporter.AALabelsConfigAssetPath);
+        if (config == null)
+        {
+            Debug.LogError("无法加载 AddressableLabelsConfig，LogicalKey 将无法生成！");
+        }
+        
         var versionState = new VersionState
         {
             version = version,
             bundles = new List<BundleInfo>()
         };
-        
-        // TODO: 编辑器模式下加载AddressableLabelsConfig的logicalKey
         
         // 扫描 bundles 目录下的所有文件
         string bundlesDir = Path.Combine(outputDir, "bundles");
@@ -242,17 +245,50 @@ public static class BuildProjectManager
             var files = Directory.GetFiles(bundlesDir, "*", SearchOption.TopDirectoryOnly);
             foreach (var file in files)
             {
-                var fileInfo = new FileInfo(file);
-                
                 // 跳过非 bundle 文件（如果有）
                 if(!file.EndsWith(".bundle")) continue; 
-
+                
+                var fileInfo = new FileInfo(file);
+                string fileName = Path.GetFileName(file);
+                
                 var bundleInfo = new BundleInfo
                 {
                     bundleName = Path.GetFileName(file),
                     hash = HashGenerator.GenerateFileHash(file),
+                    logicalKey = "Unknown", 
                     size = fileInfo.Length
                 };
+                
+                // LogicalKey 已在 config 中生成，此处是分配 LogicalKey
+                // 由于均采用 PackTogetherByLabel 模式打包，格式固定，所以bundle名可推导
+                // e.g group_assets_labels_hash.bundle
+                if (config != null)
+                {
+                    string[] parts = fileName.Split('_');
+                    if (parts.Length >= 3)
+                    {
+                        string group = parts[0];
+                        string label = parts[2]; // parts[1] 是 "assets"
+                    
+                        // 使用 AddressableLabelsConfig 获取对应的 LogicalKey
+                        string logicalKey = config.GetLogicalHash(group, label);
+                        
+                        if (!string.IsNullOrEmpty(logicalKey))
+                        {
+                            bundleInfo.logicalKey = logicalKey;
+                        }
+                        else
+                        {
+                            Debug.LogError($"[BuildProjectManager] 未找到 LogicalKey for group: {group}, label: {label} in bundle: {fileName}");
+                            bundleInfo.logicalKey = "Unknown"; // 用 Unknown 作为默认值
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError($"[BuildProjectManager] 无法解析 bundle 文件名: {fileName}");
+                        bundleInfo.logicalKey = "Unknown";
+                    }
+                }
                 versionState.bundles.Add(bundleInfo);
                 versionState.totalSize += bundleInfo.size;
             }

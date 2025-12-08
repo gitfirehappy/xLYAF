@@ -29,7 +29,7 @@ public class VersionChecker
     }
     
     /// <summary>
-    /// 计算版本差异 TODO: 改逻辑
+    /// 计算版本差异
     /// </summary>
     /// <param name="local">本地版本信息 (可能为 null)</param>
     /// <param name="remote">远端版本信息</param>

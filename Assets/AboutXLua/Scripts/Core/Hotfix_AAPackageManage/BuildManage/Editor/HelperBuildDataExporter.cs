@@ -49,8 +49,9 @@ public class HelperBuildDataExporter
         // 临时字典用于分类
         var tempTypeDict = new Dictionary<string, List<string>>();
         var tempLabelDict = new Dictionary<string, List<string>>();
-        var bundleStructure = new Dictionary<(string Group, string Label), List<string>>();
+        var groupLabelToAddressList = new Dictionary<(string Group,string CombineLabel), List<string>>();
         
+        // 遍历所有 Group
         foreach (var group in settings.groups)
         {
             if (group == null || group.Name == GROUP_NAME) continue;
@@ -70,11 +71,11 @@ public class HelperBuildDataExporter
                 };
                 config.allEntries.Add(entryData);
                 
-                // By Type
+                // 填充 Type 索引
                 if (!tempTypeDict.ContainsKey(entryType)) tempTypeDict[entryType] = new List<string>();
                 tempTypeDict[entryType].Add(key);
                 
-                // By Label
+                // 填充单个 Label 索引 (用于 GetKeysByLabel) 
                 if (entry.labels.Count == 0)
                 {
                     AddToLabelDict(tempLabelDict, "Untyped", key);
@@ -86,6 +87,26 @@ public class HelperBuildDataExporter
                         AddToLabelDict(tempLabelDict, label, key);
                     }
                 }
+                
+                // 填充组合 Label (用于 LogicalHash / VersionState)
+                // PackTogetherByLabel 会将相同 Label 集合的资源打在一起。
+                // 必须对 Label 进行排序，确保 "A,B" 和 "B,A" 生成相同的 Key
+                string combinedLabelKey;
+                if (entry.labels.Count == 0)
+                {
+                    combinedLabelKey = "untyped"; // 或其他默认值
+                }
+                else
+                {
+                    // 排序 TODO: 这里导致不匹配 （可能不应该排序）
+                    var sortedLabels = entry.labels.OrderBy(l => l, StringComparer.Ordinal).ToList();
+                    // 拼接 (例如 TextAsset + LuaScripts -> "TextAssetLuaScripts")
+                    // 转小写 (因为 Addressables 生成的 Bundle 文件名通常是全小写，e.g. "..._textassetluascripts_...")
+                    combinedLabelKey = string.Join("", sortedLabels).ToLowerInvariant();
+                }
+
+                // 添加到用于计算 Hash 的字典
+                AddToGroupLabelDict(groupLabelToAddressList, group.Name.ToLowerInvariant(), combinedLabelKey, key);
             }
         }
         
@@ -98,19 +119,51 @@ public class HelperBuildDataExporter
         {
             config.keysByLabel.Add(new LabelToKeys { Label = kvp.Key, Keys = kvp.Value });
         }
-        
-        // TODO: 根据 同Group 同Label 的资源的key 生成logicalKey
+        foreach (var kvp in groupLabelToAddressList)
+        {
+            string group = kvp.Key.Group;// 小写处理后
+            string combineLabels = kvp.Key.CombineLabel;// 拼接转小写后的
+            List<string> keys = kvp.Value;
+
+            // 排序确保顺序一致
+            keys.Sort(StringComparer.Ordinal);
+
+            // 拼接key
+            StringBuilder sb = new StringBuilder();
+            foreach (var k in keys) sb.Append(k);
+
+            // 计算 Hash
+            string logicalHash = HashGenerator.GenerateStringHash(sb.ToString());
+
+            config.labelLogicalHashes.Add(new GroupLabelToLogicalHash 
+            { 
+                Group = group,
+                CombineLabel = combineLabels, 
+                Hash = logicalHash 
+            });
+        }
 
         EditorUtility.SetDirty(config);
         AssetDatabase.SaveAssets();
-        Debug.Log($"[LabelExporter] 导出了 {config.allEntries.Count} 个资源 Entries");
+        Debug.Log($"[LabelExporter] 导出完成。Entries: {config.allEntries.Count}, LogicalHashes: {config.labelLogicalHashes.Count}");
     }
+    
+    #region 辅助方法 
     
     private static void AddToLabelDict(Dictionary<string, List<string>> dict, string label, string key)
     {
         if (!dict.ContainsKey(label)) dict[label] = new List<string>();
         dict[label].Add(key);
     }
+    
+    private static void AddToGroupLabelDict(Dictionary<(string, string), List<string>> dict, string group, string label, string key)
+    {
+        var tuple = (group, label);
+        if (!dict.ContainsKey(tuple)) dict[tuple] = new List<string>();
+        dict[tuple].Add(key);
+    }
+    
+    #endregion
 
     /// <summary>
     /// 确保生成的配置 SO 已经被加入到 Addressable Group 中

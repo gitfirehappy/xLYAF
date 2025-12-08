@@ -183,3 +183,187 @@ MonoBehaviour:
     Labels:
     - TextAsset
     - LuaScripts
+  keysByType:
+  - Type: Untyped
+    Keys:
+    - Resources
+    - EditorSceneList
+  - Type: BuildIndex
+    Keys:
+    - BuildIndex
+  - Type: TypeMemberListSO
+    Keys:
+    - LuaCallCSharp
+    - Hotfix
+    - CSharpCallLua
+  - Type: TextAsset
+    Keys:
+    - TalkTest1
+    - StringUtil
+    - DialogueController
+    - DialogueModel
+    - DialogueDataManager
+    - DialogueView
+    - ModuleRegistry
+    - EventCentre
+    - TalkTest2
+    - PlayerController
+    - PlayerHFSMState
+    - PlayerIdleState
+    - PlayerAnimation
+    - BaseStateMachine
+    - BaseState
+    - PlayerStateMachine
+    - PlayerInputHandler
+    - GroundedState
+    - AirborneState
+    - PlayerRunState
+    - PlayerJumpState
+    - PlayerFallState
+    - HelloWorld
+  - Type: UIFormConfigSO
+    Keys:
+    - Dialogue
+  - Type: UIResourceConfigSO
+    Keys:
+    - UIResourceConfig
+  keysByLabel:
+  - Label: Untyped
+    Keys:
+    - Resources
+    - EditorSceneList
+  - Label: BuildIndex
+    Keys:
+    - BuildIndex
+  - Label: TypeMemberListSO
+    Keys:
+    - LuaCallCSharp
+    - Hotfix
+    - CSharpCallLua
+  - Label: XLuaConfigs
+    Keys:
+    - LuaCallCSharp
+    - Hotfix
+    - CSharpCallLua
+  - Label: TextAsset
+    Keys:
+    - TalkTest1
+    - StringUtil
+    - DialogueController
+    - DialogueModel
+    - DialogueDataManager
+    - DialogueView
+    - ModuleRegistry
+    - EventCentre
+    - TalkTest2
+    - PlayerController
+    - PlayerHFSMState
+    - PlayerIdleState
+    - PlayerAnimation
+    - BaseStateMachine
+    - BaseState
+    - PlayerStateMachine
+    - PlayerInputHandler
+    - GroundedState
+    - AirborneState
+    - PlayerRunState
+    - PlayerJumpState
+    - PlayerFallState
+    - HelloWorld
+  - Label: LuaScripts
+    Keys:
+    - TalkTest1
+    - StringUtil
+    - DialogueController
+    - DialogueModel
+    - DialogueDataManager
+    - DialogueView
+    - ModuleRegistry
+    - EventCentre
+    - TalkTest2
+    - PlayerController
+    - PlayerHFSMState
+    - PlayerIdleState
+    - PlayerAnimation
+    - BaseStateMachine
+    - BaseState
+    - PlayerStateMachine
+    - PlayerInputHandler
+    - GroundedState
+    - AirborneState
+    - PlayerRunState
+    - PlayerJumpState
+    - PlayerFallState
+    - HelloWorld
+  - Label: Text
+    Keys:
+    - TalkTest1
+    - TalkTest2
+  - Label: Dialogue
+    Keys:
+    - StringUtil
+    - DialogueController
+    - DialogueModel
+    - DialogueDataManager
+    - DialogueView
+  - Label: Core
+    Keys:
+    - ModuleRegistry
+  - Label: Framework
+    Keys:
+    - EventCentre
+    - BaseStateMachine
+    - BaseState
+  - Label: Player
+    Keys:
+    - PlayerController
+    - PlayerHFSMState
+    - PlayerIdleState
+    - PlayerAnimation
+    - PlayerStateMachine
+    - PlayerInputHandler
+    - GroundedState
+    - AirborneState
+    - PlayerRunState
+    - PlayerJumpState
+    - PlayerFallState
+  - Label: UIFormConfigSO
+    Keys:
+    - Dialogue
+  - Label: UIResourceConfigSO
+    Keys:
+    - UIResourceConfig
+  labelLogicalHashes:
+  - Group: built in data
+    CombineLabel: untyped
+    Hash: 8e5f1d09342ecb53c9d7c15094568167
+  - Group: localstaticdata
+    CombineLabel: buildindex
+    Hash: 38c8c3b88ffcb7f50b5da8b945270764
+  - Group: xlualabelconfig
+    CombineLabel: typememberlistsoxluaconfigs
+    Hash: 7ea808192456a70c7e71fa2cf127fcd3
+  - Group: luascripts
+    CombineLabel: luascriptstexttextasset
+    Hash: a0f8d020070f99e794537b6bbda2a42a
+  - Group: luascripts
+    CombineLabel: dialogueluascriptstextasset
+    Hash: 9ce861ea98a6beee8606d91a89c6b81e
+  - Group: luascripts
+    CombineLabel: coreluascriptstextasset
+    Hash: 2d5283f0a825eebcd8bf0dc8e5938672
+  - Group: luascripts
+    CombineLabel: frameworkluascriptstextasset
+    Hash: 576680da195b8bc631d2890b706cdbc3
+  - Group: luascripts
+    CombineLabel: luascriptsplayertextasset
+    Hash: 84b96e2d710923d89b2b496e99062220
+  - Group: ui
+    CombineLabel: uiformconfigso
+    Hash: 359928afdf6c973ee869e1698023a812
+  - Group: ui
+    CombineLabel: uiresourceconfigso
+    Hash: a7d439d961c0979c876253ccd2239cec
+  - Group: remote
+    CombineLabel: luascriptstextasset
+    Hash: 68e109f0f40ca72a15e05cc22786f8e6

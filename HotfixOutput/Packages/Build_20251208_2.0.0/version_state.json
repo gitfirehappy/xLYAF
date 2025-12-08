@@ -1,0 +1,23 @@
+{
+    "version": {
+        "Major": 2,
+        "Minor": 0,
+        "Patch": 0
+    },
+    "hash": "fdb248e3bdb9da9eeb471d77d5372651",
+    "totalSize": 4924,
+    "bundles": [
+        {
+            "bundleName": "helperbuilddata_assets_all_34635507d7ddd2f392957945a1cc43ea.bundle",
+            "hash": "17dac2e84e6ea3ed8f26aa1499051a2d",
+            "logicalKey": "Unknown",
+            "size": 3664
+        },
+        {
+            "bundleName": "remote_assets_textassetluascripts_0283125ac8c6992bac5147300778241c.bundle",
+            "hash": "46de9b34c1d1ae756f92b7314498bb9e",
+            "logicalKey": "Unknown",
+            "size": 1260
+        }
+    ]
+}
