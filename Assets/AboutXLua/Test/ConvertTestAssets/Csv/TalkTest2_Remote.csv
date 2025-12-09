@@ -1,0 +1,8 @@
+﻿Sign,ID,Character,PosAndOp,Content,NextID,Func,Params
+#,0,助手,center,你已成功进入TalkTest2对话（这依旧是热更的）,1,>PlaySound,success
+#,1,助手,center&diff1,这是连续对话测试，证明对话系统可以无缝衔接,2,,
+#,2,测试NPC;助手,left;right,这次来点选项,3;4;5,,
+%,3,,,都是结束对话，指向同一句,6,,
+%,4,,,都是结束对话，指向同一句,6,,
+%,5,,,都是结束对话，指向同一句,6,,
+#,6,测试NPC,center,热更的对话2测试完成！,END,>ShowSpecialEffect,complete

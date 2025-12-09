@@ -8,7 +8,7 @@ public class GameUIManager : SingletonMono<GameUIManager>
 {
     public UIResourceConfigSO uiResourceConfig; // TODO: 此处需要替换为AAPackageManager的获取
 
-    public string firstDialogueFileName;
+    private string firstDialogueFileName;
     
     private LuaEnv _luaEnv;
     

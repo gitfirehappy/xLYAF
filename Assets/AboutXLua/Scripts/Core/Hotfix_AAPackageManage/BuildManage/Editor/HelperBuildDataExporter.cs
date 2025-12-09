@@ -54,7 +54,8 @@ public class HelperBuildDataExporter
         // 遍历所有 Group
         foreach (var group in settings.groups)
         {
-            if (group == null || group.Name == GROUP_NAME) continue;
+            if (group == null) continue;
+            // HelperBuildData自身组也参与处理
 
             foreach (var entry in group.entries)
             {
@@ -90,19 +91,18 @@ public class HelperBuildDataExporter
                 
                 // 填充组合 Label (用于 LogicalHash / VersionState)
                 // PackTogetherByLabel 会将相同 Label 集合的资源打在一起。
-                // 必须对 Label 进行排序，确保 "A,B" 和 "B,A" 生成相同的 Key
                 string combinedLabelKey;
                 if (entry.labels.Count == 0)
                 {
-                    combinedLabelKey = "untyped"; // 或其他默认值
+                    combinedLabelKey = "untyped";
                 }
                 else
                 {
-                    // 排序 TODO: 这里导致不匹配 （可能不应该排序）
-                    var sortedLabels = entry.labels.OrderBy(l => l, StringComparer.Ordinal).ToList();
+                    // 此处维持组合 Label 的顺序
+                    var labels = entry.labels.ToList();
                     // 拼接 (例如 TextAsset + LuaScripts -> "TextAssetLuaScripts")
                     // 转小写 (因为 Addressables 生成的 Bundle 文件名通常是全小写，e.g. "..._textassetluascripts_...")
-                    combinedLabelKey = string.Join("", sortedLabels).ToLowerInvariant();
+                    combinedLabelKey = string.Join("", labels).ToLowerInvariant();
                 }
 
                 // 添加到用于计算 Hash 的字典

@@ -8,6 +8,7 @@ public static class PathManager
     public static readonly string PersistentRoot = Path.Combine(Application.persistentDataPath, "ProjectName");
     
     // 运行时动态决定的路径
+    // TODO: 需要变动一下Hotfix路径
     public static string HotfixRoot { get; private set; } // .../Hotfix
     public static string EnvRoot { get; private set; }    // .../Hotfix/[Platform]/[Debug]
     public static string CurrentGUIDRoot { get; private set; } // .../Hotfix/[Platform]/[Debug]/[GUID]

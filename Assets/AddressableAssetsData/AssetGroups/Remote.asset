@@ -17,12 +17,21 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 6410bf08a2786c94693d404180eb9a47
   m_SerializeEntries:
-  - m_GUID: 67d9884d8b289bc44b06eaa42104c094
-    m_Address: HelloWorld
+  - m_GUID: 4b2e4dda70994d944909a01ca0053baf
+    m_Address: TalkTest1
     m_ReadOnly: 0
     m_SerializedLabels:
     - TextAsset
     - LuaScripts
+    - Text
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3f8257ce259f86f4a9d1e0d4f17fb395
+    m_Address: TalkTest2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - TextAsset
+    - LuaScripts
+    - Text
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 170f3ccdb3bee544095a2f2b92d47c18, type: 2}

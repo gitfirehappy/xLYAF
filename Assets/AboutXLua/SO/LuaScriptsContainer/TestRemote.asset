@@ -16,5 +16,7 @@ MonoBehaviour:
   addressableLabels:
   - TextAsset
   - LuaScripts
+  - Text
   luaAssets:
-  - {fileID: 9027929339269108002, guid: 67d9884d8b289bc44b06eaa42104c094, type: 3}
+  - {fileID: 9027929339269108002, guid: 4b2e4dda70994d944909a01ca0053baf, type: 3}
+  - {fileID: 9027929339269108002, guid: 3f8257ce259f86f4a9d1e0d4f17fb395, type: 3}

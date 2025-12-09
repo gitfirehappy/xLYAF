@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -12,7 +13,7 @@ public static class HotfixManager
     private static readonly string _hotfixUrl = "https://your-site-name.netlify.app/HotfixOutput";
     
     // 固定下载 manifest 动态获取路径
-    private static readonly string _manifestUrl = Path.Combine(_hotfixUrl, "manifest.json");
+    private static readonly string _manifestUrl = $"{_hotfixUrl}/manifest.json";
     
     private static string _remoteUrlRoot;
     
@@ -61,7 +62,7 @@ public static class HotfixManager
         }
         
         string packagePath = manifest.latestPackage;
-        _remoteUrlRoot = Path.Combine(_hotfixUrl,"Packages", packagePath,"/");
+        _remoteUrlRoot = $"{_hotfixUrl}/Packages/{packagePath}";
     
         Debug.Log($"[HotfixManager] 获取最新包体: {packagePath}，URL已更新: {_remoteUrlRoot}");
 
@@ -78,7 +79,7 @@ public static class HotfixManager
         }
         
         // 5. 下载远端 version_state.json
-        string remoteVersionUrl = _remoteUrlRoot + "version_state.json";
+        string remoteVersionUrl = $"{_remoteUrlRoot}/version_state.json";
         string remoteVersionJson = await NetworkDownloader.Instance.DownloadText(remoteVersionUrl);
         
         if (string.IsNullOrEmpty(remoteVersionJson))
@@ -122,22 +123,24 @@ public static class HotfixManager
         string remoteBundleRoot = PathManager.RemoteBundleRoot;
         if (!Directory.Exists(remoteBundleRoot)) Directory.CreateDirectory(remoteBundleRoot);
         
+        var task = new List<Task<bool>>();
         foreach (var bundleInfo in diff.DownloadList)
         {
-            string bundleUrl = _remoteUrlRoot + "bundles/" + bundleInfo.bundleName;
+            string bundleUrl = $"{_remoteUrlRoot}/bundles/{bundleInfo.bundleName}";
             string savePath = Path.Combine(remoteBundleRoot, bundleInfo.bundleName);
             
-            // TODO: 这里可以扩展为并行下载或队列下载
-            bool success = await NetworkDownloader.Instance.DownloadFile(bundleUrl, savePath);
-            if (!success)
-            {
-                Debug.LogError($"[HotfixManager] 致命错误：Bundle下载失败 {bundleInfo.bundleName}");
-                return; // 中断热更，弹出重试 UI
-            }
+            // 简单并行下载
+            task.Add(NetworkDownloader.Instance.DownloadFile(bundleUrl, savePath));
+        }
+        await Task.WhenAll(task);
+        if (task.Any(t => !t.Result))
+        {
+            Debug.LogError("[HotfixManager] 存在下载失败的 bundle，请检查网络！");
+            return; // 直接终止
         }
         
         // 8. 下载 catalog.json
-        string catalogUrl = _remoteUrlRoot + "catalog.json";
+        string catalogUrl = $"{_remoteUrlRoot}/catalog.json";
         await NetworkDownloader.Instance.DownloadFile(catalogUrl, Path.Combine(PathManager.RemoteRoot, "catalog.json"));
         
         // 保存新的 version_state.json 到RemoteRoot
