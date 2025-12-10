@@ -45,6 +45,9 @@ public static class BuildProjectManager
         AssetDatabase.Refresh();
         
         ExecuteBuildFlow(versionData.CurrentVersion, BuildType.Full);
+        
+        EditorApplication.ExecuteMenuItem("File/Build Settings...");
+        Debug.Log("[BuildProjectManager] 请在弹出的Build Settings中选择目标平台和场景，点Build按钮后自动导出包体！");
     }
     
     /// <summary>
@@ -132,14 +135,15 @@ public static class BuildProjectManager
     {
         Debug.Log("[BuildProjectManager] 正在配置 Addressable Settings...");
         
-        // 1. 设置 Build Remote Catalog
+        // 设置 Build Remote Catalog
         settings.BuildRemoteCatalog = true;
         settings.OverridePlayerVersion = "addressables_content_state"; // 保持 Content State 一致，防止 Hash 剧烈变化
 
-        // 2. 遍历 Group 强制设置 BundleMode
+        // 遍历 Group 强制设置 BundleMode
         foreach (var group in settings.groups)
         {
             // 跳过部分 Group
+            // HelperBuildData 统一设置为 PackTogetherByLabel
             if (group == null) continue;
             
             if (group.Name == "Built In Data" || group.HasSchema<PlayerDataGroupSchema>())
@@ -152,8 +156,6 @@ public static class BuildProjectManager
                 }
                 continue; 
             }
-            
-            if (group.Name == HelperBuildDataExporter.GROUP_NAME) continue; // HelperBuildData Group 暂定Together
 
             var schema = group.GetSchema<BundledAssetGroupSchema>();
             if (schema == null)

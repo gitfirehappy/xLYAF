@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
+/// <summary>
+/// 用户端路径管理
+/// </summary>
 public static class PathManager
 {
     public static readonly string PersistentRoot = Path.Combine(Application.persistentDataPath, "ProjectName");
     
     // 运行时动态决定的路径
-    // TODO: 需要变动一下Hotfix路径
-    public static string HotfixRoot { get; private set; } // .../Hotfix
-    public static string EnvRoot { get; private set; }    // .../Hotfix/[Platform]/[Debug]
-    public static string CurrentGUIDRoot { get; private set; } // .../Hotfix/[Platform]/[Debug]/[GUID]
+    public static string EnvRoot { get; private set; }    // .../[Platform]/[Debug]
+    public static string CurrentGUIDRoot { get; private set; } // .../[Platform]/[Debug]/[GUID]
+    public static string HotfixRoot { get; private set; } // .../[Platform]/[Debug]/[GUID]/Hotfix
    
     public static string LocalRoot { get; private set; }
     public static string RemoteRoot { get; private set; }
@@ -34,19 +36,18 @@ public static class PathManager
         string envDir = buildIndex.IsDebug ? "Debug" : "Release";
         string guidDir = "Build_" + buildIndex.BuildGUID;
 
-        // 1. 组装路径结构
-        // .../ProjectName/Hotfix
-        HotfixRoot = Path.Combine(PersistentRoot, "Hotfix"); 
+        // 组装路径结构
+        // .../ProjectName/[Platform]/Release
+        EnvRoot = Path.Combine(PersistentRoot, platform, envDir); 
         
-        // .../ProjectName/Hotfix/[Platform]/Release
-        EnvRoot = Path.Combine(HotfixRoot, platform, envDir); 
-        
-        // .../ProjectName/Hotfix/[Platform]/Release/abc-123-guid (当前生效目录)
+        // .../ProjectName/[Platform]/Release/abc-123-guid (当前生效目录)
         CurrentGUIDRoot = Path.Combine(EnvRoot, guidDir);
         
-        // 4. 定位 Local 和 Remote
-        LocalRoot = Path.Combine(CurrentGUIDRoot, "Local");
-        RemoteRoot = Path.Combine(CurrentGUIDRoot, "Remote");
+        HotfixRoot = Path.Combine(CurrentGUIDRoot, "Hotfix");
+        
+        // 定位 Local 和 Remote
+        LocalRoot = Path.Combine(HotfixRoot, "Local");
+        RemoteRoot = Path.Combine(HotfixRoot, "Remote");
         
         LocalBundleRoot = Path.Combine(LocalRoot, "bundles");
         RemoteBundleRoot = Path.Combine(RemoteRoot, "bundles");

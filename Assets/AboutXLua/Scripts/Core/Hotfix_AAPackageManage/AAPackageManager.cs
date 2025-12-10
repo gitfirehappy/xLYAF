@@ -8,6 +8,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 /// <summary>
 /// 资源库索引：负责管理资源的元数据（Type, Label），提供查询功能
+/// TODO: 完全升级成资源池，将所有资源加载卸载逻辑封装成资源池，统一管理
 /// </summary>
 public class AAPackageManager : Singleton<AAPackageManager>
 {
@@ -18,6 +19,9 @@ public class AAPackageManager : Singleton<AAPackageManager>
 
     private bool _isInitialized = false;
 
+    /// <summary>
+    /// 加载 AddressableLabelsConfig 获取资源索引
+    /// </summary>
     public async Task Initialize()
     {
         // 异步加载配置SO
