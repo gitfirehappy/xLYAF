@@ -7,6 +7,8 @@ using UnityEngine;
 
 namespace AboutXLua.Utility
 {
+    // TODO: 将打标签逻辑替换为对容器打标签，而不是Lua脚本本身
+    // TODO: 可将打标逻辑移动到LuaScriptContainer或LuaDatabase中，简洁代码
     public class LuaAddressableTagger : EditorWindow
     {
         private LuaDataBase _luaDatabase;
@@ -244,6 +246,7 @@ namespace AboutXLua.Utility
             );
         }
 
+        // TODO: 移动到LuaDatabase
         private List<LuaScriptContainer> GetAllContainers()
         {
             List<LuaScriptContainer> allContainers = new List<LuaScriptContainer>();
@@ -260,6 +263,7 @@ namespace AboutXLua.Utility
             return allContainers.Distinct().ToList();
         }
 
+        // TODO: 移动到LuaDatabase
         private void CreateNewDatabase()
         {
             string path = EditorUtility.SaveFilePanelInProject(
@@ -279,6 +283,7 @@ namespace AboutXLua.Utility
             }
         }
 
+        // TODO: 移动到LuaContainer
         private void AddScriptsToContainer(LuaScriptContainer container)
         {
             string selectedPath = EditorUtility.OpenFilePanel(
@@ -332,6 +337,7 @@ namespace AboutXLua.Utility
             return group;
         }
 
+        // TODO: 以下三个方法移动到合适位置并修改逻辑
         private void ApplyContainerLabels(LuaScriptContainer container)
         {
             if (container.luaAssets.Count == 0)

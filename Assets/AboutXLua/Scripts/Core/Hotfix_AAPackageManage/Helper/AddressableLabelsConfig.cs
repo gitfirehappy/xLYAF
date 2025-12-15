@@ -1,13 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 /// <summary>
 /// 构建期导出的 AA 条目配置
 /// </summary>
-[CreateAssetMenu(fileName = "AddressableLabelsConfig", menuName = "Addressables/MyWork/扫描导出的PackageEntries")]
+[CreateAssetMenu(fileName = Constants.AA_LABELS_CONFIG, menuName = "Addressables/MyWork/扫描导出的PackageEntries")]
 public class AddressableLabelsConfig : ScriptableObject
 {
     public List<PackageEntry> allEntries = new();
@@ -31,16 +32,31 @@ public class AddressableLabelsConfig : ScriptableObject
     ///<summary> Key: "Group_Label" -> Value: Hash </summary> 
     private Dictionary<string, string> _labelLogicalHashDict;
 
+    /// <summary>
+    /// 获取某类型所有 Key
+    /// </summary>
     public List<string> GetKeysByType(string type)
     {
         if (_typeDict == null) RebuildRuntimeDicts();
         return _typeDict.TryGetValue(type, out var list) ? list : new List<string>();
     }
 
+    /// <summary>
+    /// 获取某标签所有 Key
+    /// </summary>
     public List<string> GetKeysByLabel(string label)
     {
         if (_labelDict == null) RebuildRuntimeDicts();
         return _labelDict.TryGetValue(label, out var list) ? list : new List<string>();
+    }
+
+    /// <summary>
+    /// 获取所有标签
+    /// </summary>
+    public List<string> GetLabels()
+    {
+        if (_labelDict == null) RebuildRuntimeDicts();
+        return _labelDict?.Keys.ToList() ?? new List<string>();
     }
     
     /// <summary>

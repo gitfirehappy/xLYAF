@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,16 +9,23 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 /// <summary>
 /// 资源库索引：负责管理资源的元数据（Type, Label），提供查询功能
-/// TODO: 完全升级成资源池，将所有资源加载卸载逻辑封装成资源池，统一管理
+/// 资源池：负责加载、缓存资源，提供资源加载、卸载接口
 /// </summary>
 public class AAPackageManager : Singleton<AAPackageManager>
 {
-    // AddressablePackagesEntries SO配置的 Addressable Key，确保一致
-    private const string CONFIG_ASSET_KEY = "AddressableLabelsConfig";
-    
     private AddressableLabelsConfig _config;
 
     private bool _isInitialized = false;
+    
+    private readonly Dictionary<string, ResourceEntry> _resourceCache = new();
+    private readonly Dictionary<string, List<string>> _labelToKeys = new();
+
+    private class ResourceEntry
+    {
+        public AsyncOperationHandle Handle;
+        public int ReferenceCount = 1;
+        public bool IsValid => ReferenceCount > 0;
+    }
 
     /// <summary>
     /// 加载 AddressableLabelsConfig 获取资源索引
@@ -26,21 +34,26 @@ public class AAPackageManager : Singleton<AAPackageManager>
     {
         // 异步加载配置SO
         AsyncOperationHandle<AddressableLabelsConfig> handle = 
-            Addressables.LoadAssetAsync<AddressableLabelsConfig>(CONFIG_ASSET_KEY);
+            Addressables.LoadAssetAsync<AddressableLabelsConfig>(Constants.AA_LABELS_CONFIG);
         
         _config = await handle.Task;
 
         if (handle.Status != AsyncOperationStatus.Succeeded || _config == null)
         {
-            Debug.LogError($"[AAPackageManager] 关键配置加载失败: {CONFIG_ASSET_KEY}。管理器无法初始化。");
+            Debug.LogError($"[AAPackageManager] 关键配置加载失败: {Constants.AA_LABELS_CONFIG}。管理器无法初始化。");
             return;
+        }
+
+        foreach (var label in _config.GetLabels())
+        {
+            _labelToKeys[label] = _config.GetKeysByLabel(label);
         }
         
         _isInitialized = true;
         Debug.Log($"[AAPackageManager] 初始化完成。Entries: {_config.allEntries.Count}");
     }
 
-    #region 查询接口：核心
+    #region 查询接口
 
     /// <summary>
     /// 获取某类型的所有 Key
@@ -83,30 +96,181 @@ public class AAPackageManager : Singleton<AAPackageManager>
 
     #endregion
 
-    #region 上层加载辅助：可选
+    #region 上层统一资源加载卸载接口
 
+    /// <summary>
+    /// key加载资源
+    /// </summary>
+    /// <param name="key">AA资源的key</param>
+    /// <typeparam name="T">要加载的类型</typeparam>
+    /// <returns>资源handle</returns>
     public async Task<T> LoadAssetAsync<T>(string key) where T : UnityEngine.Object
     {
-        if(!_isInitialized) Debug.LogWarning("AAPackageManager 未初始化");
+        if(!_isInitialized) Debug.LogError("AAPackageManager 未初始化");
 
-        return await Addressables.LoadAssetAsync<T>(key).Task;
+        if (_resourceCache.TryGetValue(key, out var entry) && entry.IsValid)
+        {
+            entry.ReferenceCount++;
+            return entry.Handle.Result as T;
+        }
+            
+        var handle = Addressables.LoadAssetAsync<T>(key);
+        if (handle.IsDone && handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            AddToCache(key, handle);
+            return handle.Result as T;
+        }
+
+        throw new Exception($"[AAPackageManager] 加载资源失败: {key}");
     }
 
-    public async Task<List<T>> LoadAssetsByTypeAsync<T>(string type) where T : UnityEngine.Object
+    /// <summary>
+    /// 按标签加载资源
+    /// </summary>
+    /// <param name="label">标签</param>
+    /// <typeparam name="T">要加载的类型</typeparam>
+    /// <returns>所有匹配的资源</returns>
+    public async Task<List<T>> LoadAssetByLabelAsync<T>(string label) where T : UnityEngine.Object
     {
-        var keys = GetKeysByType(type);
-        if (keys.Count == 0) return new List<T>();
+        if (!_isInitialized)
+        {
+            Debug.LogError("AAPackageManager 未初始化");
+            return new List<T>();
+        }
+        
+        var keys = GetKeysByLabel(label);
+        if (keys.Count == 0)
+        {
+            Debug.LogError($"[AAPackageManager] 找不到标签: {label}");
+            return new List<T>();
+        }
 
-        // 批量加载 Key
-        return (await Addressables.LoadAssetsAsync<T>(keys, null, Addressables.MergeMode.Union).Task).ToList();
+        var results = new List<T>();
+        foreach (var key in keys)
+        {
+            var asset = await LoadAssetAsync<T>(key);
+            if (asset == null) continue;
+            results.Add(asset);
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// 按多个标签加载资源（求交集）
+    /// </summary>
+    /// <param name="labels">标签列表</param>
+    /// <typeparam name="T">类型</typeparam>
+    /// <returns>所有匹配的资源</returns>
+    public async Task<List<T>> LoadAssetByLabelsAsync<T>(string[] labels) where T : UnityEngine.Object
+    {
+        if (!_isInitialized)
+        {
+            Debug.LogError("AAPackageManager 未初始化");
+            return new List<T>();
+        }
+        
+        var keys = GetKeysByLabels(labels);
+        if (keys.Count == 0)
+        {
+            Debug.LogWarning($"[AAPackageManager] 未找到标签组合 '{string.Join(",", labels)}' 的资源");
+            return new List<T>();
+        }
+
+        var results = new List<T>();
+        foreach (var key in keys)
+        {
+            var asset = await LoadAssetAsync<T>(key);
+            if (asset == null) continue;
+            results.Add(asset);
+        }
+
+        return results;
     }
     
-    public async Task<List<T>> LoadAssetsByTypeAndLabelAsync<T>(string type, string label) where T : UnityEngine.Object
+    /// <summary>
+    /// 按key卸载资源
+    /// </summary>
+    /// <param name="key">AA资源的key</param>
+    public void UnloadAsset(string key)
     {
-        var keys = GetKeysByTypeAndLabel(type, label);
-        if (keys.Count == 0) return new List<T>();
-
-        return (await Addressables.LoadAssetsAsync<T>(keys, null, Addressables.MergeMode.Union).Task).ToList();
+        if (!_resourceCache.TryGetValue(key, out var entry) || !entry.IsValid) return;
+        
+        entry.ReferenceCount--;
+        if (entry.ReferenceCount <= 0)
+        {
+            Addressables.Release(entry.Handle);
+            _resourceCache.Remove(key);
+        }
     }
+
+    /// <summary>
+    /// 按标签卸载资源
+    /// </summary>
+    /// <param name="label">AA资源的标签</param>
+    public void UnloadAssetByLabel(string label)
+    {
+        if(!_labelToKeys.TryGetValue(label, out var keys)) return;
+        
+        foreach (var key in keys)
+        {
+            UnloadAsset(key);
+        }
+    }
+    
+    /// <summary>
+    /// 按多个标签卸载所有资源（求交集）
+    /// </summary>
+    public void UnloadAssetsByLabels(string[] labels)
+    {
+        if (!_isInitialized || labels == null || labels.Length == 0) 
+            return;
+        
+        var keys = GetKeysByLabels(labels);
+        foreach (var key in keys)
+        {
+            UnloadAsset(key);
+        }
+    }
+
+    #region 辅助方法
+
+    /// <summary>
+    /// 添加资源到缓存
+    /// </summary>
+    private void AddToCache(string key, AsyncOperationHandle handle)
+    {
+        _resourceCache[key] = new ResourceEntry()
+        {
+            Handle = handle,
+            ReferenceCount = 1
+        };
+    }
+    
+    /// <summary>
+    /// 获取同时具有多个标签的资源Key
+    /// </summary>
+    private List<string> GetKeysByLabels(string[] labels)
+    {
+        if (!_isInitialized || labels == null || labels.Length == 0) 
+            return new List<string>();
+        
+        // 如果只有一个标签，直接使用GetKeysByLabel
+        if (labels.Length == 1)
+            return GetKeysByLabel(labels[0]);
+        
+        // 多个标签求交集
+        var keys = new HashSet<string>(GetKeysByLabel(labels[0]));
+        
+        for (int i = 1; i < labels.Length; i++)
+        {
+            var currentKeys = new HashSet<string>(GetKeysByLabel(labels[i]));
+            keys.IntersectWith(currentKeys);
+        }
+        
+        return keys.ToList();
+    }
+
+    #endregion
     #endregion
 }

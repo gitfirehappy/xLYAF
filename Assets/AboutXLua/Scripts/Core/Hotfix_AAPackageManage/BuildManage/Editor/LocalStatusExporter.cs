@@ -9,9 +9,10 @@ using UnityEngine;
 /// </summary>
 public class LocalStatusExporter
 {
-    public const string GROUP_NAME = "LocalStaticData";
-    public const string BuildIndexAssetPath = "Assets/Build/LocalStaticData/BuildIndex.asset";
+    public const string BuildIndexAssetPath = Constants.BUILD_INDEX_ASSETPATH;
 
+    private const string GROUP_NAME = Constants.LOCAL_STATUS_GROUP_NAME;
+    
     #region BuildIndex
     public static void ExportBuildIndex()
     { 

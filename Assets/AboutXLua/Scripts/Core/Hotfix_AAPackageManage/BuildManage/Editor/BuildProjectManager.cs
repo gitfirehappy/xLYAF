@@ -13,9 +13,6 @@ using UnityEngine;
 
 public static class BuildProjectManager
 {
-    // 项目名称
-    private static string ProjectName => "ProjectName";
-    
     // 热更包输出根目录
     private static string OutputRoot => Path.Combine(Directory.GetParent(Application.dataPath).FullName, "HotfixOutput");
     

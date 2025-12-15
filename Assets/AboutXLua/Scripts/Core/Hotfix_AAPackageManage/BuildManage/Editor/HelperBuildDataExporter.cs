@@ -12,8 +12,8 @@ using UnityEngine;
 /// </summary>
 public class HelperBuildDataExporter
 {
-    public const string GROUP_NAME = "HelperBuildData";
-    public const string AALabelsConfigAssetPath = "Assets/Build/HelperBuildData/AddressableLabelsConfig.asset";
+    public const string GROUP_NAME = Constants.HELPER_BUILD_DATA_GROUP_NAME;
+    public const string AALabelsConfigAssetPath = Constants.AA_LABELS_CONFIG_ASSETPATH;
 
     #region AddressableLabelsConfig
     /// <summary>

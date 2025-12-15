@@ -14,7 +14,7 @@ public static class XLuaLoader
     {
         EditorOnly,       // 只读磁盘（Editor）
         AddressablesOnly, // 只读 AA
-        Hybrid            // 先 Editor，再 AA（可用于开发期热修）
+        Hybrid            // 先 Editor，再 AA
     }
     
     public sealed class Options
@@ -40,6 +40,7 @@ public static class XLuaLoader
         var opt = options ?? new Options();
         
         // 预加载所有Lua脚本到缓存
+        // TODO: 需要时按需加载可节省内存
         if (!_isPreloaded && opt.mode != Mode.EditorOnly)
         {
             await PreloadLuaScriptsAsync(opt);
@@ -51,13 +52,13 @@ public static class XLuaLoader
             string key = NormalizeModuleKey(filepath);
             byte[] bytes = null;
             
-            // 1) 尝试编辑器路径
+            // 尝试编辑器路径
             if (opt.mode != Mode.AddressablesOnly)
             {
                 TryReadFromEditor(opt, key, ref bytes);
             }
             
-            // 2) 尝试缓存
+            // 尝试缓存
             if (bytes == null && _luaCache.TryGetValue(key, out var textAsset))
             {
                 bytes = textAsset.bytes;
@@ -71,7 +72,7 @@ public static class XLuaLoader
             return bytes;
         });
         
-        Debug.Log($"Registered. Mode={opt.mode}");
+        Debug.Log($"[LuaLoader] 注册AddLoader成功 Mode={opt.mode}");
     }
 
     #endregion
@@ -93,13 +94,13 @@ public static class XLuaLoader
                     if (File.Exists(path))
                     {
                         bytes = File.ReadAllBytes(path);
-                        Debug.Log($"Editor hit: {path}");
+                        Debug.Log($"[LuaLoader] Editor hit: {path}");
                         return;
                     }
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"File error: {path}\n{e.Message}");
+                    Debug.LogError($"[LuaLoader] File error: {path}\n{e.Message}");
                 }
             }
         }
@@ -116,7 +117,8 @@ public static class XLuaLoader
         {
             try
             {
-                Debug.Log($"Preloading Lua scripts for label: {label}");
+                Debug.Log($"[LuaLoader] 根据标签预加载Lua脚本: {label}");
+                // TODO: 此处需要替换为AAPackageManager的获取
                 var loadHandle = Addressables.LoadAssetsAsync<TextAsset>(label, null); // TODO: 此处需要替换为AAPackageManager的获取
                 var assets = await loadHandle.Task;
                 
@@ -134,7 +136,7 @@ public static class XLuaLoader
             }
             catch (Exception e)
             {
-                Debug.LogError($"Failed to preload label '{label}': {e}");
+                Debug.LogError($"[LuaLoader] 加载标签失败：'{label}': {e}");
             }
         }
         
