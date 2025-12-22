@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scriptsToLoad:
   - luaScriptName: DialogueView
-    luaScript: {fileID: 4900000, guid: 5a0338e8feaa3104e8298a6d959f3a9a, type: 3}
     luaScriptMode: 1

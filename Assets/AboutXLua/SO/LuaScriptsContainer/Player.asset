@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groupName: LuaScripts
   addressableLabels:
-  - TextAsset
-  - LuaScripts
+  - LuaScriptContainer
   - Player
   luaAssets:
   - {fileID: 9027929339269108002, guid: 8c0c927a6c9b8594db8c002031a6af06, type: 3}

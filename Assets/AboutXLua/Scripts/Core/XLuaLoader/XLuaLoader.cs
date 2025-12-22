@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using AboutXLua.Utility;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceLocations;
@@ -21,12 +22,18 @@ public static class XLuaLoader
     {
         public Mode mode = Mode.Hybrid;
         public List<string> editorRoots = new();// 编辑器根目录,默认Assets/ + 根目录
-        public List<string> aaLabels = new();   // Addressables 标签
+        public List<string> aaLabels = new();   // Addressables 标签（这个采用容器的标签）
         public List<string> extensions = new() { ".lua", ".lua.txt", ".bytes" }; // 扩展名
     }
     
-    // 添加缓存，避免重复加载
+    // 内容缓存
     private static readonly Dictionary<string, TextAsset> _luaCache = new();
+    
+    // 索引缓存
+    // TODO: 参考AAPackageManager的索引缓存思路，只存string
+    // 例如： DialogueController(ModuleName) -> Dialogue(LuaScriptsContainer的AA资源索引)
+    private static readonly Dictionary<string, string> _moduleToAAKeyCache = new();
+    
     private static bool _isPreloaded = false;
     
     #region 对外API
@@ -40,9 +47,10 @@ public static class XLuaLoader
         var opt = options ?? new Options();
         
         // 预加载所有Lua脚本到缓存
-        // TODO: 需要时按需加载可节省内存
+        // TODO: 需要时按需加载可节省内存，不要缓存所有
         if (!_isPreloaded && opt.mode != Mode.EditorOnly)
         {
+            // TODO: 先建立索引映射（不加载实际资源）
             await PreloadLuaScriptsAsync(opt);
             _isPreloaded = true;
         }
@@ -62,22 +70,28 @@ public static class XLuaLoader
             if (bytes == null && _luaCache.TryGetValue(key, out var textAsset))
             {
                 bytes = textAsset.bytes;
-                Debug.Log($"Cache hit: {key}");
+                Debug.Log($"[LuaLoader] 缓存命中: {key}");
             }
+            
+            // TODO：如果没有需要尝试 Addressables 按需同步加载 (Lazy Load)
             
             if (bytes == null) 
             {
-               Debug.LogWarning($"Module not found: {key}");
+               Debug.LogWarning($"[LuaLoader] Module not found: {key}");
             }
             return bytes;
         });
         
         Debug.Log($"[LuaLoader] 注册AddLoader成功 Mode={opt.mode}");
     }
+    
+    // TODO: 手动加载某些脚本（可用于启动时调用）
 
     #endregion
     
     #region 内部方法
+    // TODO: 建立映射
+    // TODO: 从AA 同步加载
     
     /// <summary>
     /// 读磁盘（Editor）
@@ -108,6 +122,7 @@ public static class XLuaLoader
     
     /// <summary>
     /// 异步预加载Lua脚本
+    /// TODO: 不需要预加载全部脚本
     /// </summary>
     private static async Task PreloadLuaScriptsAsync(Options opt)
     {
@@ -118,21 +133,22 @@ public static class XLuaLoader
             try
             {
                 Debug.Log($"[LuaLoader] 根据标签预加载Lua脚本: {label}");
-                // TODO: 此处需要替换为AAPackageManager的获取
-                var loadHandle = Addressables.LoadAssetsAsync<TextAsset>(label, null); // TODO: 此处需要替换为AAPackageManager的获取
-                var assets = await loadHandle.Task;
-                
-                foreach (var asset in assets)
+                // 通过 AAPackageManager 获取
+                List<LuaScriptContainer> containers = await AAPackageManager.Instance.LoadAssetByLabelAsync<LuaScriptContainer>(label);
+
+                foreach (var container in containers)
                 {
-                    if (asset != null)
+                    if(container == null) continue;
+                    
+                    foreach (var asset in container.luaAssets)
                     {
+                        if (asset == null) continue;
                         string key = Path.GetFileNameWithoutExtension(asset.name);
                         _luaCache[key] = asset;
-                        Debug.Log($"Preloaded: {key}");
+                        Debug.Log($"[LuaLoader] Preloaded: {key}");
                     }
                 }
-                
-                Addressables.Release(loadHandle);
+                // 已缓存脚本，是否要Release AA资源的 handle
             }
             catch (Exception e)
             {

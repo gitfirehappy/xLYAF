@@ -7,8 +7,7 @@ using UnityEngine;
 
 namespace AboutXLua.Utility
 {
-    // TODO: 将打标签逻辑替换为对容器打标签，而不是Lua脚本本身
-    // TODO: 可将打标逻辑移动到LuaScriptContainer或LuaDatabase中，简洁代码
+    // 对容器批量打标签，而不是Lua脚本本身
     public class LuaAddressableTagger : EditorWindow
     {
         private LuaDataBase _luaDatabase;
@@ -246,7 +245,9 @@ namespace AboutXLua.Utility
             );
         }
 
-        // TODO: 移动到LuaDatabase
+        /// <summary>
+        /// 获取所有容器
+        /// </summary>
         private List<LuaScriptContainer> GetAllContainers()
         {
             List<LuaScriptContainer> allContainers = new List<LuaScriptContainer>();
@@ -263,7 +264,9 @@ namespace AboutXLua.Utility
             return allContainers.Distinct().ToList();
         }
 
-        // TODO: 移动到LuaDatabase
+        /// <summary>
+        /// 创建新的数据库
+        /// </summary>
         private void CreateNewDatabase()
         {
             string path = EditorUtility.SaveFilePanelInProject(
@@ -282,8 +285,10 @@ namespace AboutXLua.Utility
                 Selection.activeObject = newDatabase;
             }
         }
-
-        // TODO: 移动到LuaContainer
+        
+        /// <summary>
+        /// 将脚本添加到容器中
+        /// </summary>
         private void AddScriptsToContainer(LuaScriptContainer container)
         {
             string selectedPath = EditorUtility.OpenFilePanel(
@@ -312,32 +317,9 @@ namespace AboutXLua.Utility
             EditorUtility.SetDirty(container);
         }
 
-        private AddressableAssetGroup GetOrCreateAddressableGroup(string groupName, AddressableAssetSettings settings)
-        {
-            if (string.IsNullOrEmpty(groupName))
-                groupName = "LuaScripts";
-            
-            // 查找现有组
-            AddressableAssetGroup group = settings.groups.Find(g => g.Name == groupName);
-            
-            if (group == null)
-            {
-                // 创建新组
-                group = settings.CreateGroup(groupName, false, false, true, null);
-                
-                // 设置新组的模式为Packed（可以根据需要调整）
-                var schema = group.AddSchema<UnityEditor.AddressableAssets.Settings.GroupSchemas.BundledAssetGroupSchema>();
-                if (schema != null)
-                {
-                    schema.BuildPath.SetVariableByName(settings, AddressableAssetSettings.kLocalBuildPath);
-                    schema.LoadPath.SetVariableByName(settings, AddressableAssetSettings.kLocalLoadPath);
-                }
-            }
-            
-            return group;
-        }
-
-        // TODO: 以下三个方法移动到合适位置并修改逻辑
+        /// <summary>
+        /// 应用容器标签
+        /// </summary>
         private void ApplyContainerLabels(LuaScriptContainer container)
         {
             if (container.luaAssets.Count == 0)
@@ -353,69 +335,16 @@ namespace AboutXLua.Utility
                 return;
             }
 
-            // 获取或创建对应的Addressable组
-            AddressableAssetGroup targetGroup = GetOrCreateAddressableGroup(container.groupName, settings);
-            if (targetGroup == null)
-            {
-                EditorUtility.DisplayDialog("错误", $"无法创建或找到组: {container.groupName}", "确定");
-                return;
-            }
-
-            int successCount = 0;
-            
-            foreach (TextAsset luaAsset in container.luaAssets)
-            {
-                if (luaAsset == null) continue;
-
-                string assetPath = AssetDatabase.GetAssetPath(luaAsset);
-                AddressableAssetEntry entry = settings.FindAssetEntry(assetPath);
-                
-                if (entry == null)
-                {
-                    // 创建新的Addressable条目到目标组
-                    entry = settings.CreateOrMoveEntry(AssetDatabase.AssetPathToGUID(assetPath), targetGroup);
-                }
-                else
-                {
-                    // 移动到目标组
-                    settings.MoveEntry(entry, targetGroup);
-                }
-
-                if (entry != null)
-                {
-                    // 清除现有标签，然后应用新标签（覆盖逻辑）
-                    List<string> currentLabels = entry.labels.ToList();
-                    foreach (string label in currentLabels)
-                    {
-                        entry.SetLabel(label, false);
-                    }
-                    
-                    // 应用容器中定义的所有标签
-                    foreach (string label in container.addressableLabels)
-                    {
-                        if (!string.IsNullOrEmpty(label))
-                        {
-                            // 确保标签存在
-                            if (!settings.GetLabels().Contains(label))
-                            {
-                                settings.AddLabel(label);
-                            }
-                            
-                            // 添加标签到资源
-                            entry.SetLabel(label, true);
-                            successCount++;
-                        }
-                    }
-                }
-            }
+            container.ApplyAddressableLabels(settings);
 
             settings.SetDirty(AddressableAssetSettings.ModificationEvent.LabelAdded, null, true);
             AssetDatabase.SaveAssets();
-
-            EditorUtility.DisplayDialog("完成", 
-                $"成功为容器 '{container.groupName}' 中的 {container.luaAssets.Count} 个脚本应用了标签", "确定");
+            EditorUtility.DisplayDialog("完成", $"成功为容器 '{container}' 应用了标签", "确定");
         }
 
+        /// <summary>
+        /// 对所有容器应用标签
+        /// </summary>
         private void ApplyAllLabels()
         {
             List<LuaScriptContainer> allContainers = GetAllContainers();
@@ -433,71 +362,24 @@ namespace AboutXLua.Utility
                 return;
             }
 
-            int totalScriptsProcessed = 0;
-            int containersProcessed = 0;
+            int totalContainerProcessed = 0;
 
             foreach (var container in allContainers)
             {
-                if (container == null || container.luaAssets.Count == 0)
-                    continue;
+                if (container == null || container.luaAssets.Count == 0) continue;
 
-                // 获取或创建对应的Addressable组
-                AddressableAssetGroup targetGroup = GetOrCreateAddressableGroup(container.groupName, settings);
-                if (targetGroup == null) continue;
-
-                foreach (TextAsset luaAsset in container.luaAssets)
-                {
-                    if (luaAsset == null) continue;
-
-                    string assetPath = AssetDatabase.GetAssetPath(luaAsset);
-                    AddressableAssetEntry entry = settings.FindAssetEntry(assetPath);
-                    
-                    if (entry == null)
-                    {
-                        entry = settings.CreateOrMoveEntry(AssetDatabase.AssetPathToGUID(assetPath), targetGroup);
-                    }
-                    else
-                    {
-                        settings.MoveEntry(entry, targetGroup);
-                    }
-
-                    if (entry != null)
-                    {
-                        // 清除现有标签，然后应用新标签（覆盖逻辑）
-                        List<string> currentLabels = entry.labels.ToList();
-                        foreach (string label in currentLabels)
-                        {
-                            entry.SetLabel(label, false);
-                        }
-                        
-                        // 应用容器中定义的所有标签
-                        foreach (string label in container.addressableLabels)
-                        {
-                            if (!string.IsNullOrEmpty(label))
-                            {
-                                if (!settings.GetLabels().Contains(label))
-                                {
-                                    settings.AddLabel(label);
-                                }
-                                
-                                entry.SetLabel(label, true);
-                            }
-                        }
-                        
-                        totalScriptsProcessed++;
-                    }
-                }
-
-                containersProcessed++;
+                container.ApplyAddressableLabels(settings);
+                totalContainerProcessed++;
             }
 
             settings.SetDirty(AddressableAssetSettings.ModificationEvent.LabelAdded, null, true);
             AssetDatabase.SaveAssets();
-
-            EditorUtility.DisplayDialog("完成", 
-                $"成功为 {containersProcessed} 个容器中的 {totalScriptsProcessed} 个脚本应用了标签", "确定");
+            EditorUtility.DisplayDialog("完成", $"成功为 {totalContainerProcessed} 个容器应用了标签", "确定");
         }
 
+        /// <summary>
+        /// 清空所有标签
+        /// </summary>
         private void ClearAllLabels()
         {
             if (!EditorUtility.DisplayDialog("确认", 
@@ -516,32 +398,24 @@ namespace AboutXLua.Utility
             foreach (var container in allContainers)
             {
                 if (container == null || container.luaAssets.Count == 0) continue;
-
-                foreach (TextAsset luaAsset in container.luaAssets)
+                
+                string assetPath = AssetDatabase.GetAssetPath(container);
+                AddressableAssetEntry entry = settings.FindAssetEntry(assetPath);
+                if (entry != null)
                 {
-                    if (luaAsset == null) continue;
-
-                    string assetPath = AssetDatabase.GetAssetPath(luaAsset);
-                    AddressableAssetEntry entry = settings.FindAssetEntry(assetPath);
-                    
-                    if (entry != null)
+                    // 获取当前所有标签的副本，然后清除
+                    List<string> labelsToRemove = entry.labels.ToList();
+                    foreach (string label in labelsToRemove)
                     {
-                        // 获取当前所有标签的副本，然后清除
-                        List<string> labelsToRemove = entry.labels.ToList();
-                        foreach (string label in labelsToRemove)
-                        {
-                            entry.SetLabel(label, false);
-                            totalClearedCount++;
-                        }
+                        entry.SetLabel(label, false);
+                        totalClearedCount++;
                     }
                 }
             }
 
             settings.SetDirty(AddressableAssetSettings.ModificationEvent.LabelRemoved, null, true);
             AssetDatabase.SaveAssets();
-
-            EditorUtility.DisplayDialog("完成", 
-                $"成功清除了 {totalClearedCount} 个标签", "确定");
+            EditorUtility.DisplayDialog("完成", $"成功清除了 {totalClearedCount} 个标签", "确定");
         }
     }
 }

@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: dbf2c5c7a80d7d34695132ac3bdde14b
   m_currentHash:
     serializedVersion: 2
-    Hash: bf2b4747246017b10e2a7007e71de547
+    Hash: 00000000000000000000000000000000
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 1
   m_BundleLocalCatalog: 1
@@ -108,6 +108,7 @@ MonoBehaviour:
     - UIResourceConfigSO
     - AddressableLabelsConfig
     - BuildIndex
+    - LuaScriptContainer
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: b2541223116770447a3da6d418729a76, type: 2}

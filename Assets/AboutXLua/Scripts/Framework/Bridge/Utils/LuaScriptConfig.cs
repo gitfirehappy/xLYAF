@@ -9,9 +9,6 @@ public class LuaScriptConfig
     [Tooltip("require('{luaScriptName}') 加载的脚本名称")]
     public string luaScriptName;
     
-    [Tooltip("Lua 脚本资源 (TextAsset) 备选使用该名称")]
-    public TextAsset luaScript;
-    
     [Tooltip("Class 模式: 脚本返回一个 Class，需要调用 New() 来实例化。\nModule 模式: 脚本本身 (require 的返回值) 就是实例。")]
     public LuaBehaviourBridge.LuaScriptMode luaScriptMode = LuaBehaviourBridge.LuaScriptMode.Class;
 
@@ -24,10 +21,6 @@ public class LuaScriptConfig
         if (!string.IsNullOrEmpty(luaScriptName))
         {
             return luaScriptName;
-        }
-        if (luaScript != null)
-        {
-            return luaScript.name;
         }
         return null;
     }

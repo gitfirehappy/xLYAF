@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
+/// <summary>
+/// 项目启动器，管理项目启动流程
+/// </summary>
 public class GameLauncher : MonoBehaviour
 {
     public static bool IsReady { get; private set; }
@@ -19,8 +22,9 @@ public class GameLauncher : MonoBehaviour
     [Tooltip("编辑器模式下的Lua脚本根目录")]
     public List<string> editorRoots = new() { "LuaScripts" };
     
+    // TODO: 替换为AAPackageManager获取
     [Tooltip("Addressables标签，用于加载Lua脚本")]
-    public List<string> aaLabels = new() { "LuaScripts" };
+    public List<string> aaLabels = new() { "LuaScriptContainer" };
     
     async void Awake()
     {
@@ -44,7 +48,7 @@ public class GameLauncher : MonoBehaviour
     {
         Debug.Log("[GameLauncher] === Boot Phase ===");
         
-        // 1. HotfixManager 初始化
+        // HotfixManager 初始化
         
         // xlua标签管理初始化
         await XluaTypeConfigLoader.InitAsync(xluaConfigLabel);

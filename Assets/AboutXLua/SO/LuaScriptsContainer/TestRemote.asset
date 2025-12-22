@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groupName: Remote
   addressableLabels:
-  - TextAsset
-  - LuaScripts
+  - LuaScriptContainer
   - Text
   luaAssets:
   - {fileID: 9027929339269108002, guid: 4b2e4dda70994d944909a01ca0053baf, type: 3}

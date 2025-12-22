@@ -18,4 +18,5 @@ public static class Constants
     public const string HELPER_BUILD_DATA_GROUP_NAME = "HelperBuildData";
 
     public const string AA_LABELS_CONFIG_ASSETPATH = "Assets/Build/HelperBuildData/AddressableLabelsConfig.asset";
+    
 }

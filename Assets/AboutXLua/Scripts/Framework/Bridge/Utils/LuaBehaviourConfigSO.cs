@@ -8,5 +8,5 @@ using UnityEngine;
 public class LuaBehaviourConfigSO : ScriptableObject
 {
     [Tooltip("此配置将加载的所有 Lua 脚本列表")]
-    public List<LuaScriptConfig> scriptsToLoad = new List<LuaScriptConfig>();
+    public List<LuaScriptConfig> scriptsToLoad = new();
 }

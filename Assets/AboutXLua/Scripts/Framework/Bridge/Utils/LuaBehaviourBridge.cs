@@ -127,7 +127,7 @@ public class LuaBehaviourBridge : MonoBehaviour
             LuaTable newLuaInstance = null;
             try
             {
-                // 3a. Require 脚本
+                // Require 脚本
                 var script = env.DoString($"return require('{nameToLoad}')")[0] as LuaTable;
                 if (script == null)
                 {
@@ -135,7 +135,7 @@ public class LuaBehaviourBridge : MonoBehaviour
                     continue;
                 }
 
-                // 3b. 根据模式创建实例
+                // 根据模式创建实例
                 if (config.luaScriptMode == LuaScriptMode.Class)
                 {
                     var newFunc = script.Get<LuaFunction>("New");
@@ -165,21 +165,21 @@ public class LuaBehaviourBridge : MonoBehaviour
                     continue;
                 }
                 
-                // 3c. 创建运行时包装器并缓存函数
+                // 创建运行时包装器并缓存函数
                 var runtimeInstance = new LuaRuntimeInstance(newLuaInstance, nameToLoad);
                 runtimeInstance.CacheFunctions();
 
-                // 3d. 为这个新创建的 Lua 实例初始化所有桥接组件
+                // 为这个新创建的 Lua 实例初始化所有桥接组件
                 foreach (var bridge in bridges)
                 {
                     await bridge.InitializeAsync(runtimeInstance.instance);
                     Debug.Log($"[LuaBehaviourBridge] Bridge '{bridge.GetType().Name}' 已为 Lua 实例 '{nameToLoad}' 初始化。");
                 }
                 
-                // 3e. 手动触发 Lua Awake (在 Start 之前)
+                // 手动触发 Lua Awake (在 Start 之前)
                 runtimeInstance.awakeFunc?.Call(runtimeInstance.instance);
                 
-                // 3f. 添加到管理列表
+                // 添加到管理列表
                 luaInstances.Add(runtimeInstance);
             }
             catch (System.Exception e)
@@ -188,7 +188,7 @@ public class LuaBehaviourBridge : MonoBehaviour
                 // 确保释放失败的实例（如果已创建）
                 newLuaInstance?.Dispose();
             }
-        } // 结束
+        }
         
         areBridgesReady = true;
         

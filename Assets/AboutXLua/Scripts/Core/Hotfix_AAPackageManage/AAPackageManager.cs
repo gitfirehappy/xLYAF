@@ -70,6 +70,30 @@ public class AAPackageManager : Singleton<AAPackageManager>
     {
         return _isInitialized ? _config.GetKeysByLabel(label) : new List<string>();
     }
+    
+    /// <summary>
+    /// 获取同时具有多个标签的资源Key
+    /// </summary>
+    public List<string> GetKeysByLabels(string[] labels)
+    {
+        if (!_isInitialized || labels == null || labels.Length == 0) 
+            return new List<string>();
+        
+        // 如果只有一个标签，直接使用GetKeysByLabel
+        if (labels.Length == 1)
+            return GetKeysByLabel(labels[0]);
+        
+        // 多个标签求交集
+        var keys = new HashSet<string>(GetKeysByLabel(labels[0]));
+        
+        for (int i = 1; i < labels.Length; i++)
+        {
+            var currentKeys = new HashSet<string>(GetKeysByLabel(labels[i]));
+            keys.IntersectWith(currentKeys);
+        }
+        
+        return keys.ToList();
+    }
 
     /// <summary>
     /// 复合查询：获取同时满足 Type 和 Label 的 Key
@@ -233,6 +257,47 @@ public class AAPackageManager : Singleton<AAPackageManager>
         }
     }
 
+    #region 同步加载
+
+    /// <summary>
+    /// 同步加载资源 (用于 Lua require 等必须同步的场景)
+    /// </summary>
+    public T LoadAssetSync<T>(string key) where T : UnityEngine.Object
+    {
+        if (!_isInitialized)
+        {
+            Debug.LogError("AAPackageManager 未初始化");
+            return null;
+        }
+
+        // 检查缓存
+        if (_resourceCache.TryGetValue(key, out var entry) && entry.IsValid)
+        {
+            entry.ReferenceCount++;
+            return entry.Handle.Result as T;
+        }
+
+        // 启动异步操作
+        var handle = Addressables.LoadAssetAsync<T>(key);
+        
+        // 强制主线程等待直到完成
+        T result = handle.WaitForCompletion();
+
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            AddToCache(key, handle);
+            return result;
+        }
+        else
+        {
+            Debug.LogError($"[AAPackageManager] 同步加载失败: {key}");
+            Addressables.Release(handle); // 失败释放
+            return null;
+        }
+    }
+
+    #endregion
+    
     #region 辅助方法
 
     /// <summary>
@@ -245,30 +310,6 @@ public class AAPackageManager : Singleton<AAPackageManager>
             Handle = handle,
             ReferenceCount = 1
         };
-    }
-    
-    /// <summary>
-    /// 获取同时具有多个标签的资源Key
-    /// </summary>
-    private List<string> GetKeysByLabels(string[] labels)
-    {
-        if (!_isInitialized || labels == null || labels.Length == 0) 
-            return new List<string>();
-        
-        // 如果只有一个标签，直接使用GetKeysByLabel
-        if (labels.Length == 1)
-            return GetKeysByLabel(labels[0]);
-        
-        // 多个标签求交集
-        var keys = new HashSet<string>(GetKeysByLabel(labels[0]));
-        
-        for (int i = 1; i < labels.Length; i++)
-        {
-            var currentKeys = new HashSet<string>(GetKeysByLabel(labels[i]));
-            keys.IntersectWith(currentKeys);
-        }
-        
-        return keys.ToList();
     }
 
     #endregion
