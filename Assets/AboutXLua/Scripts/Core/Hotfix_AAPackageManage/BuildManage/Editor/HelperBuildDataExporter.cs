@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
 
 /// <summary>
@@ -14,48 +15,76 @@ public class HelperBuildDataExporter
 {
     public const string GROUP_NAME = Constants.HELPER_BUILD_DATA_GROUP_NAME;
     public const string AALabelsConfigAssetPath = Constants.AA_LABELS_CONFIG_ASSETPATH;
-
-    #region AddressableLabelsConfig
+    public const string LuaScriptsIndexAssetPath = Constants.LUA_SCRIPTS_INDEX_ASSETPATH;
+    
     /// <summary>
-    /// 扫描并生成 SO 数据
+    /// 总导出入口
     /// </summary>
-    public static void ExportEntries()
+    public static void ExportData()
+    {
+        Debug.Log("[HelperBuildData] 开始导出所有辅助构建数据...");
+        ExportAddressableLabels();
+        ExportLuaScriptsIndex();
+        AssetDatabase.SaveAssets();
+        Debug.Log("[HelperBuildData] 导出完成。");
+    }
+    
+    /// <summary>
+    /// 确保所有配置进入 AddressableGroup
+    /// </summary>
+    public static void EnsureExportDataInGroup()
+    { 
+        var settings = AddressableAssetSettingsDefaultObject.Settings;
+        if (settings == null) return;
+        
+        var group = settings.FindGroup(GROUP_NAME);
+        if (group == null)
+        {
+            group = settings.CreateGroup(GROUP_NAME, false, false, true, null);
+        }
+
+        // 1. AALabelsConfig
+        EnsureAssetInGroup(settings, group, AALabelsConfigAssetPath, Constants.AA_LABELS_CONFIG);
+        
+        // 2. LuaIndex
+        EnsureAssetInGroup(settings, group, LuaScriptsIndexAssetPath, Constants.LUA_SCRIPTS_INDEX);
+        
+        Debug.Log("[HelperBuildData] 已确保辅助数据进入 Group。");
+    }
+    
+    private static void EnsureAssetInGroup(AddressableAssetSettings settings, AddressableAssetGroup group, string path, string address)
+    {
+        var guid = AssetDatabase.AssetPathToGUID(path);
+        if (string.IsNullOrEmpty(guid)) return;
+
+        var entry = settings.CreateOrMoveEntry(guid, group);
+        entry.address = address;
+    }
+    
+    #region AddressableLabelsConfig
+    
+    /// <summary>
+    /// 导出AddressableLabelsConfig
+    /// </summary>
+    private static void ExportAddressableLabels()
     {
         var settings = AddressableAssetSettingsDefaultObject.Settings;
-        if (settings == null)
-        {
-            Debug.LogError("[LabelExporter] 未找到 AddressableAssetSettings！");
-            return;
-        }
+        if (settings == null) return;
 
-        // 获取或创建 Config SO
-        var config = AssetDatabase.LoadAssetAtPath<AddressableLabelsConfig>(AALabelsConfigAssetPath);
-        if (config == null)
-        {
-            config = ScriptableObject.CreateInstance<AddressableLabelsConfig>();
-            var directory = System.IO.Path.GetDirectoryName(AALabelsConfigAssetPath);
-            if (!System.IO.Directory.Exists(directory))
-            {
-                System.IO.Directory.CreateDirectory(directory);
-            }
-            AssetDatabase.CreateAsset(config, AALabelsConfigAssetPath);
-        }
+        var config = GetOrCreateAsset<AddressableLabelsConfig>(AALabelsConfigAssetPath);
         
         config.allEntries.Clear();
         config.keysByType.Clear();
         config.keysByLabel.Clear();
         config.labelLogicalHashes.Clear();
         
-        // 临时字典用于分类
         var tempTypeDict = new Dictionary<string, List<string>>();
         var tempLabelDict = new Dictionary<string, List<string>>();
         var groupLabelToAddressList = new Dictionary<(string Group,string CombineLabel), List<string>>();
         
-        // 遍历所有 Group
         foreach (var group in settings.groups)
         {
             if (group == null) continue;
-            // HelperBuildData自身组也参与处理
 
             foreach (var entry in group.entries)
             {
@@ -64,88 +93,55 @@ public class HelperBuildDataExporter
                 string entryType = entry.labels.Count > 0 ? entry.labels.First() : "Untyped";
                 string key = entry.address;
                 
-                var entryData = new PackageEntry
+                config.allEntries.Add(new PackageEntry
                 {
                     key = entry.address,
                     Type = entryType,
                     Labels = entry.labels.ToList()
-                };
-                config.allEntries.Add(entryData);
+                });
                 
-                // 填充 Type 索引
+                // Type Dict
                 if (!tempTypeDict.ContainsKey(entryType)) tempTypeDict[entryType] = new List<string>();
                 tempTypeDict[entryType].Add(key);
                 
-                // 填充单个 Label 索引 (用于 GetKeysByLabel) 
+                // Label Dict
                 if (entry.labels.Count == 0)
                 {
                     AddToLabelDict(tempLabelDict, "Untyped", key);
                 }
                 else
                 {
-                    foreach (var label in entry.labels)
-                    {
-                        AddToLabelDict(tempLabelDict, label, key);
-                    }
+                    foreach (var label in entry.labels) AddToLabelDict(tempLabelDict, label, key);
                 }
                 
-                // 填充组合 Label (用于 LogicalHash / VersionState)
-                // PackTogetherByLabel 会将相同 Label 集合的资源打在一起。
-                string combinedLabelKey;
-                if (entry.labels.Count == 0)
-                {
-                    combinedLabelKey = "untyped";
-                }
-                else
-                {
-                    // 此处维持组合 Label 的顺序
-                    var labels = entry.labels.ToList();
-                    // 拼接 (例如 TextAsset + LuaScripts -> "TextAssetLuaScripts")
-                    // 转小写 (因为 Addressables 生成的 Bundle 文件名通常是全小写，e.g. "..._textassetluascripts_...")
-                    combinedLabelKey = string.Join("", labels).ToLowerInvariant();
-                }
-
-                // 添加到用于计算 Hash 的字典
+                // Combined Label (Hash)
+                string combinedLabelKey = entry.labels.Count == 0 ? "untyped" : string.Join("", entry.labels).ToLowerInvariant();
                 AddToGroupLabelDict(groupLabelToAddressList, group.Name.ToLowerInvariant(), combinedLabelKey, key);
             }
         }
         
-        // 加入分类列表
-        foreach (var kvp in tempTypeDict)
-        {
-            config.keysByType.Add(new TypeToKeys { Type = kvp.Key, Keys = kvp.Value });
-        }
-        foreach (var kvp in tempLabelDict)
-        {
-            config.keysByLabel.Add(new LabelToKeys { Label = kvp.Key, Keys = kvp.Value });
-        }
+        // 序列化字典到 List
+        foreach (var kvp in tempTypeDict) config.keysByType.Add(new TypeToKeys { Type = kvp.Key, Keys = kvp.Value });
+        foreach (var kvp in tempLabelDict) config.keysByLabel.Add(new LabelToKeys { Label = kvp.Key, Keys = kvp.Value });
+        
         foreach (var kvp in groupLabelToAddressList)
         {
-            string group = kvp.Key.Group;// 小写处理后
-            string combineLabels = kvp.Key.CombineLabel;// 拼接转小写后的
-            List<string> keys = kvp.Value;
-
-            // 排序确保顺序一致
+            var keys = kvp.Value;
             keys.Sort(StringComparer.Ordinal);
-
-            // 拼接key
             StringBuilder sb = new StringBuilder();
             foreach (var k in keys) sb.Append(k);
-
-            // 计算 Hash
             string logicalHash = HashGenerator.GenerateStringHash(sb.ToString());
 
             config.labelLogicalHashes.Add(new GroupLabelToLogicalHash 
             { 
-                Group = group,
-                CombineLabel = combineLabels, 
+                Group = kvp.Key.Group,
+                CombineLabel = kvp.Key.CombineLabel, 
                 Hash = logicalHash 
             });
         }
-
+        
         EditorUtility.SetDirty(config);
-        AssetDatabase.SaveAssets();
-        Debug.Log($"[LabelExporter] 导出完成。Entries: {config.allEntries.Count}, LogicalHashes: {config.labelLogicalHashes.Count}");
+        Debug.Log($"[LabelExporter] AddressableLabelsConfig 导出完成。");
     }
     
     #region 辅助方法 
@@ -164,30 +160,71 @@ public class HelperBuildDataExporter
     }
     
     #endregion
+    
+    #endregion
+
+    #region LuaScriptsIndex
 
     /// <summary>
-    /// 确保生成的配置 SO 已经被加入到 Addressable Group 中
+    /// 导出 Lua 脚本索引
     /// </summary>
-    public static void EnsureConfigInGroup()
-    {
+    private static void ExportLuaScriptsIndex()
+    { 
+        var indexSO = GetOrCreateAsset<LuaScriptsIndex>(LuaScriptsIndexAssetPath);
+        indexSO.data.Clear();
+
         var settings = AddressableAssetSettingsDefaultObject.Settings;
-        var group = settings.FindGroup(GROUP_NAME);
-        if (group == null)
+        if (settings == null) return;
+        
+        string[] guids = AssetDatabase.FindAssets("t:LuaScriptContainer");
+        
+        foreach (var guid in guids)
         {
-            group = settings.CreateGroup(GROUP_NAME, false, false, true, null);
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            var container = AssetDatabase.LoadAssetAtPath<LuaScriptContainer>(path);
+            if (container == null) continue;
+
+            var entry = settings.FindAssetEntry(guid);
+            if (entry == null)
+            {
+                // 仅警告，不中断，可能该容器不需要进包
+                Debug.LogWarning($"[LuaIndexExporter] Container不在Addressables中: {container.name}");
+                continue; 
+            }
+
+            var entryData = new LuaScriptsIndex.ContainerEntry
+            {
+                containerAddress = entry.address,
+                scriptNames = new List<string>()
+            };
+
+            foreach (var asset in container.luaAssets)
+            {
+                if (asset == null) continue;
+                string scriptKey = XLuaLoader.NormalizeModuleKey(asset.name);
+                entryData.scriptNames.Add(scriptKey);
+            }
+
+            indexSO.data.Add(entryData);
         }
 
-        var guid = AssetDatabase.AssetPathToGUID(AALabelsConfigAssetPath);
-        var entry = settings.CreateOrMoveEntry(guid, group);
-        
-        // 确保地址简洁，方便加载
-        entry.address = "AddressableLabelsConfig"; 
-        
-        // 自动添加一个标签（Type）
-        if(!entry.labels.Contains("AddressableLabelsConfig")) entry.labels.Add("AddressableLabelsConfig");
-
-        Debug.Log("[LabelExporter] 已确保 Config SO 进入 HelperBuildData Group。");
+        EditorUtility.SetDirty(indexSO);
+        Debug.Log($"[LuaIndexExporter] LuaScriptsIndex 导出完成。包含 {indexSO.data.Count} 个容器。");
     }
+
     #endregion
+    
+    private static T GetOrCreateAsset<T>(string path) where T : ScriptableObject
+    {
+        var asset = AssetDatabase.LoadAssetAtPath<T>(path);
+        if (asset == null)
+        {
+            asset = ScriptableObject.CreateInstance<T>();
+            var directory = System.IO.Path.GetDirectoryName(path);
+            if (!System.IO.Directory.Exists(directory)) System.IO.Directory.CreateDirectory(directory);
+            AssetDatabase.CreateAsset(asset, path);
+        }
+        return asset;
+    }
 }
 #endif

@@ -72,7 +72,7 @@ public class AAPackageManager : Singleton<AAPackageManager>
     }
     
     /// <summary>
-    /// 获取同时具有多个标签的资源Key
+    /// 获取同时具有多个标签的资源Key（求交集）
     /// </summary>
     public List<string> GetKeysByLabels(string[] labels)
     {

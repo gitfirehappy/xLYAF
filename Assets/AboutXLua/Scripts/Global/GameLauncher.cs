@@ -22,7 +22,7 @@ public class GameLauncher : MonoBehaviour
     [Tooltip("编辑器模式下的Lua脚本根目录")]
     public List<string> editorRoots = new() { "LuaScripts" };
     
-    // TODO: 替换为AAPackageManager获取
+    // TODO: 替换为SO资源，AAPackageManager获取
     [Tooltip("Addressables标签，用于加载Lua脚本")]
     public List<string> aaLabels = new() { "LuaScriptContainer" };
     
@@ -61,7 +61,7 @@ public class GameLauncher : MonoBehaviour
         {
             mode = loaderMode,
             editorRoots = editorRoots,
-            aaLabels = aaLabels,
+            //aaLabels = aaLabels,
         };
         await XLuaLoader.SetupAndRegister(LuaEnvManager.Get(), loaderOptions);
 

@@ -37,7 +37,7 @@ public class AddressableLabelsConfig : ScriptableObject
     /// </summary>
     public List<string> GetKeysByType(string type)
     {
-        if (_typeDict == null) RebuildRuntimeDicts();
+        if (_typeDict == null) BuildRuntimeDicts();
         return _typeDict.TryGetValue(type, out var list) ? list : new List<string>();
     }
 
@@ -46,7 +46,7 @@ public class AddressableLabelsConfig : ScriptableObject
     /// </summary>
     public List<string> GetKeysByLabel(string label)
     {
-        if (_labelDict == null) RebuildRuntimeDicts();
+        if (_labelDict == null) BuildRuntimeDicts();
         return _labelDict.TryGetValue(label, out var list) ? list : new List<string>();
     }
 
@@ -55,25 +55,28 @@ public class AddressableLabelsConfig : ScriptableObject
     /// </summary>
     public List<string> GetLabels()
     {
-        if (_labelDict == null) RebuildRuntimeDicts();
+        if (_labelDict == null) BuildRuntimeDicts();
         return _labelDict?.Keys.ToList() ?? new List<string>();
     }
     
     /// <summary>
     /// 获取逻辑Hash,生成version_state 时调用
     /// </summary>
-    ///    /// <param name="groupName">解析文件名得到的Group部分 (通常是小写) </param>
+    /// <param name="groupName">解析文件名得到的Group部分 (通常是小写) </param>
     /// <param name="labels">解析文件名得到的Label部分 (通常是小写拼接)</param>
     public string GetLogicalHash(string groupName,string labels)
     {
-        if (_labelLogicalHashDict == null) RebuildRuntimeDicts();
+        if (_labelLogicalHashDict == null) BuildRuntimeDicts();
         // 组合键策略需与构建时一致
         string key = $"{groupName.ToLowerInvariant()}_{labels.ToLowerInvariant()}"; 
         
         return _labelLogicalHashDict.TryGetValue(key, out var hash) ? hash : string.Empty;
     }
 
-    private void RebuildRuntimeDicts()
+    /// <summary>
+    /// 构建运行时快速查找字典
+    /// </summary>
+    private void BuildRuntimeDicts()
     {
         _typeDict = new Dictionary<string, List<string>>();
         _labelDict = new Dictionary<string, List<string>>();

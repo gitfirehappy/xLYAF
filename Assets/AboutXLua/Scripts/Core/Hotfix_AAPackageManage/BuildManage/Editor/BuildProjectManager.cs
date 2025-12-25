@@ -73,9 +73,9 @@ public static class BuildProjectManager
         // 1. 强制配置 Addressable Settings
         ConfigureAddressableSettings(settings);
         
-        // 2. 生成AddressablePackagesEntries，打包进指定Group(HelperBuildData)
-        HelperBuildDataExporter.ExportEntries();
-        HelperBuildDataExporter.EnsureConfigInGroup();
+        // 2. 生成HelperBuildData
+        HelperBuildDataExporter.ExportData();
+        HelperBuildDataExporter.EnsureExportDataInGroup();
         AssetDatabase.SaveAssets(); 
         AssetDatabase.Refresh();
         
