@@ -6,9 +6,13 @@ using XLua;
 
 public class GameUIManager : SingletonMono<GameUIManager>
 {
-    public UIResourceConfigSO uiResourceConfig; // TODO: 此处需要替换为AAPackageManager的获取
+    [Tooltip("UI配置资源的Addressable Key")]
+    public string uiConfigKey = "UIResourceConfig";
+    
+    private UIResourceConfigSO _uiResourceConfig; 
 
-    private string firstDialogueFileName;
+    // TODO: 临时
+    [SerializeField] private string _firstDialogueFileName;
     
     private LuaEnv _luaEnv;
     
@@ -17,20 +21,37 @@ public class GameUIManager : SingletonMono<GameUIManager>
         await LaunchSignal.WaitForLaunch();
         
         _luaEnv = LuaEnvManager.Get();
+
+        if (_uiResourceConfig == null) await Initialize();
         
         UIManager.Instance.ShowUIForm<DialoguePanel>();
         
         // LuaEnvManager获取Env开启第一段对话
          _luaEnv.DoString($@"
              local DialogueController = require('DialogueController')
-             DialogueController.Start('{firstDialogueFileName}')
+             DialogueController.Start('{_firstDialogueFileName}')
          ");
         
         Debug.Log("=== GameUIManager: Init ===");
     }
 
-    public void Initialize()
+    public async Task Initialize()
     {
-        UIManager.Instance.Initialize(uiResourceConfig);
+        if (string.IsNullOrEmpty(uiConfigKey))
+        {
+            Debug.LogError("[GameUIManager] uiConfigKey 为空，无法加载UI配置。");
+            return;
+        }
+
+        _uiResourceConfig = await AAPackageManager.Instance.LoadAssetAsync<UIResourceConfigSO>(uiConfigKey);
+    
+        if (_uiResourceConfig != null)
+        {
+            UIManager.Instance.Initialize(_uiResourceConfig);
+        }
+        else
+        {
+            Debug.LogError($"[GameUIManager] 加载 UIResourceConfigSO 失败: {uiConfigKey}");
+        }
     }
 }

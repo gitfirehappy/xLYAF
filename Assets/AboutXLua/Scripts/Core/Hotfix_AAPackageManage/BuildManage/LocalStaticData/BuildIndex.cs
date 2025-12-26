@@ -5,11 +5,9 @@ using UnityEngine;
 /// <summary>
 /// 包体索引，Local唯一，不会热更
 /// </summary>
-[CreateAssetMenu(fileName = "BuildIndex", menuName = "Build/BuildIndex")]
+[CreateAssetMenu(fileName = Constants.BUILD_INDEX, menuName = "Build/BuildIndex")]
 public class BuildIndex : ScriptableObject
 {
-    public const string ASSET_ADDRESS = "BuildIndex"; // AA中的地址
-    
     [Header("构建唯一标识 (每次构建整包时更新)")]
     public string BuildGUID;
 

@@ -23,7 +23,6 @@ public class LuaBehaviourBridgeEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        base.OnInspectorGUI();
         EditorGUILayout.Space();
 
         EditorGUILayout.LabelField("Bridge Components", EditorStyles.boldLabel);

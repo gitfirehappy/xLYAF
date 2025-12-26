@@ -10,7 +10,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 public static class HotfixManager
 {
-    private static readonly string _hotfixUrl = "https://your-site-name.netlify.app/HotfixOutput";
+    private static readonly string _hotfixUrl = Constants.HOTFIX_URL;
     
     // 固定下载 manifest 动态获取路径
     private static readonly string _manifestUrl = $"{_hotfixUrl}/manifest.json";
@@ -32,7 +32,7 @@ public static class HotfixManager
         Debug.Log("[HotfixManager] Addressables 本地包初始化成功");
         
         // 2. 加载 BuildIndex，并初始化路径 (从 Local AA 包中)
-        var indexHandle = Addressables.LoadAssetAsync<BuildIndex>(BuildIndex.ASSET_ADDRESS);
+        var indexHandle = Addressables.LoadAssetAsync<BuildIndex>(Constants.BUILD_INDEX);
         BuildIndex buildIndex = await indexHandle.Task;
 
         if (indexHandle.Status != AsyncOperationStatus.Succeeded || buildIndex == null)

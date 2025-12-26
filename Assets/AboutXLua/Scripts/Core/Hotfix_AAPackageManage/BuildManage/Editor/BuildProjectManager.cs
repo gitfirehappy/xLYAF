@@ -114,11 +114,11 @@ public static class BuildProjectManager
         // 7. 更新 Manifest 文件
         UpdateManifestFile(currentPackageName, version);
         
-        // 8. 如果是整包构建，需要导出BuildIndex
+        // 8. 如果是整包构建，需要导出 LocalStatus
         if (buildType == BuildType.Full)
         {
-            LocalStatusExporter.ExportBuildIndex();
-            LocalStatusExporter.EnsureBuildIndexInGroup();
+            LocalStatusExporter.ExportData();
+            LocalStatusExporter.EnsureExportDataInGroup();
         }
         
         Debug.Log($"[BuildProjectManager] 热更包构建完毕: {hotfixOutputDir}");
@@ -170,7 +170,7 @@ public static class BuildProjectManager
             string currentBuildPathName = schema.BuildPath.GetName(settings);
             
             // HelperBuildData (必要的辅助数据)，必须强制为 Remote，否则无法热更配置
-            if (group.Name == HelperBuildDataExporter.GROUP_NAME)
+            if (group.Name == Constants.HELPER_BUILD_DATA_GROUP_NAME)
             {
                 SetSchemaPathToRemote(settings, schema);
                 continue;
@@ -225,7 +225,7 @@ public static class BuildProjectManager
     {
         Debug.Log("[BuildProjectManager] 正在生成 version_state.json...");
         
-        var config = AssetDatabase.LoadAssetAtPath<AddressableLabelsConfig>(HelperBuildDataExporter.AALabelsConfigAssetPath);
+        var config = AssetDatabase.LoadAssetAtPath<AddressableLabelsConfig>(Constants.AA_LABELS_CONFIG_ASSETPATH);
         if (config == null)
         {
             Debug.LogError("无法加载 AddressableLabelsConfig，LogicalKey 将无法生成！");

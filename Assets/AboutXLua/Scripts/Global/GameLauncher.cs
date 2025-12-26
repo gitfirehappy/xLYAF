@@ -13,7 +13,7 @@ public class GameLauncher : MonoBehaviour
     
     [Header("XLua Configuration")]
     [Tooltip("Addressables标签名，用于加载XLua类型配置")]
-    public string xluaConfigLabel = XluaTypeConfigLoader.DefaultConfigLabel;
+    public string xluaConfigLabel = Constants.DEAULT_XLUA_TYPE_CONFIG_LOAD_LABEL;
     
     [Header("Lua Loader Configuration")]
     [Tooltip("Lua加载模式")]
@@ -86,7 +86,7 @@ public class GameLauncher : MonoBehaviour
         DialogueFuncRegistry.ScanAndRegister();
         
         // UI初始化
-        GameUIManager.Instance.Initialize();
+        await GameUIManager.Instance.Initialize();
         
         await Task.CompletedTask;
     }

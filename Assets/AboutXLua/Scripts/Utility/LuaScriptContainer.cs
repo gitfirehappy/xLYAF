@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
-using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.AddressableAssets.Settings;
+#endif
 
 [CreateAssetMenu(fileName = "LuaContainer", menuName = "XLua/Lua Script Container", order = 2)]
 public class LuaScriptContainer : ScriptableObject
@@ -24,6 +26,8 @@ public class LuaScriptContainer : ScriptableObject
 #endif
     }
 
+#if UNITY_EDITOR
+    
     /// <summary>
     /// 为LuaScriptContainer 自身添加Addressable标签
     /// </summary>
@@ -100,4 +104,5 @@ public class LuaScriptContainer : ScriptableObject
 
         return group;
     }
+#endif
 }

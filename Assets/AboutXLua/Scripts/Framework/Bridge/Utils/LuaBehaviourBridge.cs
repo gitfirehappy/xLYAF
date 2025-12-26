@@ -20,8 +20,10 @@ public class LuaBehaviourBridge : MonoBehaviour
     }
     
     [Header("Lua 脚本配置")]
-    [Tooltip("分配一个 SO，其中包含要在此 GameObject 上加载的所有 Lua 脚本列表")]
-    public LuaBehaviourConfigSO multiScriptConfig;  // TODO: 此处需要替换为AAPackageManager的获取
+    [Tooltip("填写 LuaBehaviourConfigSO 的 Addressable Key")]
+    public string configKey; 
+
+    private LuaBehaviourConfigSO _multiScriptConfig;
 
     /// <summary>
     /// 内部类，用于保存每个 Lua 脚本的运行时实例和缓存的函数
@@ -99,8 +101,16 @@ public class LuaBehaviourBridge : MonoBehaviour
     {
         var env = LuaEnvManager.Get();
         
+        if (string.IsNullOrEmpty(configKey))
+        {
+            Debug.LogError($"[LuaBehaviourBridge] {gameObject.name} 未配置 Config Key", gameObject);
+            return;
+        }
+
+        _multiScriptConfig = await AAPackageManager.Instance.LoadAssetAsync<LuaBehaviourConfigSO>(configKey);
+        
         // 1. 检查 SO 配置
-        if (multiScriptConfig == null || multiScriptConfig.scriptsToLoad.Count == 0)
+        if (_multiScriptConfig == null || _multiScriptConfig.scriptsToLoad.Count == 0)
         {
             Debug.LogError($"[LuaBehaviourBridge] 在 {gameObject.name} 上没有配置任何 Lua 脚本 (multiScriptConfig 为空或列表为空)。", gameObject);
             return;
@@ -115,7 +125,7 @@ public class LuaBehaviourBridge : MonoBehaviour
         }
 
         // 3. 遍历配置，创建和初始化每个 Lua 实例
-        foreach (var config in multiScriptConfig.scriptsToLoad)
+        foreach (var config in _multiScriptConfig.scriptsToLoad)
         {
             string nameToLoad = config.GetScriptLoadName();
             if (string.IsNullOrEmpty(nameToLoad))

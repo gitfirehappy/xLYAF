@@ -13,9 +13,9 @@ using UnityEngine;
 /// </summary>
 public class HelperBuildDataExporter
 {
-    public const string GROUP_NAME = Constants.HELPER_BUILD_DATA_GROUP_NAME;
-    public const string AALabelsConfigAssetPath = Constants.AA_LABELS_CONFIG_ASSETPATH;
-    public const string LuaScriptsIndexAssetPath = Constants.LUA_SCRIPTS_INDEX_ASSETPATH;
+    private const string _groupName = Constants.HELPER_BUILD_DATA_GROUP_NAME;
+    private const string _labelsConfigAssetPath = Constants.AA_LABELS_CONFIG_ASSETPATH;
+    private const string _luaScriptsIndexAssetPath = Constants.LUA_SCRIPTS_INDEX_ASSETPATH;
     
     /// <summary>
     /// 总导出入口
@@ -37,28 +37,40 @@ public class HelperBuildDataExporter
         var settings = AddressableAssetSettingsDefaultObject.Settings;
         if (settings == null) return;
         
-        var group = settings.FindGroup(GROUP_NAME);
+        var group = settings.FindGroup(_groupName);
         if (group == null)
         {
-            group = settings.CreateGroup(GROUP_NAME, false, false, true, null);
+            group = settings.CreateGroup(_groupName, false, false, true, null);
         }
 
         // 1. AALabelsConfig
-        EnsureAssetInGroup(settings, group, AALabelsConfigAssetPath, Constants.AA_LABELS_CONFIG);
+        EnsureAssetInGroup(settings, group, _labelsConfigAssetPath, Constants.AA_LABELS_CONFIG, Constants.AA_LABELS_CONFIG);
         
         // 2. LuaIndex
-        EnsureAssetInGroup(settings, group, LuaScriptsIndexAssetPath, Constants.LUA_SCRIPTS_INDEX);
+        // TODO: 未打上标签？
+        EnsureAssetInGroup(settings, group, _luaScriptsIndexAssetPath, Constants.LUA_SCRIPTS_INDEX, Constants.LUA_SCRIPTS_INDEX);
         
         Debug.Log("[HelperBuildData] 已确保辅助数据进入 Group。");
     }
     
-    private static void EnsureAssetInGroup(AddressableAssetSettings settings, AddressableAssetGroup group, string path, string address)
+    /// <summary>
+    /// 辅助方法：确保资源进入指定组，并设置地址和标签
+    /// </summary>
+    private static void EnsureAssetInGroup(AddressableAssetSettings settings, AddressableAssetGroup group, string path, string address,string label = null)
     {
         var guid = AssetDatabase.AssetPathToGUID(path);
         if (string.IsNullOrEmpty(guid)) return;
 
         var entry = settings.CreateOrMoveEntry(guid, group);
         entry.address = address;
+        
+        if (!string.IsNullOrEmpty(label))
+        {
+            if (!entry.labels.Contains(label))
+            {
+                entry.labels.Add(label);
+            }
+        }
     }
     
     #region AddressableLabelsConfig
@@ -71,7 +83,7 @@ public class HelperBuildDataExporter
         var settings = AddressableAssetSettingsDefaultObject.Settings;
         if (settings == null) return;
 
-        var config = GetOrCreateAsset<AddressableLabelsConfig>(AALabelsConfigAssetPath);
+        var config = GetOrCreateAsset<AddressableLabelsConfig>(_labelsConfigAssetPath);
         
         config.allEntries.Clear();
         config.keysByType.Clear();
@@ -130,6 +142,7 @@ public class HelperBuildDataExporter
             keys.Sort(StringComparer.Ordinal);
             StringBuilder sb = new StringBuilder();
             foreach (var k in keys) sb.Append(k);
+            // TODO: 逻辑hash需要加入labels 作为参数？我们本身就是以group+label 为单位的
             string logicalHash = HashGenerator.GenerateStringHash(sb.ToString());
 
             config.labelLogicalHashes.Add(new GroupLabelToLogicalHash 
@@ -170,7 +183,7 @@ public class HelperBuildDataExporter
     /// </summary>
     private static void ExportLuaScriptsIndex()
     { 
-        var indexSO = GetOrCreateAsset<LuaScriptsIndex>(LuaScriptsIndexAssetPath);
+        var indexSO = GetOrCreateAsset<LuaScriptsIndex>(_luaScriptsIndexAssetPath);
         indexSO.data.Clear();
 
         var settings = AddressableAssetSettingsDefaultObject.Settings;

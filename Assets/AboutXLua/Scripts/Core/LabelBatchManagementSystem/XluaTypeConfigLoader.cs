@@ -12,7 +12,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 public static class XluaTypeConfigLoader
 {
     // 地址标签，用于在Addressables中识别TypeListSO资产
-    public const string DefaultConfigLabel = "XLuaConfigs";
+    private const string _defaultConfigLabel = Constants.DEAULT_XLUA_TYPE_CONFIG_LOAD_LABEL;
     
     // 类型级配置
     public static List<Type> HotfixTypes { get; private set; }
@@ -29,7 +29,7 @@ public static class XluaTypeConfigLoader
     /// 初始化加载配置（核心层启动时调用）
     /// </summary>
     /// /// <param name="configLabel">Addressables标签名，默认为"XLuaConfigs"</param>
-    public static async Task InitAsync(string configLabel = DefaultConfigLabel)
+    public static async Task InitAsync(string configLabel = _defaultConfigLabel)
     {
         Debug.Log("[XluaTypeConfigLoader] 初始化配置中...");
 
@@ -42,22 +42,7 @@ public static class XluaTypeConfigLoader
         CSharpCallLuaMembers = new List<MemberInfo>();
 
         // 2. 使用Addressables加载所有 TypeListSO
-        AsyncOperationHandle<IList<TypeMemberListSO>> loadHandle = Addressables.LoadAssetsAsync<TypeMemberListSO>(configLabel, null); // TODO: 此处需要替换为AAPackageManager的获取
-        IList<TypeMemberListSO> allConfigs;
-
-        try
-        {
-            allConfigs = await loadHandle.Task; 
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"没有找到来自 Addressables 的标签 '{configLabel}'. Error: {ex.Message}");
-            return;
-        }
-        finally
-        {
-            Addressables.Release(loadHandle); // 释放加载句柄
-        }
+        IList<TypeMemberListSO> allConfigs = await AAPackageManager.Instance.LoadAssetByLabelAsync<TypeMemberListSO>(configLabel);
 
         if (allConfigs == null || allConfigs.Count == 0)
         {
@@ -118,7 +103,7 @@ public static class XluaTypeConfigLoader
                     Debug.Log($"Loaded {resolvedTypes.Count} CSharpCallLua types and {resolvedMembers.Count} members from '{config.name}'.");
                     break;
                 default:
-                    Debug.LogWarning($"Unknown ConfigTag '{config.tag}' in '{config.name}'.");
+                    Debug.LogWarning($"未知的 ConfigTag '{config.tag}' in '{config.name}'.");
                     break;
             }
         }

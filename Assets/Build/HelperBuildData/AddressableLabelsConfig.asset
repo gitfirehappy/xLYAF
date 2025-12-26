@@ -38,167 +38,65 @@ MonoBehaviour:
     Labels:
     - TypeMemberListSO
     - XLuaConfigs
-  - key: TalkTest1
-    Type: TextAsset
+  - key: Player
+    Type: LuaScriptContainer
     Labels:
-    - TextAsset
-    - LuaScripts
+    - LuaScriptContainer
+    - Player
+  - key: LuaText
+    Type: LuaScriptContainer
+    Labels:
+    - LuaScriptContainer
     - Text
-  - key: StringUtil
-    Type: TextAsset
+  - key: Framework
+    Type: LuaScriptContainer
     Labels:
-    - TextAsset
-    - LuaScripts
-    - Dialogue
-  - key: DialogueController
-    Type: TextAsset
+    - LuaScriptContainer
+    - Framework
+  - key: Core
+    Type: LuaScriptContainer
     Labels:
-    - TextAsset
-    - LuaScripts
-    - Dialogue
-  - key: DialogueModel
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Dialogue
-  - key: DialogueDataManager
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Dialogue
-  - key: DialogueView
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Dialogue
-  - key: ModuleRegistry
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
+    - LuaScriptContainer
     - Core
-  - key: EventCentre
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Framework
-  - key: TalkTest2
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Text
-  - key: PlayerController
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Player
-  - key: PlayerHFSMState
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Player
-  - key: PlayerIdleState
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Player
-  - key: PlayerAnimation
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Player
-  - key: BaseStateMachine
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Framework
-  - key: BaseState
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Framework
-  - key: PlayerStateMachine
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Player
-  - key: PlayerInputHandler
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Player
-  - key: GroundedState
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Player
-  - key: AirborneState
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Player
-  - key: PlayerRunState
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Player
-  - key: PlayerJumpState
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Player
-  - key: PlayerFallState
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
-    - Player
   - key: Dialogue
-    Type: UIFormConfigSO
+    Type: LuaScriptContainer
     Labels:
-    - UIFormConfigSO
+    - LuaScriptContainer
+    - Dialogue
+  - key: DialoguePanel
+    Type: LuaBehaviourConfigSO
+    Labels:
+    - LuaBehaviourConfigSO
+  - key: Player
+    Type: LuaBehaviourConfigSO
+    Labels:
+    - LuaBehaviourConfigSO
+  - key: Player
+    Type: StateAnimationConfigSO
+    Labels:
+    - StateAnimationConfigSO
   - key: UIResourceConfig
     Type: UIResourceConfigSO
     Labels:
     - UIResourceConfigSO
-  - key: TalkTest1
-    Type: TextAsset
+  - key: LuaText
+    Type: LuaScriptContainer
     Labels:
-    - TextAsset
-    - LuaScripts
-    - Text
-  - key: TalkTest2
-    Type: TextAsset
-    Labels:
-    - TextAsset
-    - LuaScripts
+    - LuaScriptContainer
     - Text
   - key: AddressableLabelsConfig
     Type: AddressableLabelsConfig
     Labels:
     - AddressableLabelsConfig
+  - key: LuaScriptsIndex
+    Type: Untyped
+    Labels: []
   keysByType:
   - Type: Untyped
     Keys:
     - Resources
     - EditorSceneList
+    - LuaScriptsIndex
   - Type: BuildIndex
     Keys:
     - BuildIndex
@@ -207,35 +105,21 @@ MonoBehaviour:
     - LuaCallCSharp
     - Hotfix
     - CSharpCallLua
-  - Type: TextAsset
+  - Type: LuaScriptContainer
     Keys:
-    - TalkTest1
-    - StringUtil
-    - DialogueController
-    - DialogueModel
-    - DialogueDataManager
-    - DialogueView
-    - ModuleRegistry
-    - EventCentre
-    - TalkTest2
-    - PlayerController
-    - PlayerHFSMState
-    - PlayerIdleState
-    - PlayerAnimation
-    - BaseStateMachine
-    - BaseState
-    - PlayerStateMachine
-    - PlayerInputHandler
-    - GroundedState
-    - AirborneState
-    - PlayerRunState
-    - PlayerJumpState
-    - PlayerFallState
-    - TalkTest1
-    - TalkTest2
-  - Type: UIFormConfigSO
-    Keys:
+    - Player
+    - LuaText
+    - Framework
+    - Core
     - Dialogue
+    - LuaText
+  - Type: LuaBehaviourConfigSO
+    Keys:
+    - DialoguePanel
+    - Player
+  - Type: StateAnimationConfigSO
+    Keys:
+    - Player
   - Type: UIResourceConfigSO
     Keys:
     - UIResourceConfig
@@ -247,6 +131,7 @@ MonoBehaviour:
     Keys:
     - Resources
     - EditorSceneList
+    - LuaScriptsIndex
   - Label: BuildIndex
     Keys:
     - BuildIndex
@@ -260,95 +145,37 @@ MonoBehaviour:
     - LuaCallCSharp
     - Hotfix
     - CSharpCallLua
-  - Label: TextAsset
+  - Label: LuaScriptContainer
     Keys:
-    - TalkTest1
-    - StringUtil
-    - DialogueController
-    - DialogueModel
-    - DialogueDataManager
-    - DialogueView
-    - ModuleRegistry
-    - EventCentre
-    - TalkTest2
-    - PlayerController
-    - PlayerHFSMState
-    - PlayerIdleState
-    - PlayerAnimation
-    - BaseStateMachine
-    - BaseState
-    - PlayerStateMachine
-    - PlayerInputHandler
-    - GroundedState
-    - AirborneState
-    - PlayerRunState
-    - PlayerJumpState
-    - PlayerFallState
-    - TalkTest1
-    - TalkTest2
-  - Label: LuaScripts
-    Keys:
-    - TalkTest1
-    - StringUtil
-    - DialogueController
-    - DialogueModel
-    - DialogueDataManager
-    - DialogueView
-    - ModuleRegistry
-    - EventCentre
-    - TalkTest2
-    - PlayerController
-    - PlayerHFSMState
-    - PlayerIdleState
-    - PlayerAnimation
-    - BaseStateMachine
-    - BaseState
-    - PlayerStateMachine
-    - PlayerInputHandler
-    - GroundedState
-    - AirborneState
-    - PlayerRunState
-    - PlayerJumpState
-    - PlayerFallState
-    - TalkTest1
-    - TalkTest2
-  - Label: Text
-    Keys:
-    - TalkTest1
-    - TalkTest2
-    - TalkTest1
-    - TalkTest2
-  - Label: Dialogue
-    Keys:
-    - StringUtil
-    - DialogueController
-    - DialogueModel
-    - DialogueDataManager
-    - DialogueView
-  - Label: Core
-    Keys:
-    - ModuleRegistry
-  - Label: Framework
-    Keys:
-    - EventCentre
-    - BaseStateMachine
-    - BaseState
+    - Player
+    - LuaText
+    - Framework
+    - Core
+    - Dialogue
+    - LuaText
   - Label: Player
     Keys:
-    - PlayerController
-    - PlayerHFSMState
-    - PlayerIdleState
-    - PlayerAnimation
-    - PlayerStateMachine
-    - PlayerInputHandler
-    - GroundedState
-    - AirborneState
-    - PlayerRunState
-    - PlayerJumpState
-    - PlayerFallState
-  - Label: UIFormConfigSO
+    - Player
+  - Label: Text
+    Keys:
+    - LuaText
+    - LuaText
+  - Label: Framework
+    Keys:
+    - Framework
+  - Label: Core
+    Keys:
+    - Core
+  - Label: Dialogue
     Keys:
     - Dialogue
+  - Label: LuaBehaviourConfigSO
+    Keys:
+    - DialoguePanel
+    - Player
+  - Label: StateAnimationConfigSO
+    Keys:
+    - Player
   - Label: UIResourceConfigSO
     Keys:
     - UIResourceConfig
@@ -366,29 +193,35 @@ MonoBehaviour:
     CombineLabel: typememberlistsoxluaconfigs
     Hash: 7ea808192456a70c7e71fa2cf127fcd3
   - Group: luascripts
-    CombineLabel: textassetluascriptstext
-    Hash: a0f8d020070f99e794537b6bbda2a42a
+    CombineLabel: luascriptcontainerplayer
+    Hash: 636da1d35e805b00eae0fcd8333f9234
   - Group: luascripts
-    CombineLabel: textassetluascriptsdialogue
-    Hash: 9ce861ea98a6beee8606d91a89c6b81e
+    CombineLabel: luascriptcontainertext
+    Hash: 8fc1b3864d33900aad2b23e39f9e7ded
   - Group: luascripts
-    CombineLabel: textassetluascriptscore
-    Hash: 2d5283f0a825eebcd8bf0dc8e5938672
+    CombineLabel: luascriptcontainerframework
+    Hash: 07782c22a88d1e82a09910124a9225a2
   - Group: luascripts
-    CombineLabel: textassetluascriptsframework
-    Hash: 576680da195b8bc631d2890b706cdbc3
+    CombineLabel: luascriptcontainercore
+    Hash: 83168e6cb289d732cc78427b51f93153
   - Group: luascripts
-    CombineLabel: textassetluascriptsplayer
-    Hash: 84b96e2d710923d89b2b496e99062220
-  - Group: ui
-    CombineLabel: uiformconfigso
+    CombineLabel: luascriptcontainerdialogue
     Hash: 359928afdf6c973ee869e1698023a812
+  - Group: luabridge
+    CombineLabel: luabehaviourconfigso
+    Hash: f463f9a714169c94da08c71cfb662d33
+  - Group: luabridge
+    CombineLabel: stateanimationconfigso
+    Hash: 636da1d35e805b00eae0fcd8333f9234
   - Group: ui
     CombineLabel: uiresourceconfigso
     Hash: a7d439d961c0979c876253ccd2239cec
   - Group: remote
-    CombineLabel: textassetluascriptstext
-    Hash: a0f8d020070f99e794537b6bbda2a42a
+    CombineLabel: luascriptcontainertext
+    Hash: 8fc1b3864d33900aad2b23e39f9e7ded
   - Group: helperbuilddata
     CombineLabel: addressablelabelsconfig
     Hash: e6c2efd9b1198e1478b32f374dcba4e5
+  - Group: helperbuilddata
+    CombineLabel: untyped
+    Hash: a4a44e2de8f3f904659a342685ba78a8

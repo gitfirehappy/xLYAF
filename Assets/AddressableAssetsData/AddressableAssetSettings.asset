@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: dbf2c5c7a80d7d34695132ac3bdde14b
   m_currentHash:
     serializedVersion: 2
-    Hash: 00000000000000000000000000000000
+    Hash: aa10716e594cbfbe8d19fb1328829f30
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 1
   m_BundleLocalCatalog: 1
@@ -49,6 +49,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bc6e162f11fa60446ad23d8add09e23d, type: 2}
   - {fileID: 11400000, guid: 9901677a4c1f8da439a8875da32e3ea8, type: 2}
   - {fileID: 11400000, guid: 4fc5c8c9250bea1438cce940a855c631, type: 2}
+  - {fileID: 11400000, guid: df7744c863b3e7341944119987a264db, type: 2}
   - {fileID: 11400000, guid: 83055885901cdf843855595898ba6b1d, type: 2}
   - {fileID: 11400000, guid: 681ccb5418d021f418d1c6661d7c6592, type: 2}
   - {fileID: 11400000, guid: 6daef6fd84a9f5a4ea0ec40a06a173ef, type: 2}
@@ -109,6 +110,9 @@ MonoBehaviour:
     - AddressableLabelsConfig
     - BuildIndex
     - LuaScriptContainer
+    - LuaBehaviourConfig
+    - LuaBehaviourConfigSO
+    - StateAnimationConfigSO
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: b2541223116770447a3da6d418729a76, type: 2}

@@ -7,21 +7,37 @@ using XLua;
 
 public class ScriptObjectBridge : MonoBehaviour,IBridge
 {
-    public ScriptObjectBridgeConfig config;  // TODO: 此处需要替换为AAPackageManager的获取
-
+    [Tooltip("SO配置的Addressable Key")]
+    public string configKey;
+    
+    private ScriptObjectBridgeConfig _config; 
+    
     public ScriptableObject GetSO(string key)
     {
-        if (config == null)
+        if (_config == null)
         {
             Debug.LogError("[ScriptObjectBridge] 缺少SO配置!");
             return null;
         }
-        return config.GetSO(key);
+        return _config.GetSO(key);
     }
 
     public async Task InitializeAsync(LuaTable luaInstance)
     {
-        await Task.CompletedTask;
+        if (string.IsNullOrEmpty(configKey))
+        {
+            Debug.LogWarning($"[ScriptObjectBridge] {gameObject.name} 未配置 Config Key");
+            return;
+        }
+
+        _config = await AAPackageManager.Instance.LoadAssetAsync<ScriptObjectBridgeConfig>(configKey);
+
+        if (_config == null)
+        {
+            Debug.LogError($"[ScriptObjectBridge] 加载配置失败: {configKey}");
+        }
     }
+    
+    // TODO: 可根据需要，根据生命周期进行释放
 }
 

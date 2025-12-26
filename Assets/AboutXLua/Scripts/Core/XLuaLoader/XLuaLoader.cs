@@ -34,12 +34,10 @@ public static class XLuaLoader
     private static readonly Dictionary<string, byte[]> _contentCache = new();
 
     /// <summary>
-    /// 索引缓存 :Lua模块名(normalized) -> AA资源Key(AddressableName)
-    /// 参考AAPackageManager的索引缓存思路，只存string
-    /// TODO: LuaScriptsIndex已有双向缓存索引
+    /// 索引缓存引用
     /// </summary>
-    private static readonly Dictionary<string, string> _indexCache = new();
-
+    private static LuaScriptsIndex _luaIndexAsset;
+    
     private static bool _isIndexBuilt = false;
 
     #region 对外API
@@ -79,7 +77,7 @@ public static class XLuaLoader
             }
 
             // 尝试通过索引缓存查询加载（懒加载 + 写入内容缓存）
-            if (_indexCache.TryGetValue(key, out string aaKey))
+            if (_luaIndexAsset != null && _luaIndexAsset.ScriptToContainer.TryGetValue(key, out string aaKey))
             {
                 bytes = LoadFromAddressablesSync(aaKey, key);
 
@@ -106,32 +104,22 @@ public static class XLuaLoader
     public static void ReleaseScriptCacheByContainer(string containerAAKey)
     {
         if (string.IsNullOrEmpty(containerAAKey)) return;
+        if(_luaIndexAsset == null) return;
 
-        // 找出属于该 Container 的所有 Lua 脚本 Key
-        // 由于 _indexCache 是 Script -> Container 的映射，需要遍历值
-        // TODO: 有构建好的反向索引后就可以优化
-        var keysToRemove = new List<string>();
-        foreach (var kvp in _indexCache)
+        if (_luaIndexAsset.ContainerToScripts.TryGetValue(containerAAKey, out List<string> scriptNames))
         {
-            if (kvp.Value == containerAAKey)
+            int removeCount = 0;
+            foreach (var scriptKey in scriptNames)
             {
-                keysToRemove.Add(kvp.Key);
+                if (_contentCache.Remove(scriptKey))
+                {
+                    removeCount++;
+                }
             }
-        }
-
-        // 从内容缓存中移除
-        int removeCount = 0;
-        foreach (var scriptKey in keysToRemove)
-        {
-            if (_contentCache.Remove(scriptKey))
+            if (removeCount > 0)
             {
-                removeCount++;
+                Debug.Log($"[LuaLoader] 已释放容器 [{containerAAKey}] 下的 {removeCount} 个脚本缓存。");
             }
-        }
-
-        if (removeCount > 0)
-        {
-            Debug.Log($"[LuaLoader] 已释放容器 [{containerAAKey}] 下的 {removeCount} 个脚本缓存。");
         }
     }
 
@@ -149,8 +137,7 @@ public static class XLuaLoader
         List<string> aaKeys = AAPackageManager.Instance.GetKeysByLabel(label);
 
         if (aaKeys.Count == 0) return;
-
-        // 逐个 Container 释放
+        
         foreach (var aaKey in aaKeys)
         {
             ReleaseScriptCacheByContainer(aaKey);
@@ -215,11 +202,8 @@ public static class XLuaLoader
             {
                 // 构建双向字典
                 indexSO.BuildRuntimeDics();
-
-                // TODO: 以下几种方法中选择其中一种
-                // 1. 引用 SO 中的字典，改为public
-                // 2. 在LuaScriptsIndex中写查询方法
-                // 3. 拷贝 LuaScriptsIndex 到此处
+                
+                _luaIndexAsset = indexSO;
             }
             else
             {
@@ -240,24 +224,19 @@ public static class XLuaLoader
         byte[] result = null;
 
         // 同步加载容器
-        // 这里的 LoadAssetSync 会让引用计数 +1
         var container = AAPackageManager.Instance.LoadAssetSync<LuaScriptContainer>(aaKey);
 
         if (container != null)
         {
-            // 查找脚本
             var asset = container.luaAssets.FirstOrDefault(a => NormalizeModuleKey(a.name) == scriptName);
 
             if (asset != null)
             {
-                // 复制数据
                 // 复制一份 byte[]，因为 TextAsset 马上要跟随 Bundle 卸载
                 result = asset.bytes;
             }
 
-            // 立即卸载容器
-            // 因为已经拿到了 bytes 并准备存入 _contentCache
-            // 所以不需要保持 Bundle 加载状态，节省 Native Memory
+            // 立即卸载容器，只保留bytes
             AAPackageManager.Instance.UnloadAsset(aaKey);
         }
 
@@ -289,31 +268,6 @@ public static class XLuaLoader
 
         // 转换点路径为目录路径
         return key.Replace('.', '/');
-    }
-
-    /// <summary>
-    /// 检查资源位置是否匹配模块key
-    /// </summary>
-    private static bool LocationMatches(IResourceLocation loc, string key, List<string> extensions)
-    {
-        string primaryKey = loc.PrimaryKey.Replace('\\', '/');
-        string normalizedKey = key.Replace('.', '/');
-
-        // 1. 文件名精确匹配（不含扩展名）
-        string fileName = Path.GetFileNameWithoutExtension(primaryKey);
-        if (string.Equals(fileName, normalizedKey, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        // 2. 完整路径匹配
-        foreach (var ext in extensions)
-        {
-            if (primaryKey.EndsWith(normalizedKey + ext, StringComparison.OrdinalIgnoreCase))
-                return true;
-        }
-
-        // 3. 路径包含匹配
-        string searchPattern = "/" + normalizedKey + ".";
-        return primaryKey.IndexOf(searchPattern, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
     #endregion

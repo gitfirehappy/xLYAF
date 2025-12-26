@@ -20,30 +20,30 @@ public class LuaScriptsIndex : ScriptableObject
     public List<ContainerEntry> data = new();
     
     // 运行时快速查找字典
-    private Dictionary<string, List<string>> _containerToScripts;
-    private Dictionary<string, string> _scriptToContainer;
+    public Dictionary<string, List<string>> ContainerToScripts { get; private set;}
+    public Dictionary<string, string> ScriptToContainer { get; private set;}
 
     /// <summary>
     /// 构建运行时快速查找字典
     /// </summary>
     public void BuildRuntimeDics()
     {
-        _scriptToContainer = new Dictionary<string, string>();
-        _containerToScripts = new Dictionary<string, List<string>>();
+        ScriptToContainer = new Dictionary<string, string>();
+        ContainerToScripts = new Dictionary<string, List<string>>();
         
         foreach (var entry in data)
         { 
-            _containerToScripts[entry.containerAddress] = entry.scriptNames;
+            ContainerToScripts[entry.containerAddress] = entry.scriptNames;
 
             foreach (var scriptName in entry.scriptNames)
             {
-                if (!_scriptToContainer.ContainsKey(scriptName))
+                if (!ScriptToContainer.ContainsKey(scriptName))
                 {
-                    _scriptToContainer[scriptName] = entry.containerAddress;
+                    ScriptToContainer[scriptName] = entry.containerAddress;
                 }
                 else
                 {
-                    Debug.LogWarning($"[LuaScriptsIndex] 脚本名冲突: {scriptName} 同时存在于 {_scriptToContainer[scriptName]} 和 {entry.containerAddress}");
+                    Debug.LogWarning($"[LuaScriptsIndex] 脚本名冲突: {scriptName} 同时存在于 {ScriptToContainer[scriptName]} 和 {entry.containerAddress}");
                 }
             }
         }

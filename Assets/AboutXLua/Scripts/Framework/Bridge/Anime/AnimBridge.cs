@@ -6,26 +6,38 @@ using XLua;
 
 public class AnimBridge : MonoBehaviour,IBridge
 {
-    [Header("动画配置")] 
-    public StateAnimationConfigSO animationConfig; // TODO: 此处需要替换为AAPackageManager的获取
+    [Header("动画配置AA Key")]
+    public string configKey;
+    
+    private StateAnimationConfigSO _animationConfig; 
     
     [Header("动画驱动模式")]
     public AnimatorDriver.ControlMode mode = AnimatorDriver.ControlMode.CodeDriven;
     
     private IAnimationDriver driver;
     private Dictionary<string, StateAnimationConfigSO.StateAnimationMapping> animationCache;
+    
     private string currentStatePath;
     
     public async Task InitializeAsync(LuaTable luaInstance)
     {
+        if (!string.IsNullOrEmpty(configKey))
+        {
+            _animationConfig = await AAPackageManager.Instance.LoadAssetAsync<StateAnimationConfigSO>(configKey);
+        }
+        else
+        {
+            Debug.LogWarning($"[AnimBridge] {gameObject.name} 未配置 Animation Config Key");
+        }
+        
         driver = new AnimatorDriver(mode);
         driver.Initialize(gameObject);
         
         // 初始化动画缓存
         animationCache = new Dictionary<string, StateAnimationConfigSO.StateAnimationMapping>();
-        if (animationConfig != null)
+        if (_animationConfig != null)
         {
-            foreach (var mapping in animationConfig.stateAnimations)
+            foreach (var mapping in _animationConfig.stateAnimations)
             {
                 if (!string.IsNullOrEmpty(mapping.statePath))
                 {
@@ -35,7 +47,7 @@ public class AnimBridge : MonoBehaviour,IBridge
         }
         else
         {
-            Debug.LogError("[AnimBridge] AnimationConfig is missing!");
+            Debug.LogWarning("[AnimBridge] AnimationConfig is missing!");
         }
         
         await Task.CompletedTask;

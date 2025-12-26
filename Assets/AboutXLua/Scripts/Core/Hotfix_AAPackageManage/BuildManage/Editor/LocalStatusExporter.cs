@@ -2,6 +2,7 @@
 using System.IO;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
 
 /// <summary>
@@ -9,12 +10,69 @@ using UnityEngine;
 /// </summary>
 public class LocalStatusExporter
 {
-    public const string BuildIndexAssetPath = Constants.BUILD_INDEX_ASSETPATH;
+    private const string _buildIndexAssetPath = Constants.BUILD_INDEX_ASSETPATH;
 
-    private const string GROUP_NAME = Constants.LOCAL_STATUS_GROUP_NAME;
+    private const string _groupName = Constants.LOCAL_STATUS_GROUP_NAME;
+
+    /// <summary>
+    /// 总导出入口
+    /// </summary>
+    public static void ExportData()
+    {
+        Debug.Log("[LocalBuildData] 开始导出所有本地构建数据...");
+    
+        ExportBuildIndex();
+    
+        AssetDatabase.SaveAssets();
+        Debug.Log("[LocalBuildData] 导出完成。");
+    }
+    
+    /// <summary>
+    /// 确保所有本地配置进入 AddressableGroup
+    /// </summary>
+    public static void EnsureExportDataInGroup()
+    {
+        var settings = AddressableAssetSettingsDefaultObject.Settings;
+        if (settings == null) return;
+
+        var group = settings.FindGroup(_groupName);
+        if (group == null)
+        {
+            group = settings.CreateGroup(_groupName, false, false, true, null);
+        }
+
+        // BuildIndex (附带 BuildIndex 标签)
+        EnsureAssetInGroup(settings, group, _buildIndexAssetPath, Constants.BUILD_INDEX, Constants.BUILD_INDEX);
+    
+        Debug.Log("[LocalBuildData] 已确保本地数据进入 Group。");
+    }
+    
+    /// <summary>
+    /// 辅助方法：确保资源进入指定组，并设置地址和标签
+    /// </summary>
+    private static void EnsureAssetInGroup(AddressableAssetSettings settings, AddressableAssetGroup group, string path, string address, string label = null)
+    {
+        var guid = AssetDatabase.AssetPathToGUID(path);
+        if (string.IsNullOrEmpty(guid)) return;
+
+        var entry = settings.CreateOrMoveEntry(guid, group);
+        entry.address = address;
+    
+        if (!string.IsNullOrEmpty(label))
+        {
+            if (!entry.labels.Contains(label))
+            {
+                entry.labels.Add(label);
+            }
+        }
+    }
     
     #region BuildIndex
-    public static void ExportBuildIndex()
+    
+    /// <summary>
+    /// 导出BuildIndex
+    /// </summary>
+    private static void ExportBuildIndex()
     { 
         // 创建BuildIndex
         BuildIndex buildIndex = ScriptableObject.CreateInstance<BuildIndex>();
@@ -28,42 +86,17 @@ public class LocalStatusExporter
         buildIndex.Platform = EditorUserBuildSettings.activeBuildTarget.ToString();
         
         // 保存到Asset
-        string directoryPath = Path.GetDirectoryName(BuildIndexAssetPath);
+        string directoryPath = Path.GetDirectoryName(_buildIndexAssetPath);
         if (!Directory.Exists(directoryPath))
         {
             Directory.CreateDirectory(directoryPath);
         }
         
-        AssetDatabase.CreateAsset(buildIndex, BuildIndexAssetPath);
-        AssetDatabase.SaveAssets();
-        
-        // 确保BuildIndex在Addressable Group中
-        EnsureBuildIndexInGroup();
+        AssetDatabase.CreateAsset(buildIndex, _buildIndexAssetPath);
         
         Debug.Log($"[BuildIndexExporter] BuildIndex已生成: {buildIndex.BuildGUID}, Platform: {buildIndex.Platform}");
     }
-
-    public static void EnsureBuildIndexInGroup()
-    {
-        var settings = AddressableAssetSettingsDefaultObject.Settings;
-        var group = settings.FindGroup(GROUP_NAME);
-        if (group == null)
-        {
-            group = settings.CreateGroup(GROUP_NAME, false, false, true, null);
-        }
-        
-        var guid = AssetDatabase.AssetPathToGUID(BuildIndexAssetPath);
-        var entry = settings.CreateOrMoveEntry(guid, group);
-        
-        // 确保地址简洁，方便加载
-        entry.address = "BuildIndex";
-        
-        // 自动添加一个标签（Type）
-        if (!entry.labels.Contains("BuildIndex"))
-            entry.labels.Add("BuildIndex");
-        
-        Debug.Log($"[BuildIndexExporter] 已确保 BuildIndex 进入 {GROUP_NAME} Group。");
-    }
+    
     #endregion
 }
 #endif
