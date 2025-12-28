@@ -19,8 +19,7 @@ public class LuaBehaviourBridge : MonoBehaviour
         Module  // 脚本本身就是实例
     }
     
-    [Header("Lua 脚本配置")]
-    [Tooltip("填写 LuaBehaviourConfigSO 的 Addressable Key")]
+    [Header("Lua脚本配置Key")]
     public string configKey; 
 
     private LuaBehaviourConfigSO _multiScriptConfig;

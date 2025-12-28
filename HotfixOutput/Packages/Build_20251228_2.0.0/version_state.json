@@ -1,22 +1,22 @@
 {
     "version": {
-        "Major": 6,
+        "Major": 2,
         "Minor": 0,
-        "Patch": 3
+        "Patch": 0
     },
-    "hash": "60e4ae694ac1a333df803d90962f2c76",
-    "totalSize": 9032,
+    "hash": "d6bffa07ea6bbd7ee6070ce26dfe8153",
+    "totalSize": 9048,
     "bundles": [
         {
-            "bundleName": "helperbuilddata_assets_addressablelabelsconfig_a83ab5a20df0ba60db6f2e3449154778.bundle",
-            "hash": "afb4dafb0c32604db29677128b782a54",
+            "bundleName": "helperbuilddata_assets_addressablelabelsconfig_b23f41b5a8a7939c4dcf505960ebaf64.bundle",
+            "hash": "d02f8218ea201bda3f6ee760c701668f",
             "logicalKey": "e6c2efd9b1198e1478b32f374dcba4e5",
-            "size": 3460
+            "size": 3476
         },
         {
             "bundleName": "helperbuilddata_assets_luascriptsindex_93716bcaad993ccdd790dd5a2c7dda63.bundle",
             "hash": "9e90ac50e3bf6603635646dcc43fc240",
-            "logicalKey": "Unknown",
+            "logicalKey": "a4a44e2de8f3f904659a342685ba78a8",
             "size": 2250
         },
         {

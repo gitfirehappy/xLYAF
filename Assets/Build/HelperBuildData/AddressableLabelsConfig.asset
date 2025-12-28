@@ -89,14 +89,14 @@ MonoBehaviour:
     Labels:
     - AddressableLabelsConfig
   - key: LuaScriptsIndex
-    Type: Untyped
-    Labels: []
+    Type: LuaScriptsIndex
+    Labels:
+    - LuaScriptsIndex
   keysByType:
   - Type: Untyped
     Keys:
     - Resources
     - EditorSceneList
-    - LuaScriptsIndex
   - Type: BuildIndex
     Keys:
     - BuildIndex
@@ -126,12 +126,14 @@ MonoBehaviour:
   - Type: AddressableLabelsConfig
     Keys:
     - AddressableLabelsConfig
+  - Type: LuaScriptsIndex
+    Keys:
+    - LuaScriptsIndex
   keysByLabel:
   - Label: Untyped
     Keys:
     - Resources
     - EditorSceneList
-    - LuaScriptsIndex
   - Label: BuildIndex
     Keys:
     - BuildIndex
@@ -182,6 +184,9 @@ MonoBehaviour:
   - Label: AddressableLabelsConfig
     Keys:
     - AddressableLabelsConfig
+  - Label: LuaScriptsIndex
+    Keys:
+    - LuaScriptsIndex
   labelLogicalHashes:
   - Group: built in data
     CombineLabel: untyped
@@ -223,5 +228,5 @@ MonoBehaviour:
     CombineLabel: addressablelabelsconfig
     Hash: e6c2efd9b1198e1478b32f374dcba4e5
   - Group: helperbuilddata
-    CombineLabel: untyped
+    CombineLabel: luascriptsindex
     Hash: a4a44e2de8f3f904659a342685ba78a8

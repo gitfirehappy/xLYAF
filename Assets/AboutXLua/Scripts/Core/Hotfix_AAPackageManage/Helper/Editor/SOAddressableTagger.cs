@@ -401,7 +401,7 @@ public class SOAddressableTagger : EditorWindow
                 string assetPath = AssetDatabase.GetAssetPath(soAsset);
                 string guid = AssetDatabase.AssetPathToGUID(assetPath); 
                 
-                // 【修复】使用GUID查找
+                // 使用GUID查找
                 AddressableAssetEntry entry = settings.FindAssetEntry(guid);
 
                 if (entry == null)

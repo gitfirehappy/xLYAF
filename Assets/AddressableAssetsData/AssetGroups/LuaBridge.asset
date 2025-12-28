@@ -24,16 +24,22 @@ MonoBehaviour:
     - LuaBehaviourConfigSO
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e15c45ca94390e2459e9625f3d23304d
-    m_Address: Player
+    m_Address: Player_LuaBridge
     m_ReadOnly: 0
     m_SerializedLabels:
     - LuaBehaviourConfigSO
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 075c257b87614b04e908e0837fb94b1c
-    m_Address: Player
+    m_Address: Player_AnimeBridge
     m_ReadOnly: 0
     m_SerializedLabels:
     - StateAnimationConfigSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bfc5684e4ff167745b69f6677e5dc52b
+    m_Address: Player_SOBridge
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ScriptObjectBridgeConfig
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 170f3ccdb3bee544095a2f2b92d47c18, type: 2}

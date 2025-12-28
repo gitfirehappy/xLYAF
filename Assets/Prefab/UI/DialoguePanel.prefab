@@ -628,7 +628,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51661d7fe2c0bdd4fa590c955037e4f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  multiScriptConfig: {fileID: 11400000, guid: 1e4e6ea9f2ed6d1489a2facb06e1d9da, type: 2}
+  configKey: DialoguePanel
 --- !u!114 &8960072317828112662
 MonoBehaviour:
   m_ObjectHideFlags: 0

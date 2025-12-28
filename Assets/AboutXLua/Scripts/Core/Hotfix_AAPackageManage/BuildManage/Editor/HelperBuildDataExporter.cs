@@ -23,34 +23,40 @@ public class HelperBuildDataExporter
     public static void ExportData()
     {
         Debug.Log("[HelperBuildData] 开始导出所有辅助构建数据...");
-        ExportAddressableLabels();
+        
+        var settings = AddressableAssetSettingsDefaultObject.Settings;
+        if (settings == null)
+        {
+            Debug.LogError("[HelperBuildData] AddressableAssetSettings 未找到！");
+        }
+
+        var group = GetOrCreateGroup(settings, _groupName);
+        
         ExportLuaScriptsIndex();
+        EnsureAssetInGroup(settings, group, _luaScriptsIndexAssetPath, Constants.LUA_SCRIPTS_INDEX, Constants.LUA_SCRIPTS_INDEX);
+
+        GetOrCreateAsset<AddressableLabelsConfig>(_labelsConfigAssetPath);
+        EnsureAssetInGroup(settings, group, _labelsConfigAssetPath, Constants.AA_LABELS_CONFIG, Constants.AA_LABELS_CONFIG);
+        
+        ExportAddressableLabels();
+        EditorUtility.SetDirty(settings);
         AssetDatabase.SaveAssets();
         Debug.Log("[HelperBuildData] 导出完成。");
     }
+
+    #region 辅助
     
     /// <summary>
-    /// 确保所有配置进入 AddressableGroup
+    /// 辅助方法：获取或创建组
     /// </summary>
-    public static void EnsureExportDataInGroup()
-    { 
-        var settings = AddressableAssetSettingsDefaultObject.Settings;
-        if (settings == null) return;
-        
-        var group = settings.FindGroup(_groupName);
+    private static AddressableAssetGroup GetOrCreateGroup(AddressableAssetSettings settings, string groupName)
+    {
+        var group = settings.FindGroup(groupName);
         if (group == null)
         {
-            group = settings.CreateGroup(_groupName, false, false, true, null);
+            group = settings.CreateGroup(groupName, false, false, true, null);
         }
-
-        // 1. AALabelsConfig
-        EnsureAssetInGroup(settings, group, _labelsConfigAssetPath, Constants.AA_LABELS_CONFIG, Constants.AA_LABELS_CONFIG);
-        
-        // 2. LuaIndex
-        // TODO: 未打上标签？
-        EnsureAssetInGroup(settings, group, _luaScriptsIndexAssetPath, Constants.LUA_SCRIPTS_INDEX, Constants.LUA_SCRIPTS_INDEX);
-        
-        Debug.Log("[HelperBuildData] 已确保辅助数据进入 Group。");
+        return group;
     }
     
     /// <summary>
@@ -66,12 +72,29 @@ public class HelperBuildDataExporter
         
         if (!string.IsNullOrEmpty(label))
         {
-            if (!entry.labels.Contains(label))
-            {
-                entry.labels.Add(label);
-            }
+            settings.AddLabel(label,false);
+            entry.SetLabel(label, true, true);
         }
+        EditorUtility.SetDirty(settings);
     }
+    
+    /// <summary>
+    /// 辅助方法：获取或创建指定路径的Asset
+    /// </summary>
+    private static T GetOrCreateAsset<T>(string path) where T : ScriptableObject
+    {
+        var asset = AssetDatabase.LoadAssetAtPath<T>(path);
+        if (asset == null)
+        {
+            asset = ScriptableObject.CreateInstance<T>();
+            var directory = System.IO.Path.GetDirectoryName(path);
+            if (!System.IO.Directory.Exists(directory)) System.IO.Directory.CreateDirectory(directory);
+            AssetDatabase.CreateAsset(asset, path);
+        }
+        return asset;
+    }
+    
+    #endregion
     
     #region AddressableLabelsConfig
     
@@ -227,17 +250,5 @@ public class HelperBuildDataExporter
 
     #endregion
     
-    private static T GetOrCreateAsset<T>(string path) where T : ScriptableObject
-    {
-        var asset = AssetDatabase.LoadAssetAtPath<T>(path);
-        if (asset == null)
-        {
-            asset = ScriptableObject.CreateInstance<T>();
-            var directory = System.IO.Path.GetDirectoryName(path);
-            if (!System.IO.Directory.Exists(directory)) System.IO.Directory.CreateDirectory(directory);
-            AssetDatabase.CreateAsset(asset, path);
-        }
-        return asset;
-    }
 }
 #endif

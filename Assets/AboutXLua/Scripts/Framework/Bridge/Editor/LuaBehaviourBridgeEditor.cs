@@ -8,7 +8,7 @@ using UnityEngine;
 [CustomEditor(typeof(LuaBehaviourBridge))]
 public class LuaBehaviourBridgeEditor : Editor
 {
-    private List<LuaBridgeType> selectedBridges = new List<LuaBridgeType>();
+    private List<LuaBridgeType> selectedBridges = new();
     private bool isInitialized = false;
     private bool showBridges = true;
 
@@ -23,6 +23,11 @@ public class LuaBehaviourBridgeEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        var serializedObject = new SerializedObject(target);
+        var configKeyProperty = serializedObject.FindProperty("configKey");
+        EditorGUILayout.PropertyField(configKeyProperty, new GUIContent("Config Key", "填写 LuaBehaviourConfigSO 的 Addressable Key"));
+        serializedObject.ApplyModifiedProperties();
+        
         EditorGUILayout.Space();
 
         EditorGUILayout.LabelField("Bridge Components", EditorStyles.boldLabel);

@@ -75,8 +75,6 @@ public static class BuildProjectManager
         
         // 2. 生成HelperBuildData
         HelperBuildDataExporter.ExportData();
-        HelperBuildDataExporter.EnsureExportDataInGroup();
-        AssetDatabase.SaveAssets(); 
         AssetDatabase.Refresh();
         
         // 3. 构建前清理ServerData
