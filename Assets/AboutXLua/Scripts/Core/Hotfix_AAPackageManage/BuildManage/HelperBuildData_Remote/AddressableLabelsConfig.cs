@@ -8,10 +8,9 @@ using UnityEngine.Serialization;
 /// <summary>
 /// 构建期导出的 AA 条目配置
 /// </summary>
-[CreateAssetMenu(fileName = Constants.AA_LABELS_CONFIG, menuName = "Addressables/MyWork/扫描导出的PackageEntries")]
 public class AddressableLabelsConfig : ScriptableObject
 {
-    public List<PackageEntry> allEntries = new();
+    public List<PackageEntry> allEntries = new();   // 作用：查询
     
     // Type -> Keys 索引
     public List<TypeToKeys> keysByType = new();
@@ -20,7 +19,7 @@ public class AddressableLabelsConfig : ScriptableObject
     public List<LabelToKeys> keysByLabel = new();
     
     // Group + Label -> LogicalHash
-    public List<GroupLabelToLogicalHash> labelLogicalHashes = new();
+    public List<GroupLabelToLogicalHash> labelLogicalHashes = new();    // 作用：生成version_state进行差异比对
 
     // 运行时快速查找字典 
     ///<summary> Key: "Type" -> Value: Keys </summary>

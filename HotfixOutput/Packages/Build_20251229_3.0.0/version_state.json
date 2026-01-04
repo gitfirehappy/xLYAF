@@ -1,17 +1,17 @@
 {
     "version": {
-        "Major": 2,
+        "Major": 3,
         "Minor": 0,
         "Patch": 0
     },
-    "hash": "d6bffa07ea6bbd7ee6070ce26dfe8153",
-    "totalSize": 9048,
+    "hash": "e7bcde038edd844999dd58ee0984607e",
+    "totalSize": 9282,
     "bundles": [
         {
-            "bundleName": "helperbuilddata_assets_addressablelabelsconfig_b23f41b5a8a7939c4dcf505960ebaf64.bundle",
-            "hash": "d02f8218ea201bda3f6ee760c701668f",
+            "bundleName": "helperbuilddata_assets_addressablelabelsconfig_f397aca2c9c0da778396f4866f7bb508.bundle",
+            "hash": "e91b90fa7e32c90484e3843e689a109d",
             "logicalKey": "e6c2efd9b1198e1478b32f374dcba4e5",
-            "size": 3476
+            "size": 3710
         },
         {
             "bundleName": "helperbuilddata_assets_luascriptsindex_93716bcaad993ccdd790dd5a2c7dda63.bundle",

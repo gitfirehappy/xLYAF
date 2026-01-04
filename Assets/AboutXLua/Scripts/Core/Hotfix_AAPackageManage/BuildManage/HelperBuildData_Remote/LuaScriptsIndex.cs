@@ -7,7 +7,6 @@ using UnityEngine;
 /// Lua 脚本索引
 /// 用于记录：某个 LuaScriptContainer (AddressableKey) 包含哪些 Lua 脚本 (NormalizedName)
 /// </summary>
-[CreateAssetMenu(fileName = Constants.LUA_SCRIPTS_INDEX, menuName = "XLua/扫描导出的 LuaScriptsIndex")]
 public class LuaScriptsIndex : ScriptableObject
 {
     [Serializable]

@@ -39,4 +39,10 @@ public static class Constants
 
     /// <summary> 默认的XLua三属性配置的AA标签 </summary>
     public const string DEAULT_XLUA_TYPE_CONFIG_LOAD_LABEL = "XLuaConfigs";
+
+    /// <summary> 快照信息保存路径 </summary>
+    public const string SNAPSHOT_ASSET_PATH = "Assets/Build/Snapshots.asset";
+
+    /// <summary> 热更AAGroup名 </summary>
+    public const string HOTFIX_GROUP_NAME = "HotfixGroup";
 }
