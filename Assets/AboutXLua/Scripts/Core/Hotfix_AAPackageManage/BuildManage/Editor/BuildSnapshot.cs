@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 构建快照数据结构
@@ -33,7 +34,7 @@ public class BuildSnapshot
 {
     public VersionNumber Version;
     public string Timestamp;
-    public List<AssetSnapshot> Groups = new();
+    public List<AssetSnapshot> Assets = new();
 
     public BuildSnapshot(VersionNumber version)
     {

@@ -24,7 +24,7 @@ public static class DifferentialProcessor
     /// 分析快照差异并临时修改配置
     /// </summary>
     /// <param name="modifiedAssets">修改的资源列表，用于生成差异资源索引</param>
-    public static bool PrepareHotfix(VersionNumber currentVersion, out List<AssetSnapshot> modifiedAssets)
+    public static bool PrepareHotfix(VersionNumber currentVersion)
     {
         var settings = AddressableAssetSettingsDefaultObject.Settings;
         var data = GetOrCreateSnapshotData();
@@ -35,15 +35,44 @@ public static class DifferentialProcessor
         if (head == null)
         {
             Debug.LogError("[DiffProcessor] 没有找到基准版本(Head)，无法执行热更构建。请先执行 Build Full Package。");
-            modifiedAssets = null;
             return false;
         }
         
-        modifiedAssets = FindModifiedAssets(currentAssets, head);
+        var modifiedAssets = FindModifiedAssets(currentAssets, head);
+
+        if (modifiedAssets.Count == 0)
+        {
+            Debug.Log("[DiffProcessor] 没有修改的资源，无需调整。");
+            return false;
+        }
         
         // 移动逻辑
+        _groupCache.Clear();
+        var hotfixGroup = GetOrCreateHotfixGroup(settings);
+        
+        foreach (var asset in modifiedAssets)
+        { 
+            _groupCache[asset.AssetGUID] = asset.GroupName;
+            
+            var entry = settings.FindAssetEntry(asset.AssetGUID);
+            if (entry != null)
+            {
+                settings.MoveEntry(entry, hotfixGroup);
+            }
+        }
+        
+        EditorUtility.SetDirty(settings);
+        AssetDatabase.SaveAssets();
         
         // 生成暂存快照
+        BuildSnapshot staged = new BuildSnapshot(currentVersion);
+        staged.Assets = currentAssets;
+        data.StageSnapshot = staged;
+        EditorUtility.SetDirty(data);
+        AssetDatabase.SaveAssets();
+        
+        Debug.Log($"[DiffProcessor] 差异准备完成。{modifiedAssets.Count} 个资源已移动至 {Constants.HOTFIX_GROUP_NAME}。Staged快照已保存。");
+        return true;
     }
 
     /// <summary>
@@ -51,7 +80,40 @@ public static class DifferentialProcessor
     /// </summary>
     public static void RestoreAfterHotfix()
     {
+        if (_groupCache.Count == 0) return;
+
+        Debug.Log("[DiffProcessor] 正在恢复资源位置...");
+        var settings = AddressableAssetSettingsDefaultObject.Settings;
+        var hotfixGroup = settings.FindGroup(Constants.HOTFIX_GROUP_NAME);
+
+        List<string> guidsToRemove = new List<string>();
+
+        foreach (var kvp in _groupCache)
+        {
+            string guid = kvp.Key;
+            string originalGroupName = kvp.Value;
+            
+            var targetGroup = settings.FindGroup(originalGroupName);
+            if (targetGroup == null)
+            {
+                // 如果原组没了，就建一个默认的或者放到Default
+                targetGroup = settings.DefaultGroup;
+                Debug.LogWarning($"[DiffProcessor] 原分组 {originalGroupName} 不存在，移动至默认组。");
+            }
+
+            var entry = settings.FindAssetEntry(guid);
+            if (entry != null)
+            {
+                settings.MoveEntry(entry, targetGroup);
+            }
+            guidsToRemove.Add(guid);
+        }
         
+        _groupCache.Clear();
+
+        EditorUtility.SetDirty(settings);
+        AssetDatabase.SaveAssets();
+        Debug.Log("[DiffProcessor] 资源位置已恢复。");
     }
 
     /// <summary>
@@ -59,15 +121,54 @@ public static class DifferentialProcessor
     /// </summary>
     public static void ConfirmRelease()
     {
+        var data = GetOrCreateSnapshotData();
+        if (data.StageSnapshot == null)
+        {
+            EditorUtility.DisplayDialog("提示", "当前没有待发布的暂存快照 (Staged Snapshot)。请先构建热更包。", "OK");
+            return;
+        }
+
+        // 将 Staged 转正
+        data.Snapshots.Add(data.StageSnapshot);
+        data.HeadIndex = data.Snapshots.Count - 1;
         
+        // 打印日志
+        string versionStr = data.StageSnapshot.Version.GetVersionString(); 
+        Debug.Log($"[DiffProcessor] 版本 {versionStr} 已确认为 Head。");
+
+        // 清空 Staged
+        data.StageSnapshot = null;
+        
+        EditorUtility.SetDirty(data);
+        AssetDatabase.SaveAssets();
+        
+        EditorUtility.DisplayDialog("成功", $"版本 {versionStr} 已确认为基准！", "OK");
     }
 
     /// <summary>
     /// [整包构建] 生成全新的快照列表
     /// </summary>
-    public static void ReBuildSnapShots()
+    public static void ReBuildSnapShots(VersionNumber version)
     {
+        var settings = AddressableAssetSettingsDefaultObject.Settings;
+        var data = GetOrCreateSnapshotData();
+
+        // 扫描当前所有资源
+        var currentAssets = ScanCurrentProjectAssets(settings);
+
+        BuildSnapshots newBase = new BuildSnapshots();//TODO: 替换为在文件创建替换，调整辅助逻辑
+        data.Snapshots.Clear();
+        newBase.Snapshots.Add(new BuildSnapshot(version)
+        {
+            Assets = currentAssets
+        });
+        data.HeadIndex = 0;
+        data.StageSnapshot = null;
+
+        EditorUtility.SetDirty(data);
+        AssetDatabase.SaveAssets();
         
+        Debug.Log($"[DiffProcessor] 整包快照已建立。Head Index: {data.HeadIndex}, Assets: {currentAssets.Count}");
     }
 
     #region 内部辅助方法
@@ -136,9 +237,36 @@ public static class DifferentialProcessor
     /// <summary>
     /// 找出修改的资源
     /// </summary>
-    private static List<AssetSnapshot> FindModifiedAssets(List<AssetSnapshot> currentAssets, BuildSnapshot lastSnapshot)
+    private static List<AssetSnapshot> FindModifiedAssets(List<AssetSnapshot> currentAssets, BuildSnapshot head)
     {
+        List<AssetSnapshot> modified = new List<AssetSnapshot>();
         
+        // 转字典加速查找
+        var headDict = new Dictionary<string, AssetSnapshot>();
+        foreach (var h in head.Assets)
+        {
+            if(!headDict.ContainsKey(h.AssetGUID)) headDict.Add(h.AssetGUID, h);
+        }
+        
+        foreach (var curr in currentAssets)
+        {
+            if (headDict.TryGetValue(curr.AssetGUID, out var oldAsset))
+            {
+                // 存在 -> 比较 Hash
+                if (curr.FileHash != oldAsset.FileHash)
+                {
+                    Debug.Log($"[DiffProcessor] 资源修改: {curr.AssetPath}");
+                    modified.Add(curr);
+                }
+            }
+            else
+            {
+                // 不存在 -> 新增
+                Debug.Log($"[DiffProcessor] 资源新增: {curr.AssetPath}");
+                modified.Add(curr);
+            }
+        }
+        return modified;
     }
     
     /// <summary>

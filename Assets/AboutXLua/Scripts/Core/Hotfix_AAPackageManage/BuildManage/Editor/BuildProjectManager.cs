@@ -70,66 +70,86 @@ public static class BuildProjectManager
         
         var settings = AddressableAssetSettingsDefaultObject.Settings;
         
-        // 1. 强制配置 Addressable Settings
-        ConfigureAddressableSettings(settings);
-        
-        // 2. 生成HelperBuildData
+        // 1. 生成HelperBuildData并进行基础设置
         HelperBuildDataExporter.ExportData();
+        ConfigureBasicSettings(settings);
         AssetDatabase.Refresh();
-        
-        // 3. 构建前清理ServerData
-        BuildPathCustomizer.CleanServerData();
-        
-        // 4. 构建Remote包
-        Debug.Log("[BuildProjectManager] 开始执行 Addressables BuildPlayerContent...");
-        AddressableAssetSettings.BuildPlayerContent(out AddressablesPlayerBuildResult result);
-        
-        if (!string.IsNullOrEmpty(result.Error))
+
+        try
         {
-            Debug.LogError($"[BuildProjectManager] 构建失败: {result.Error}");
-            return;
-        }
-        
-        // 5. BuildPathCustomizer 整理Remote包目录, 删除不必要的文件
-        // 获取 Addressables 默认的 RemoteBuildPath (通常在 ServerData/[Platform])
-        string serverDataPath = Path.Combine(
-            Directory.GetParent(Application.dataPath).FullName,
-            "ServerData", 
-            EditorUserBuildSettings.activeBuildTarget.ToString()
+            if (buildType == BuildType.Hotfix)
+            {
+                // 这步会将变动资源移入 Remote_Hotfix_Group
+                bool hasChanges = DifferentialProcessor.PrepareHotfix(version);
+                if (!hasChanges)
+                {
+                    Debug.LogWarning("无资源变更，终止构建。");
+                    return; 
+                }
+            }    
+            
+            // 3. 构建前清理ServerData
+            BuildPathCustomizer.CleanServerData();
+
+            // 4. 构建Remote包
+            Debug.Log("[BuildProjectManager] 开始执行 Addressables BuildPlayerContent...");
+            AddressableAssetSettings.BuildPlayerContent(out AddressablesPlayerBuildResult result);
+
+            if (!string.IsNullOrEmpty(result.Error))
+            {
+                Debug.LogError($"[BuildProjectManager] 构建失败: {result.Error}");
+                return;
+            }
+
+            // 5. BuildPathCustomizer 整理Remote包目录, 删除不必要的文件
+            // 获取 Addressables 默认的 RemoteBuildPath (通常在 ServerData/[Platform])
+            string serverDataPath = Path.Combine(
+                Directory.GetParent(Application.dataPath).FullName,
+                "ServerData",
+                EditorUserBuildSettings.activeBuildTarget.ToString()
             );
-        
-        string currentPackageName = $"Build_{DateTime.Now:yyyyMMdd}_{version.GetVersionString()}";
-        
-        string packagesDir = Path.Combine(OutputRoot, "Packages");
-        Directory.CreateDirectory(packagesDir);
-        string hotfixOutputDir = Path.Combine(packagesDir, currentPackageName);
-        
-        BuildPathCustomizer.OrganizeBuildOutput(serverDataPath, hotfixOutputDir);
-        
-        // 6. 生成 version_state.json 到指定目录
-        GenerateVersionStateFile(hotfixOutputDir, version);
-        
-        // 7. 更新 Manifest 文件
-        UpdateManifestFile(currentPackageName, version);
-        
-        // 8. 如果是整包构建，需要导出 LocalStatus
-        if (buildType == BuildType.Full)
-        {
-            LocalStatusExporter.ExportData();
-            LocalStatusExporter.EnsureExportDataInGroup();
+
+            string currentPackageName = $"Build_{DateTime.Now:yyyyMMdd}_{version.GetVersionString()}";
+
+            string packagesDir = Path.Combine(OutputRoot, "Packages");
+            Directory.CreateDirectory(packagesDir);
+            string hotfixOutputDir = Path.Combine(packagesDir, currentPackageName);
+
+            BuildPathCustomizer.OrganizeBuildOutput(serverDataPath, hotfixOutputDir);
+
+            // 6. 生成 version_state.json 到指定目录
+            GenerateVersionStateFile(hotfixOutputDir, version);
+
+            // 7. 更新 Manifest 文件
+            UpdateManifestFile(currentPackageName, version);
+
+            // 8. 如果是整包构建，需要导出 LocalStatus
+            if (buildType == BuildType.Full)
+            {
+                LocalStatusExporter.ExportData();
+                LocalStatusExporter.EnsureExportDataInGroup();
+                
+                DifferentialProcessor.ReBuildSnapShots(version);
+            }
+
+            Debug.Log($"[BuildProjectManager] 包体构建完毕: {hotfixOutputDir}");
+            EditorUtility.RevealInFinder(hotfixOutputDir);
         }
-        
-        Debug.Log($"[BuildProjectManager] 热更包构建完毕: {hotfixOutputDir}");
-        EditorUtility.RevealInFinder(hotfixOutputDir);
+        finally
+        {
+            // 还原组
+            if (buildType == BuildType.Hotfix)
+            {
+                DifferentialProcessor.RestoreAfterHotfix();
+            }
+        }
     }
 
     /// <summary>
     /// 强制配置 Addressable Settings (PackTogetherByLabel, RemotePath 等)
     /// </summary>
-    private static void ConfigureAddressableSettings(AddressableAssetSettings settings)
+    private static void ConfigureBasicSettings(AddressableAssetSettings settings)
     {
-        Debug.Log("[BuildProjectManager] 正在配置 Addressable Settings...");
-        
         // 设置 Build Remote Catalog
         settings.BuildRemoteCatalog = true;
         settings.OverridePlayerVersion = "addressables_content_state"; // 保持 Content State 一致，防止 Hash 剧烈变化
@@ -165,27 +185,13 @@ public static class BuildProjectManager
                 EditorUtility.SetDirty(group);
             }
             
-            string currentBuildPathName = schema.BuildPath.GetName(settings);
-            
             // HelperBuildData (必要的辅助数据)，必须强制为 Remote，否则无法热更配置
             if (group.Name == Constants.HELPER_BUILD_DATA_GROUP_NAME)
             {
                 SetSchemaPathToRemote(settings, schema);
-                continue;
             }
-
-            // Local 组保持默认Local路径
-            if (currentBuildPathName == AddressableAssetSettings.kLocalBuildPath)
-            {
-                Debug.Log($"[BuildProjectManager] 保留本地组配置: {group.Name} (LocalBuildPath)");
-                continue; 
-            }
-
-            // 对Remote组设置 Remote 路径
-            // (确保非本地组都被构建到 ServerData 目录下，方便 BuildPathCustomizer 整理)
-            SetSchemaPathToRemote(settings, schema);
+            // 剩余组会在DifferentialProcessor 中处理
         }
-        
         AssetDatabase.SaveAssets();
     }
     
