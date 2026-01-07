@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Codice.Client.Common.EventTracking;
+using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Build;
@@ -77,10 +78,11 @@ public static class BuildProjectManager
 
         try
         {
+            List<string> deleteList = new List<string>();
             if (buildType == BuildType.Hotfix)
             {
                 // 这步会将变动资源移入 Remote_Hotfix_Group
-                bool hasChanges = DifferentialProcessor.PrepareHotfix(version);
+                bool hasChanges = DifferentialProcessor.PrepareHotfix(version, deleteList);
                 if (!hasChanges)
                 {
                     Debug.LogWarning("无资源变更，终止构建。");
@@ -118,7 +120,7 @@ public static class BuildProjectManager
             BuildPathCustomizer.OrganizeBuildOutput(serverDataPath, hotfixOutputDir);
 
             // 6. 生成 version_state.json 到指定目录
-            GenerateVersionStateFile(hotfixOutputDir, version);
+            GenerateVersionStateFile(hotfixOutputDir, version, deleteList);
 
             // 7. 更新 Manifest 文件
             UpdateManifestFile(currentPackageName, version);
@@ -225,20 +227,15 @@ public static class BuildProjectManager
     /// <summary>
     /// 生成 version_state.json
     /// </summary>
-    private static void GenerateVersionStateFile(string outputDir, VersionNumber version)
+    private static void GenerateVersionStateFile(string outputDir, VersionNumber version, List<string> deleteList)
     {
         Debug.Log("[BuildProjectManager] 正在生成 version_state.json...");
-        
-        var config = AssetDatabase.LoadAssetAtPath<AddressableLabelsConfig>(Constants.AA_LABELS_CONFIG_ASSETPATH);
-        if (config == null)
-        {
-            Debug.LogError("无法加载 AddressableLabelsConfig，LogicalKey 将无法生成！");
-        }
         
         var versionState = new VersionState
         {
             version = version,
-            bundles = new List<BundleInfo>()
+            bundles = new List<BundleInfo>(),
+            deleteList = new List<string>()
         };
         
         // 扫描 bundles 目录下的所有文件
@@ -248,54 +245,24 @@ public static class BuildProjectManager
             var files = Directory.GetFiles(bundlesDir, "*", SearchOption.TopDirectoryOnly);
             foreach (var file in files)
             {
-                // 跳过非 bundle 文件（如果有）
                 if(!file.EndsWith(".bundle")) continue; 
                 
                 var fileInfo = new FileInfo(file);
-                string fileName = Path.GetFileName(file);
                 
                 var bundleInfo = new BundleInfo
                 {
                     bundleName = Path.GetFileName(file),
                     hash = HashGenerator.GenerateFileHash(file),
-                    logicalKey = "Unknown", 
                     size = fileInfo.Length
                 };
                 
-                // LogicalKey 已在 config 中生成，此处是分配 LogicalKey
-                // 由于均采用 PackTogetherByLabel 模式打包，格式固定，所以bundle名可推导
-                // e.g group_assets_labels_hash.bundle
-                if (config != null)
-                {
-                    string[] parts = fileName.Split('_');
-                    if (parts.Length >= 3)
-                    {
-                        string group = parts[0];
-                        string label = parts[2]; // parts[1] 是 "assets"
-                    
-                        // 使用 AddressableLabelsConfig 获取对应的 LogicalKey
-                        string logicalKey = config.GetLogicalHash(group, label);
-                        
-                        if (!string.IsNullOrEmpty(logicalKey))
-                        {
-                            bundleInfo.logicalKey = logicalKey;
-                        }
-                        else
-                        {
-                            Debug.LogError($"[BuildProjectManager] 未找到 LogicalKey for group: {group}, label: {label} in bundle: {fileName}");
-                            bundleInfo.logicalKey = "Unknown"; // 用 Unknown 作为默认值
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogError($"[BuildProjectManager] 无法解析 bundle 文件名: {fileName}");
-                        bundleInfo.logicalKey = "Unknown";
-                    }
-                }
                 versionState.bundles.Add(bundleInfo);
                 versionState.totalSize += bundleInfo.size;
             }
         }
+        
+        // 导入删除列表
+        versionState.deleteList.AddRange(deleteList);
         
         // 包体大小预警
         if (versionState.totalSize >= MaxHotfixSizeBytes)

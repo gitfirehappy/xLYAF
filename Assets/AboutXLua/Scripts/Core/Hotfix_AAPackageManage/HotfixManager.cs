@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -68,13 +69,12 @@ public static class HotfixManager
 
         
         // 4. 加载本地 version_state.json
-        VersionChecker versionChecker = new VersionChecker();
         string localVersionStatePath = Path.Combine(PathManager.LocalRoot, "version_state.json");
         VersionState localVersionState = null;
         
         if (File.Exists(localVersionStatePath))
         {
-            localVersionState = versionChecker.ParseJson(File.ReadAllText(localVersionStatePath));
+            localVersionState = ParseJson(File.ReadAllText(localVersionStatePath));
             Debug.Log($"[HotfixManager] 本地版本: {localVersionState?.version}, Hash: {localVersionState?.hash}");
         }
         
@@ -89,42 +89,31 @@ public static class HotfixManager
             return;
         }
         
-        VersionState remoteVersionState = versionChecker.ParseJson(remoteVersionJson);
+        VersionState remoteVersionState = ParseJson(remoteVersionJson);
         
         // 如果是大版本更新，则强制清理所有热更目录
         if (localVersionState != null)
         {
-            if (versionChecker.IsMajorUpdate(localVersionState.version, remoteVersionState.version))
+            if (IsMajorUpdate(localVersionState.version, remoteVersionState.version))
             {
-                Debug.LogWarning($"[HotfixManager] 检测到大版本更新 (Local:{localVersionState.version} -> Remote:{remoteVersionState.version})。执行全量清理。");
+                Debug.Log($"[HotfixManager] 检测到大版本更新 (Local:{localVersionState.version} -> Remote:{remoteVersionState.version})。执行全量清理。");
                 
-                // 强制清理所有热更目录 (Local, Remote, Temp)
+                // TODO: 检查本地整包是否是大版本包，拿BuildIndex查（整包唯一）
+                
+                
+                // 强制清理所有热更目录 (Local, Remote)
                 PackageCleaner.Instance.ClearAllHotfix();
-                
-                // 重置本地状态对象为 null，迫使后续逻辑进行全量下载
-                localVersionState = null; 
             }
         }
         
-        // 6. 比较版本差异
-        VersionDiffResult diff = versionChecker.CalculateDiff(localVersionState, remoteVersionState);
+        Debug.Log($"[HotfixManager] 发现更新！需下载Bundle数: {remoteVersionState.bundles.Count}, 总大小: {remoteVersionState.totalSize}");
         
-        if (!diff.HasUpdate)
-        {
-            Debug.Log("[HotfixManager] 本地版本已是最新，将使用本地资源运行。");
-            await FinishHotfix();
-            return;
-        }
-        
-        Debug.Log($"[HotfixManager] 发现更新！需下载Bundle数: {diff.DownloadList.Count}, 总大小: {diff.TotalDownloadSize}");
-        
-        // 7. 下载差异 bundle 到 RemoteRoot （暂存远端文件）
-        // HelperBuildData的bundle组都会在这一步下载
+        // 6. 下载所有的远端 bundle 到 RemoteRoot （暂存远端文件）
         string remoteBundleRoot = PathManager.RemoteBundleRoot;
         if (!Directory.Exists(remoteBundleRoot)) Directory.CreateDirectory(remoteBundleRoot);
         
         var task = new List<Task<bool>>();
-        foreach (var bundleInfo in diff.DownloadList)
+        foreach (var bundleInfo in remoteVersionState.bundles)
         {
             string bundleUrl = $"{_remoteUrlRoot}/bundles/{bundleInfo.bundleName}";
             string savePath = Path.Combine(remoteBundleRoot, bundleInfo.bundleName);
@@ -139,7 +128,7 @@ public static class HotfixManager
             return; // 直接终止
         }
         
-        // 8. 下载 catalog.json
+        // 7. 下载 catalog.json
         string catalogUrl = $"{_remoteUrlRoot}/catalog.json";
         await NetworkDownloader.Instance.DownloadFile(catalogUrl, Path.Combine(PathManager.RemoteRoot, "catalog.json"));
         
@@ -148,10 +137,11 @@ public static class HotfixManager
         
         Debug.Log("[HotfixManager] 热更资源下载完成，开始应用热更...");
         
-        // 9. 应用更新
-        PackageCleaner.Instance.ApplyUpdate(diff.DeleteList, PathManager.RemoteRoot, PathManager.LocalRoot);
+        // 8. 应用更新
+        // 拿version_state中的删除名单比对
+        PackageCleaner.Instance.ApplyUpdate(remoteVersionState.deleteList, PathManager.RemoteRoot, PathManager.LocalRoot);
         
-        // 10. 加载新的 catalog
+        // 9. 加载新的 catalog
         Debug.Log("[HotfixManager] 加载新 Catalog...");
         string localCatalogPath = Path.Combine(PathManager.LocalRoot, "catalog.json");
         
@@ -170,5 +160,39 @@ public static class HotfixManager
     {
         // 加载 AddressableLabelsConfig（依赖更新后的HelperBuildData）
         await AAPackageManager.Instance.Initialize();
+    }
+    
+    public static VersionState ParseJson(string json)
+    {
+        if (string.IsNullOrEmpty(json)) return null;
+        try
+        {
+            return JsonUtility.FromJson<VersionState>(json);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[HotfixManager] JSON 解析失败: {e.Message}");
+            return null;
+        }
+    }
+    
+    /// <summary>
+    /// 检查是否是大版本更新 (e.g., 1.x.x -> 2.x.x)
+    /// </summary>
+    public static bool IsMajorUpdate(VersionNumber localVerStr, VersionNumber remoteVerStr)
+    {
+        if (localVerStr == null || remoteVerStr == null) 
+            return false;
+
+        try 
+        {
+            // 比较主版本号
+            return localVerStr.Major != remoteVerStr.Major;
+        }
+        catch (Exception)
+        {
+            Debug.LogWarning($"[VersionChecker] 检查版本差异时出错: Local:{localVerStr} Remote:{remoteVerStr}");
+            return false;
+        }
     }
 }

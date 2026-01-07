@@ -35,6 +35,7 @@ public class BuildSnapshot
     public VersionNumber Version;
     public string Timestamp;
     public List<AssetSnapshot> Assets = new();
+    public List<string> DeleteList = new();     // 此次构建删除的资源
 
     public BuildSnapshot(VersionNumber version)
     {
@@ -52,7 +53,8 @@ public class AssetSnapshot
     public string GroupName;
     public List<string> Labels;
     public string FileHash;  // 内容Hash
-    public long FileSize;
+    public bool hasUpdated; // 是否更新过
+    public string RemoteGroupName; // 临时保存的远程组名
 }
 
 #endif

@@ -19,4 +19,7 @@ public class BuildIndex : ScriptableObject
 
     [Header("目标平台")]
     public string Platform;
+    
+    [Header("大版本号")]
+    public int MajorVersion; // TODO: 新增标识，需要导出
 }

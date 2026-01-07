@@ -10,7 +10,9 @@ public class PackageCleaner : Singleton<PackageCleaner>
     /// </summary>
     public void ApplyUpdate(List<string> filesToDelete, string tempDownloadRoot, string finalRoot)
     {
-        // 1. 删除 Local 中不再需要的旧 Bundle
+        // TODO: version_state的删除名单只有前缀文件名，需要先进行匹配
+        
+        // 删除 Local 中不再需要的旧 Bundle
         string localBundleRoot = Path.Combine(finalRoot, "bundles");
         if (Directory.Exists(localBundleRoot) && filesToDelete != null)
         {
@@ -29,7 +31,7 @@ public class PackageCleaner : Singleton<PackageCleaner>
             }
         }
 
-        // 2. 将 Remote (Temp) 中的文件移动到 Local
+        // 将 Remote (Temp) 中的文件移动到 Local
         // 包括 bundles 文件夹和 catalog/version 文件
         MoveDirectory(tempDownloadRoot, finalRoot);
         

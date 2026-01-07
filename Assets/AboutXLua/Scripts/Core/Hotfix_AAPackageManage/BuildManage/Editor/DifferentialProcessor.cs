@@ -23,13 +23,12 @@ public static class DifferentialProcessor
     /// <summary>
     /// 分析快照差异并临时修改配置
     /// </summary>
-    /// <param name="modifiedAssets">修改的资源列表，用于生成差异资源索引</param>
-    public static bool PrepareHotfix(VersionNumber currentVersion)
+    /// <param name="deleteList">要删除的资源列表</param>
+    public static bool PrepareHotfix(VersionNumber currentVersion, List<string> deleteList)
     {
         var settings = AddressableAssetSettingsDefaultObject.Settings;
         var data = GetOrCreateSnapshotData();
         var head = data.GetHead();
-
         var currentAssets = ScanCurrentProjectAssets(settings);
 
         if (head == null)
@@ -38,7 +37,7 @@ public static class DifferentialProcessor
             return false;
         }
         
-        var modifiedAssets = FindModifiedAssets(currentAssets, head);
+        var modifiedAssets = FindModifiedAssets(currentAssets, head, deleteList);
 
         if (modifiedAssets.Count == 0)
         {
@@ -58,6 +57,7 @@ public static class DifferentialProcessor
             if (entry != null)
             {
                 settings.MoveEntry(entry, hotfixGroup);
+                asset.RemoteGroupName = hotfixGroup.Name;
             }
         }
         
@@ -117,7 +117,7 @@ public static class DifferentialProcessor
     }
 
     /// <summary>
-    /// 确认发布上线，更新快照列表和 Head
+    /// 确认发布上线热更包，更新快照列表和 Head
     /// </summary>
     public static void ConfirmRelease()
     {
@@ -128,7 +128,11 @@ public static class DifferentialProcessor
             return;
         }
 
-        // 将 Staged 转正
+        // 将 Staged 转正，一定是hasUpdated=true
+        foreach(var asset in data.StageSnapshot.Assets)
+        {
+            asset.hasUpdated = true;
+        }
         data.Snapshots.Add(data.StageSnapshot);
         data.HeadIndex = data.Snapshots.Count - 1;
         
@@ -160,7 +164,8 @@ public static class DifferentialProcessor
         data.Snapshots.Clear();
         newBase.Snapshots.Add(new BuildSnapshot(version)
         {
-            Assets = currentAssets
+            Assets = currentAssets,
+            DeleteList = null
         });
         data.HeadIndex = 0;
         data.StageSnapshot = null;
@@ -227,7 +232,7 @@ public static class DifferentialProcessor
                     Labels = new List<string>(entry.labels),
                     GroupName = group.Name, // 记录其所在的本地组
                     FileHash = hash,
-                    FileSize = size
+                    hasUpdated = false
                 });
             }
         }
@@ -237,7 +242,7 @@ public static class DifferentialProcessor
     /// <summary>
     /// 找出修改的资源
     /// </summary>
-    private static List<AssetSnapshot> FindModifiedAssets(List<AssetSnapshot> currentAssets, BuildSnapshot head)
+    private static List<AssetSnapshot> FindModifiedAssets(List<AssetSnapshot> currentAssets, BuildSnapshot head, List<string> deleteList)
     {
         List<AssetSnapshot> modified = new List<AssetSnapshot>();
         
@@ -256,6 +261,7 @@ public static class DifferentialProcessor
                 if (curr.FileHash != oldAsset.FileHash)
                 {
                     Debug.Log($"[DiffProcessor] 资源修改: {curr.AssetPath}");
+                    AppendDeletList(deleteList, oldAsset);
                     modified.Add(curr);
                 }
             }
@@ -267,6 +273,16 @@ public static class DifferentialProcessor
             }
         }
         return modified;
+    }
+    
+    /// <summary>
+    /// 添加删除列表
+    /// </summary>
+    private static void AppendDeletList(List<string> deleteList, AssetSnapshot oldAssets)
+    {
+        string deletgroup = oldAssets.hasUpdated ? oldAssets.RemoteGroupName : oldAssets.GroupName;
+        string deletlabels = oldAssets.Labels.Count == 0 ? "untyped" : string.Join("", oldAssets.Labels).ToLowerInvariant();
+        deleteList.Add($"{deletgroup}_assets_{deletlabels}");
     }
     
     /// <summary>

@@ -165,7 +165,7 @@ public class HelperBuildDataExporter
             keys.Sort(StringComparer.Ordinal);
             StringBuilder sb = new StringBuilder();
             foreach (var k in keys) sb.Append(k);
-            // TODO: 逻辑hash需要加入labels 作为参数？我们本身就是以group+label 为单位的
+            
             string logicalHash = HashGenerator.GenerateStringHash(sb.ToString());
 
             config.labelLogicalHashes.Add(new GroupLabelToLogicalHash 
