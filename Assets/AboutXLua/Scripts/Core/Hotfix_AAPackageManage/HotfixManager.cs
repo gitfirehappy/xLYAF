@@ -66,7 +66,6 @@ public static class HotfixManager
         _remoteUrlRoot = $"{_hotfixUrl}/Packages/{packagePath}";
     
         Debug.Log($"[HotfixManager] 获取最新包体: {packagePath}，URL已更新: {_remoteUrlRoot}");
-
         
         // 4. 加载本地 version_state.json
         string localVersionStatePath = Path.Combine(PathManager.LocalRoot, "version_state.json");
@@ -90,26 +89,28 @@ public static class HotfixManager
         }
         
         VersionState remoteVersionState = ParseJson(remoteVersionJson);
+        Debug.Log($"[HotfixManager] 远端版本: {remoteVersionState?.version}");
         
         // 如果是大版本更新，则强制清理所有热更目录
-        if (localVersionState != null)
+        // 检查本地整包是否是大版本包，拿BuildIndex查（整包唯一）
+        if (localVersionState.version.Major != remoteVersionState.version.Major)
         {
-            if (IsMajorUpdate(localVersionState.version, remoteVersionState.version))
+            if (buildIndex.Version == remoteVersionState.version)
             {
-                Debug.Log($"[HotfixManager] 检测到大版本更新 (Local:{localVersionState.version} -> Remote:{remoteVersionState.version})。执行全量清理。");
-                
-                // TODO: 检查本地整包是否是大版本包，拿BuildIndex查（整包唯一）
-                
-                
+                Debug.Log($"[HotfixManager] 检测到大版本更新，执行全量清理。版本：{buildIndex.Version}");
                 // 强制清理所有热更目录 (Local, Remote)
-                PackageCleaner.Instance.ClearAllHotfix();
+                PackageCleaner.ClearAllHotfix();   
+            }
+            else
+            {
+                Debug.LogError($"[HotfixManager] 检测到整包版本不一致，请下载最新整包");
             }
         }
         
-        Debug.Log($"[HotfixManager] 发现更新！需下载Bundle数: {remoteVersionState.bundles.Count}, 总大小: {remoteVersionState.totalSize}");
+        Debug.Log($"[HotfixManager] 此次需下载Bundle数: {remoteVersionState.bundles.Count}, 总大小: {remoteVersionState.totalSize}");
         
         // 6. 下载所有的远端 bundle 到 RemoteRoot （暂存远端文件）
-        string remoteBundleRoot = PathManager.RemoteBundleRoot;
+        string remoteBundleRoot = PathManager.TempBundleRoot;
         if (!Directory.Exists(remoteBundleRoot)) Directory.CreateDirectory(remoteBundleRoot);
         
         var task = new List<Task<bool>>();
@@ -130,19 +131,19 @@ public static class HotfixManager
         
         // 7. 下载 catalog.json
         string catalogUrl = $"{_remoteUrlRoot}/catalog.json";
-        await NetworkDownloader.Instance.DownloadFile(catalogUrl, Path.Combine(PathManager.RemoteRoot, "catalog.json"));
+        await NetworkDownloader.Instance.DownloadFile(catalogUrl, Path.Combine(PathManager.TempRoot, "catalog.json"));
         
-        // 保存新的 version_state.json 到RemoteRoot
-        File.WriteAllText(Path.Combine(PathManager.RemoteRoot, "version_state.json"), remoteVersionJson);
+        // 保存新的 version_state.json 到 TempRoot
+        File.WriteAllText(Path.Combine(PathManager.TempRoot, "version_state.json"), remoteVersionJson);
         
         Debug.Log("[HotfixManager] 热更资源下载完成，开始应用热更...");
         
-        // 8. 应用更新
-        // 拿version_state中的删除名单比对
-        PackageCleaner.Instance.ApplyUpdate(remoteVersionState.deleteList, PathManager.RemoteRoot, PathManager.LocalRoot);
+        // 8. 拿version_state中的删除名单比对，删除并更新文件
+        PackageCleaner.ApplyUpdate(remoteVersionState.deleteList, PathManager.TempRoot, PathManager.LocalRoot);
         
         // 9. 加载新的 catalog
-        Debug.Log("[HotfixManager] 加载新 Catalog...");
+        // TODO: 如果是大版本更新，此时LocalRoot中没有catalog.json，需要调整
+        Debug.Log("[HotfixManager] 加载新的远端 Catalog...");
         string localCatalogPath = Path.Combine(PathManager.LocalRoot, "catalog.json");
         
         CatalogUpdater catalogUpdater = new CatalogUpdater();
@@ -173,26 +174,6 @@ public static class HotfixManager
         {
             Debug.LogError($"[HotfixManager] JSON 解析失败: {e.Message}");
             return null;
-        }
-    }
-    
-    /// <summary>
-    /// 检查是否是大版本更新 (e.g., 1.x.x -> 2.x.x)
-    /// </summary>
-    public static bool IsMajorUpdate(VersionNumber localVerStr, VersionNumber remoteVerStr)
-    {
-        if (localVerStr == null || remoteVerStr == null) 
-            return false;
-
-        try 
-        {
-            // 比较主版本号
-            return localVerStr.Major != remoteVerStr.Major;
-        }
-        catch (Exception)
-        {
-            Debug.LogWarning($"[VersionChecker] 检查版本差异时出错: Local:{localVerStr} Remote:{remoteVerStr}");
-            return false;
         }
     }
 }

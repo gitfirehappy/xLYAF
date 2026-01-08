@@ -3,30 +3,42 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-public class PackageCleaner : Singleton<PackageCleaner>
+public static class PackageCleaner
 {
     /// <summary>
     /// 应用更新：删除旧文件，移动新文件
     /// </summary>
-    public void ApplyUpdate(List<string> filesToDelete, string tempDownloadRoot, string finalRoot)
+    public static void ApplyUpdate(List<string> filesToDelete, string tempDownloadRoot, string finalRoot)
     {
-        // TODO: version_state的删除名单只有前缀文件名，需要先进行匹配
-        
         // 删除 Local 中不再需要的旧 Bundle
         string localBundleRoot = Path.Combine(finalRoot, "bundles");
-        if (Directory.Exists(localBundleRoot) && filesToDelete != null)
+        if (Directory.Exists(localBundleRoot) && filesToDelete != null && filesToDelete.Count > 0)
         {
-            foreach (string fileName in filesToDelete)
+            foreach (var prefix in filesToDelete)
             {
-                string fullPath = Path.Combine(localBundleRoot, fileName);
-                if (File.Exists(fullPath))
+                if(string.IsNullOrEmpty(prefix)) continue;
+
+                try
                 {
-                    try
+
+                    string[] matchFiles = Directory.GetFiles(localBundleRoot, $"{prefix}*.bundle");
+
+                    foreach (string filePath in matchFiles)
                     {
-                        File.Delete(fullPath);
-                        Debug.Log($"[PackageCleaner] 删除过期 Bundle: {fileName}");
+                        try
+                        {
+                            File.Delete(filePath);
+                            Debug.Log($"[PackageCleaner] 删除过期 Bundle: {Path.GetFileName(filePath)} (匹配规则: {prefix})");
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogWarning($"删除失败: {filePath}\n{e}");
+                        }
                     }
-                    catch (Exception e) { Debug.LogWarning($"删除失败: {fullPath}\n{e}"); }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[PackageCleaner] 搜索待删除文件出错 (Prefix: {prefix}): {e.Message}");
                 }
             }
         }
@@ -41,7 +53,7 @@ public class PackageCleaner : Singleton<PackageCleaner>
     /// <summary>
     /// 递归移动文件夹内容
     /// </summary>
-    private void MoveDirectory(string sourceDir, string destDir)
+    private static void MoveDirectory(string sourceDir, string destDir)
     {
         if (!Directory.Exists(sourceDir)) return;
         if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir);
@@ -71,9 +83,9 @@ public class PackageCleaner : Singleton<PackageCleaner>
     /// <summary>
     /// 大版本清理：清空所有热更内容
     /// </summary>
-    public void ClearAllHotfix()
+    public static void ClearAllHotfix()
     {
-        // TODO: 路径需匹配PathManager的 BuildIndex，最好传路径
+        // 路径已根据BuildIndex锁定
         if (Directory.Exists(PathManager.HotfixRoot))
             Directory.Delete(PathManager.HotfixRoot, true);
         PathManager.EnsureDirectories();

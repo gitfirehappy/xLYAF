@@ -17,11 +17,11 @@ public class LocalStatusExporter
     /// <summary>
     /// 总导出入口
     /// </summary>
-    public static void ExportData()
+    public static void ExportData(VersionNumber version)
     {
         Debug.Log("[LocalBuildData] 开始导出所有本地构建数据...");
     
-        ExportBuildIndex();
+        ExportBuildIndex(version);
     
         AssetDatabase.SaveAssets();
         Debug.Log("[LocalBuildData] 导出完成。");
@@ -72,7 +72,7 @@ public class LocalStatusExporter
     /// <summary>
     /// 导出BuildIndex
     /// </summary>
-    private static void ExportBuildIndex()
+    private static void ExportBuildIndex(VersionNumber version)
     { 
         // 创建BuildIndex
         BuildIndex buildIndex = ScriptableObject.CreateInstance<BuildIndex>();
@@ -84,6 +84,8 @@ public class LocalStatusExporter
         buildIndex.IsDebug = EditorUserBuildSettings.development;
         
         buildIndex.Platform = EditorUserBuildSettings.activeBuildTarget.ToString();
+        
+        buildIndex.Version = version;
         
         // 保存到Asset
         string directoryPath = Path.GetDirectoryName(_buildIndexAssetPath);

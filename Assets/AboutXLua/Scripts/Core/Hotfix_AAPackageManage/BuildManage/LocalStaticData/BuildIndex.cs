@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 包体索引，Local唯一，不会热更
@@ -20,6 +21,6 @@ public class BuildIndex : ScriptableObject
     [Header("目标平台")]
     public string Platform;
     
-    [Header("大版本号")]
-    public int MajorVersion; // TODO: 新增标识，需要导出
+    [FormerlySerializedAs("MajorVersion")] [Header("大版本号")]
+    public VersionNumber Version; 
 }

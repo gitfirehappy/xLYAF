@@ -16,10 +16,10 @@ public static class PathManager
     public static string HotfixRoot { get; private set; } // .../[Platform]/[Debug]/[GUID]/Hotfix
    
     public static string LocalRoot { get; private set; }
-    public static string RemoteRoot { get; private set; }
+    public static string TempRoot { get; private set; }
     
     public static string LocalBundleRoot { get; private set; }
-    public static string RemoteBundleRoot { get; private set; }
+    public static string TempBundleRoot { get; private set; }
     
     public static string CacheRoot { get; private set; }
     public static string SaveRoot { get; private set; }
@@ -45,12 +45,12 @@ public static class PathManager
         
         HotfixRoot = Path.Combine(CurrentGUIDRoot, "Hotfix");
         
-        // 定位 Local 和 Remote
+        // 定位 Local 和 Temp
         LocalRoot = Path.Combine(HotfixRoot, "Local");
-        RemoteRoot = Path.Combine(HotfixRoot, "Remote");
+        TempRoot = Path.Combine(HotfixRoot, "Temp");
         
         LocalBundleRoot = Path.Combine(LocalRoot, "bundles");
-        RemoteBundleRoot = Path.Combine(RemoteRoot, "bundles");
+        TempBundleRoot = Path.Combine(TempRoot, "bundles");
         
         CacheRoot = Path.Combine(CurrentGUIDRoot, "Cache");
         SaveRoot = Path.Combine(CurrentGUIDRoot, "Saves");
@@ -64,9 +64,9 @@ public static class PathManager
         Directory.CreateDirectory(PersistentRoot);
         Directory.CreateDirectory(HotfixRoot);
         Directory.CreateDirectory(LocalRoot);
-        Directory.CreateDirectory(RemoteRoot);
+        Directory.CreateDirectory(TempRoot);
         Directory.CreateDirectory(LocalBundleRoot);
-        Directory.CreateDirectory(RemoteBundleRoot);
+        Directory.CreateDirectory(TempBundleRoot);
         Directory.CreateDirectory(CacheRoot);
         Directory.CreateDirectory(SaveRoot);
         Directory.CreateDirectory(LogRoot);

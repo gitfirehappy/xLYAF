@@ -128,7 +128,7 @@ public static class BuildProjectManager
             // 8. 如果是整包构建，需要导出 LocalStatus
             if (buildType == BuildType.Full)
             {
-                LocalStatusExporter.ExportData();
+                LocalStatusExporter.ExportData(version);
                 LocalStatusExporter.EnsureExportDataInGroup();
                 
                 DifferentialProcessor.ReBuildSnapShots(version);

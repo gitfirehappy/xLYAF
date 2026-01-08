@@ -29,7 +29,7 @@ public class CatalogUpdater
             if (id.StartsWith("http"))
             {
                 string fileName = Path.GetFileName(id);
-                string localPath = Path.Combine(PathManager.RemoteBundleRoot, fileName);
+                string localPath = Path.Combine(PathManager.TempBundleRoot, fileName);
 
                 // 如果本地已有下载的包，则强制使用本地路径
                 if (File.Exists(localPath))

@@ -39,7 +39,7 @@ public static class DifferentialProcessor
         
         var modifiedAssets = FindModifiedAssets(currentAssets, head, deleteList);
 
-        if (modifiedAssets.Count == 0)
+        if (modifiedAssets.Count == 0 && deleteList.Count == 0)
         {
             Debug.Log("[DiffProcessor] 没有修改的资源，无需调整。");
             return false;
@@ -47,20 +47,23 @@ public static class DifferentialProcessor
         
         // 移动逻辑
         _groupCache.Clear();
-        var hotfixGroup = GetOrCreateHotfixGroup(settings);
-        
-        foreach (var asset in modifiedAssets)
-        { 
-            _groupCache[asset.AssetGUID] = asset.GroupName;
-            
-            var entry = settings.FindAssetEntry(asset.AssetGUID);
-            if (entry != null)
+        if (modifiedAssets.Count > 0)
+        {
+            var hotfixGroup = GetOrCreateHotfixGroup(settings);
+
+            foreach (var asset in modifiedAssets)
             {
-                settings.MoveEntry(entry, hotfixGroup);
-                asset.RemoteGroupName = hotfixGroup.Name;
+                _groupCache[asset.AssetGUID] = asset.GroupName;
+
+                var entry = settings.FindAssetEntry(asset.AssetGUID);
+                if (entry != null)
+                {
+                    settings.MoveEntry(entry, hotfixGroup);
+                    asset.RemoteGroupName = hotfixGroup.Name;
+                }
             }
         }
-        
+
         EditorUtility.SetDirty(settings);
         AssetDatabase.SaveAssets();
         
@@ -118,6 +121,7 @@ public static class DifferentialProcessor
 
     /// <summary>
     /// 确认发布上线热更包，更新快照列表和 Head
+    /// TODO: 此处添加按钮或在上层封装
     /// </summary>
     public static void ConfirmRelease()
     {
@@ -253,8 +257,13 @@ public static class DifferentialProcessor
             if(!headDict.ContainsKey(h.AssetGUID)) headDict.Add(h.AssetGUID, h);
         }
         
+        var currentGuids = new HashSet<string>();
+        
+        // 找出修改或新增的资源
         foreach (var curr in currentAssets)
         {
+            currentGuids.Add(curr.AssetGUID);
+            
             if (headDict.TryGetValue(curr.AssetGUID, out var oldAsset))
             {
                 // 存在 -> 比较 Hash
@@ -272,6 +281,16 @@ public static class DifferentialProcessor
                 modified.Add(curr);
             }
         }
+
+        // 删除不存在的资源
+        foreach (var oldAsset in head.Assets)
+        {
+            if (!currentGuids.Contains(oldAsset.AssetGUID))
+            {
+                Debug.Log($"[DiffProcessor] 删除资源: {oldAsset.AssetPath}");
+                AppendDeletList(deleteList, oldAsset);
+            }
+        }
         return modified;
     }
     
@@ -282,7 +301,13 @@ public static class DifferentialProcessor
     {
         string deletgroup = oldAssets.hasUpdated ? oldAssets.RemoteGroupName : oldAssets.GroupName;
         string deletlabels = oldAssets.Labels.Count == 0 ? "untyped" : string.Join("", oldAssets.Labels).ToLowerInvariant();
-        deleteList.Add($"{deletgroup}_assets_{deletlabels}");
+        string bundleIdentifier = $"{deletgroup}_assets_{deletlabels}";
+        
+        // 防止重复添加
+        if (!deleteList.Contains(bundleIdentifier))
+        {
+            deleteList.Add(bundleIdentifier);
+        }
     }
     
     /// <summary>
